@@ -1,0 +1,30 @@
+October 03: 1.13
+	- Allow images with 0 acceptable stars to be processed.
+
+July 03: 1.11
+	- Customizations for QualityFITS
+
+December 02: 1.9
+        - Autoconf'ed package.
+        - Dumpable internal config file
+        - Support for MEF files
+
+October 99: 1.8
+        - Optimized handling of oversampled data
+
+March 99: 1.5
+        - Automatic candidate selection and filtering
+        - Candidate recentering
+          1.6
+        - New selection method of super-resolved pixels
+
+February 99: 1.4
+        - Context Groups
+        - Sparse matrices
+
+December 98: 1.3
+	- First release.
+        - PSF super-resolution added. 
+
+June 98:
+	- First running version.

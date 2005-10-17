@@ -1,0 +1,50 @@
+/*
+                                changes.log
+
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*
+*       Part of:        PSFEx
+*
+*       Author:         E. BERTIN (IAP)
+*
+*       Contents:       log of changes made to the PSFEx source
+*
+*       Last modify:    11/12/2004
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*/
+
+Who     When            Where(mostly)   What
+
+EB      17/12/2002      -               Moved to autoconf'ed distribution.
+                        -               FITS library updated.
+                        main()          New banner.
+                        -               Added Support for MEF files
+FM      24/01/2003      -               Added new FITS keywords to output.
+
+EB      26/02/2003      makeit()
+                        read_samples()  Allow support for single-source inputs.
+                        -               Added fast_median() function.
+                        psfex-tpx.spec  New optimized .spec file for TERAPIX.
+
+FM      13/03/2003      psf.c           Add new PSF_FWHM keyword to output.
+
+EB      10/04/2003      fast_median()   Fixed a bug with odd cases.
+
+EB      11/07/2003      psf_writecheck() Add WCS info to check-image headers.
+
+EB      27/07/2003      read_sample()   header array overflow bug fixed.
+                        psf_writecheck() Fixed memory leak with naxisn array.
+
+EB      31/10/2003      makeit()
+                        psf.c           Now produces a warning instead of an
+                                        error exit if saccepted = 0.
+                        FITS library    Updated to the latest version.
+                        main()          Cleaner "--version" output.
+                        -               Fixed all gcc -Wall warnings.
+
+EB      03/11/2003      psf_init()      Fixed bug when CONTEXT_DEGREES empty.
+
+EB      11/12/2004      FITS library    Updated to the latest version (%e->%E).
+			sample.c	Propagated FITS library changes.
+			-		New RPM build system.

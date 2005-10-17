@@ -1,0 +1,5 @@
+V1.9 (2002-12-17)
+Suppoty for PSF fitting in SExtractor is still experimental. One should mainly
+expect detection completeness problems with the current implementation.
+
+				Emmanuel Bertin <bertin@iap.fr>

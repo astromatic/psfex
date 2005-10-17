@@ -1,0 +1,55 @@
+%define name @PACKAGE_NAME@
+%define version @PACKAGE_VERSION@
+%define release 1
+
+Summary: generate a PSF super-tabulated model for SExtractor
+Name: %{name}
+Version: %{version}
+Release: %{release}
+Source0: ftp://ftp.iap.fr/pub/from_users/bertin/%{name}/%{name}-%{version}.tar.gz
+URL: http://terapix.iap.fr/soft/%{name}/
+License: LGPL
+Group: Sciences/Astronomy
+BuildRoot: %{_tmppath}/%{name}-buildroot
+Prefix: %{_prefix}
+
+%description
+PSFEx stands for ``PSF Extractor'': a software that makes PSF models for
+use with the SExtractor program.
+
+%prep
+%setup -q
+
+%build
+if test "$GCCFLAGS"; then
+./configure --enable-static --prefix=$RPM_BUILD_ROOT/usr/local/ --mandir=$RPM_BUILD_ROOT/usr/local/man/
+make CFLAGS="$GCCFLAGS"
+else
+./configure --prefix=$RPM_BUILD_ROOT/usr/local/ --mandir=$RPM_BUILD_ROOT/usr/local/man/
+make
+fi
+
+%install
+make install
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+/usr/local/bin/psfex
+/usr/local/man/man1/@PACKAGE_NAME@.1
+/usr/local/man/manx/@PACKAGE_NAME@.x
+%doc AUTHORS BUGS ChangeLog COPYING HISTORY INSTALL README THANKS
+
+%changelog
+* @DATE2@ @PACKAGER@ <@PACKAGE_BUGREPORT@>
+- Automatic RPM rebuild
+* Fri Jul 11 2003 Emmanuel Bertin <bertin@iap.fr>
+- Third RPM build
+* Wed Feb 26 2003 Emmanuel Bertin <bertin@iap.fr>
+- Second RPM build
+* Tue Dec 17 2002 Emmanuel Bertin <bertin@iap.fr>
+- First RPM build
+
+# end of file
