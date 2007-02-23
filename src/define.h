@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	17/12/2002
+*	Last modify:	23/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -17,7 +17,7 @@
 /* Check if we are using a configure script here */
 #ifndef HAVE_CONFIG_H
 #define		VERSION		"1.x"
-#define		DATE		"2002-12-16"
+#define		DATE		"2007-02-23"
 #endif
 /*------------------------ what, who, when and where ------------------------*/
 
@@ -26,12 +26,10 @@
 #define		MYVERSION	VERSION
 #define         COPYRIGHT       "Emmanuel BERTIN <bertin@iap.fr>"
 #define		WEBSITE		"http://terapix.iap.fr/soft/psfex"
-#define	       	MAILINGLIST	"psfex@iap.fr"
-#define	       	MAILINGLISTREQ	"psfex-request@iap.fr"
 #define		INSTITUTE	"TERAPIX team at IAP  http://terapix.iap.fr"
 
 /*----------------------------- Internal constants --------------------------*/
-#define		OUTPUT		stderr		/* where all msgs are sent */
+#define		OUTPUT		stdout		/* where all msgs are sent */
 #define		BIG		1e+30		/* a huge number */
 #define		MAXCHAR		512		/* max. number of characters */
 #define		MAXCONTEXT	8		/* max. # of context keys */
@@ -139,3 +137,5 @@
 				fprintf(w, "%s.\n", x);}
 
 #define	FPRINTF		if (prefs.verbose_type == FULL)	fprintf
+
+#define QPRINTF		if (prefs.verbose_type != QUIET)	fprintf

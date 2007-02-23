@@ -9,7 +9,7 @@
 *
 *	Contents:	Simplified versin of the LDACTools: main include file
 *
-*	Last modify:	26/09/2004
+*	Last modify:	10/07/2006
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -22,6 +22,7 @@
 #endif
 
 #define	MAXCHARS	256	/* max. number of characters */
+#define WARNING_NMAX	100	/* max. number of recorded warnings */
 
 /*---------------------------- return messages ------------------------------*/
 
@@ -107,6 +108,8 @@ typedef struct structkey
   t_type	ttype;			/* standard ``t_type'' (storage) */
   char		printf[80];		/* printing format (C Convention) */
   char		unit[80];		/* physical unit */
+  char		voucd[80];		/* VO ucd */
+  char		vounit[80];		/* VO unit */
   int		naxis;			/* number of dimensions */
   int		*naxisn;		/* pointer to an array of dim. */
   int		nobj;			/* number of objects */
@@ -196,6 +199,7 @@ extern void	add_cleanupfilename(char *filename),
 		end_readobj(tabstruct *keytab, tabstruct *tab, char *buf),
 		end_writeobj(catstruct *cat, tabstruct *tab, char *buf),
 		error(int, char *, char *),
+		error_installfunc(void (*func)(char *msg1, char *msg2)),
 		fixexponent(char *s),
 		free_body(tabstruct *tab),
 		free_cat(catstruct **cat, int ncat),
@@ -219,6 +223,7 @@ extern void	add_cleanupfilename(char *filename),
 		swapbytes(void *, int, int),
 		ttypeconv(void *ptrin, void *ptrout,
 			t_type ttypein, t_type ttypeout),
+		voprint_obj(FILE *stream, tabstruct *tab),
 		warning(char *, char *),
 		write_body(tabstruct *tab, PIXTYPE *ptr, size_t size),
 		write_checksum(tabstruct *tab);
@@ -227,7 +232,8 @@ extern char	*tdisptoprintf(char *tdisp, char *str),
 		*printftotdisp(char *cprintf, char *str),
 		*fitsnfind(char *fitsbuf, char *str, int nblock),
 		**tabs_list(catstruct *cat, int *n),
-		**keys_list(tabstruct *tab, int *n);
+		**keys_list(tabstruct *tab, int *n),
+		*warning_history(void);
 
 extern unsigned int
 		compute_blocksum(char *buf, unsigned int sum),

@@ -9,7 +9,7 @@
 *
 *	Contents:	low-level functions for writing LDAC FITS catalogs.
 *
-*	Last modify:	26/09/2004
+*	Last modify:	17/07/2006
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -212,7 +212,7 @@ INPUT	catalog structure,
 OUTPUT	RETURN_OK if tab is a binary table, or RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	22/01/2003
+VERSION	16/12/2004
  ***/
 int	save_head(catstruct *cat, tabstruct *tab)
 
@@ -223,6 +223,7 @@ int	save_head(catstruct *cat, tabstruct *tab)
   update_tab(tab);
 /*  The header itself*/
   tabflag = update_head(tab);
+  QFTELL(cat->file, tab->headpos, cat->filename);
   QFWRITE(tab->headbuf, tab->headnblock*FBSIZE, cat->file, cat->filename);
 
   return tabflag;
@@ -305,28 +306,29 @@ INPUT	Table structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP & Leiden observatory)
-VERSION	26/09/2004
+VERSION	28/12/2004
  ***/
 int	write_obj(tabstruct *tab, char *buf)
 
   {
-   keystruct	*key;
-   char		*pin, *pout;
-   int		b,k;
-   int		esize;
+   keystruct    *key;
+   char         *pin, *pout, *pout2;
+   int          b,k;
+   int          esize;
 
   key = tab->key;
   pout = buf;
   for (k=tab->nkey; k--; key = key->nextkey)
     {
     pin = key->ptr;
+    pout2 = pout;
+    for (b=key->nbytes; b--;)
+      *(pout++) = *(pin++);
     if (bswapflag)
       {
       esize = t_size[key->ttype];
-      swapbytes(pin, esize, key->nbytes/esize);
+      swapbytes(pout2, esize, key->nbytes/esize);
       }
-    for (b=key->nbytes; b--;)
-      *(pout++) = *(pin++);
     }
 
   QFWRITE(buf, *tab->naxisn, tab->cat->file, tab->cat->filename);
@@ -384,7 +386,7 @@ INPUT	Output stream
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP & Leiden observatory)
-VERSION	13/06/97
+VERSION	12/07/2006
  ***/
 void	print_obj(FILE *stream, tabstruct *tab)
 
@@ -403,16 +405,6 @@ void	print_obj(FILE *stream, tabstruct *tab)
     for (i = key->nbytes/esize; i--; ptr += esize)
       switch(key->ttype)
         {
-        case T_SHORT:
-          fprintf(stream, *key->printf?key->printf:"%d", *(short *)ptr);
-          if (i)
-            putc(' ', stream);
-          break;
-        case T_LONG:
-          fprintf(stream, *key->printf?key->printf:"%d", *(int *)ptr);
-          if (i)
-            putc(' ', stream);
-          break;
         case T_FLOAT:
           fprintf(stream, *key->printf?key->printf:"%g", *(float *)ptr);
           if (i)
@@ -420,6 +412,16 @@ void	print_obj(FILE *stream, tabstruct *tab)
           break;
         case T_DOUBLE:
           fprintf(stream, *key->printf?key->printf:"%f", *(double *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_SHORT:
+          fprintf(stream, *key->printf?key->printf:"%d", *(short *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_LONG:
+          fprintf(stream, *key->printf?key->printf:"%d", *(int *)ptr);
           if (i)
             putc(' ', stream);
           break;
@@ -441,7 +443,7 @@ void	print_obj(FILE *stream, tabstruct *tab)
           break;
         default:
           error(EXIT_FAILURE, "*FATAL ERROR*: Unknown FITS type in ",
-		"show_keys()");
+		"print_obj()");
         }
     if (k)
       putc(' ', stream);
@@ -452,3 +454,83 @@ void	print_obj(FILE *stream, tabstruct *tab)
   return;
   }
 
+
+/****** voprint_obj ***********************************************************
+PROTO	void voprint_obj(FILE *stream, tabstruct *tab)
+PURPOSE	Print one individual source to the output stream in VOTable format
+INPUT	Output stream
+	Table structure.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	G. Tissier & E.Bertin (IAP)
+VERSION	12/07/2006
+ ***/
+void	voprint_obj(FILE *stream, tabstruct *tab)
+
+  {
+   keystruct	*key;
+   char		*ptr;
+   int		i,k, esize;
+
+  if (!(key = tab->key))
+    error(EXIT_FAILURE, "*Error*: no key to print in table ", tab->extname);
+
+  fprintf(stream, "    <TR>");
+
+  for (k=tab->nkey; k--; key = key->nextkey)
+    {
+    fprintf(stream, "<TD>");
+
+    esize = t_size[key->ttype];
+    ptr = key->ptr;
+    for (i = key->nbytes/esize; i--; ptr += esize)
+      switch(key->ttype)
+        {
+        case T_FLOAT:
+          fprintf(stream, *key->printf?key->printf:"%g", *(float *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_DOUBLE:
+          fprintf(stream, *key->printf?key->printf:"%f", *(double *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_SHORT:
+          fprintf(stream, *key->printf?key->printf:"%d", *(short *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_LONG:
+          fprintf(stream, *key->printf?key->printf:"%d", *(int *)ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_BYTE:
+          if (key->htype==H_BOOL)
+            {
+            if (*ptr)
+              fprintf(stream, "T");
+            else
+              fprintf(stream, "F");
+            }
+          else
+            fprintf(stream, key->printf?key->printf:"%d", (int)*ptr);
+          if (i)
+            putc(' ', stream);
+          break;
+        case T_STRING:
+          fprintf(stream, "%c", (int)*ptr);
+          break;
+        default:
+          error(EXIT_FAILURE, "*FATAL ERROR*: Unknown FITS type in ",
+		"voprint_obj()");
+        }
+
+    fprintf(stream, "</TD>");
+    }
+
+  fprintf(stream, "</TR>\n");
+
+  return;
+  }

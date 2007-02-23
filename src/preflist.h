@@ -9,17 +9,29 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	16/12/2002
+*	Last modify:	23/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "key.h"
 #ifndef	_CHECK_H_
 #include "check.h"
 #endif
 
+#ifndef _XML_H_
+#include "xml.h"
+#endif
+
+#ifdef  USE_THREADS
+#define	THREADS_PREFMAX	THREADS_NMAX
+#else
+#define	THREADS_PREFMAX	65535
+#endif
 
 /*-------------------------------- initialization ---------------------------*/
 int	idummy;
@@ -40,6 +52,7 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"GROUP_DEGREES", P_INTLIST, prefs.group_deg, 1,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
+  {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PC_INCLUDE", P_BOOL, &prefs.pc_flag},
   {"PC_NAME", P_STRING, prefs.pc_name},
   {"PC_NPC",  P_INT, &prefs.pc_npc, 0,1000000},
@@ -58,6 +71,9 @@ pkeystruct key[] =
   {"PSF_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","FULL",""}},
+  {"XML_NAME", P_STRING, prefs.xml_name},
+  {"XSL_URL", P_STRING, prefs.xsl_name},
+  {"WRITE_XML", P_BOOL, &prefs.xml_flag},
   {""}
  };
 
@@ -111,6 +127,17 @@ char *default_prefs[] =
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",
 "VERBOSE_TYPE    NORMAL          # can be \"QUIET\", \"NORMAL\" or \"FULL\"",
+"WRITE_XML       Y               # Write XML file (Y/N)?",
+"XML_NAME        psfex.xml       # Filename for XML output",
+"*XSL_URL        " XSL_URL,
+"*                                # Filename for XSL style-sheet",
+#ifdef USE_THREADS
+"NTHREADS        0               # Number of simultaneous threads for",
+"                                # the SMP version of " BANNER,
+"                                # 0 = automatic",
+#else
+"NTHREADS        1               # 1 single thread",
+#endif
 " ",
 ""
  };

@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	18/12/2002
+*	Last modify:	23/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -31,6 +31,8 @@ One must have:	MAXLIST >= 1 (preferably >= 16!)
 /*------------------------------- preferences -------------------------------*/
 typedef struct
   {
+  char		**command_line;			/* Command line */
+  int		ncommand_line;			/* nb of params */
   char		prefs_name[MAXCHAR];		/* prefs filename */
   char		psf_name[MAXCHAR];		/* PSF filename */
   int		retisize[2], nretisize;		/* Retina size */
@@ -59,7 +61,18 @@ typedef struct
   int		pc_flag;			/* Include PCs? */
   char		pc_name[MAXCHAR];		/* PC filename */
   int		pc_npc;				/* Max. number of PCs */
+/* Multithreading */
+  int		nthreads;			/* Number of active threads */
+/* Misc */
   enum {QUIET, NORM, FULL}	verbose_type;	/* How much it displays info */
+  int		xml_flag;			/* Write XML file? */
+  char		xml_name[MAXCHAR];		/* XML file name */
+  char		xsl_name[MAXCHAR];		/* XSL file name (or URL) */
+  char		sdate_start[12];		/* PSFEx start date */
+  char		stime_start[12];		/* PSFEx start time */
+  char		sdate_end[12];			/* PSFEx end date */
+  char		stime_end[12];			/* PSFEx end time */
+  double	time_diff;			/* Execution time */
   }	prefstruct;
 
   prefstruct		prefs;

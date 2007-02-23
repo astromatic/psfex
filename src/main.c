@@ -9,7 +9,7 @@
 *
 *	Contents:	parsing and main loop.
 *
-*	Last modify:	31/10/2003
+*	Last modify:	23/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,10 +30,9 @@
 #include	"prefs.h"
 
 #define		SYNTAX \
-EXECUTABLE " catalog [catalog2 ...][-c <config_file>]" \
-	"[-<keyword> <value>]\n" \
-	"> or, to dump a default configuration file:\n" \
-	"> " EXECUTABLE " -d \n"
+EXECUTABLE " catalog [catalog2 ...][-c <config_file>][-<keyword> <value>]\n" \
+"> to dump a default configuration file: " EXECUTABLE " -d \n" \
+"> to dump a default extended configuration file: " EXECUTABLE " -dd \n"
 
 /********************************** main ************************************/
 
@@ -54,6 +53,8 @@ int main(int argc, char *argv[])
   QMALLOC(argval, char *, argc);
 
 /* Default parameters */
+  prefs.command_line = argv;
+  prefs.ncommand_line = argc;
   ab=na=0;
   narg = 0;
   strcpy(prefs.prefs_name, "default.psfex");
@@ -111,8 +112,8 @@ int main(int argc, char *argv[])
 
   makeit(argv+ab, na);
 
-  NFPRINTF(OUTPUT, "All done");
-  NPRINTF(OUTPUT, "\n");
+  NFPRINTF(OUTPUT, "");
+  NPRINTF(OUTPUT, "> All done (in %.0f s)\n", prefs.time_diff);
 
   exit(EXIT_SUCCESS);
   return 0;

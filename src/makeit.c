@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	31/10/2003
+*	Last modify:	23/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -21,6 +21,7 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#include	<time.h>
 
 #include	"define.h"
 #include	"types.h"
@@ -31,6 +32,9 @@
 #include	"psf.h"
 #include	"sample.h"
 #include	"vignet.h"
+#include	"xml.h"
+
+time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
 /*
@@ -44,10 +48,32 @@ void	makeit(char **incatnames, int ncat)
    catstruct		*cat;
    tabstruct		*tab;
    static char		str[MAXCHAR];
+   struct tm		*tm;
    float		psfstep;
    int			i, ntab, ext, next;
 
    out_data_struct  out_data;
+
+/* Install error logging */
+  error_installfunc(write_error);
+
+/* Processing start date and time */
+  thetime = time(NULL);
+  tm = localtime(&thetime);
+  sprintf(prefs.sdate_start,"%04d-%02d-%02d",
+	tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
+  sprintf(prefs.stime_start,"%02d:%02d:%02d",
+	tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+  NFPRINTF(OUTPUT, "");
+  QPRINTF(OUTPUT,
+	"----- %s %s started on %s at %s with %d thread%s\n\n",
+		BANNER,
+		MYVERSION,
+		prefs.sdate_start,
+		prefs.stime_start,
+		prefs.nthreads,
+		prefs.nthreads>1? "s":"");
 
 /* Compute the number of valid input extensions */
   if (!(cat = read_cat(incatnames[0])))
@@ -156,6 +182,23 @@ void	makeit(char **incatnames, int ncat)
 		ext, next);
         }
 
+/* Processing end date and time */
+  thetime2 = time(NULL);
+  tm = localtime(&thetime2);
+  sprintf(prefs.sdate_end,"%04d-%02d-%02d",
+	tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
+  sprintf(prefs.stime_end,"%02d:%02d:%02d",
+	tm->tm_hour, tm->tm_min, tm->tm_sec);
+  prefs.time_diff = difftime(thetime2, thetime);
+
+/* Write XML */
+  if (prefs.xml_flag)
+    {
+    init_xml(&out_data, ncat);
+    write_xml(prefs.xml_name);
+    end_xml();
+    }
+
 /*-- Free memory */
     end_set(set);
     psf_end(psf);
@@ -170,4 +213,28 @@ void	makeit(char **incatnames, int ncat)
 
   return;
   }
+
+
+/****** write_error ********************************************************
+PROTO	void    write_error(char *msg1, char *msg2)
+PURPOSE	Manage files in case of a catched error
+INPUT	a character string,
+	another character string
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	23/02/2007
+ ***/
+void	write_error(char *msg1, char *msg2)
+  {
+   char	error[MAXCHAR];
+
+  sprintf(error, "%s%s", msg1,msg2);
+  if (prefs.xml_flag)
+    write_xmlerror(prefs.xml_name, error);
+  end_xml();
+
+  return;
+  }
+
 
