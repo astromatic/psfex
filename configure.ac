@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 1.16, [bertin@iap.fr])
+AC_INIT(psfex, 2.0b, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -137,5 +137,5 @@ AC_MSG_RESULT([I will compile using:  $CC $CFLAGS])
 AC_MSG_RESULT([I will link using:     $CC $LDFLAGS $LIBS])
 
 AC_CONFIG_FILES(Makefile man/Makefile src/Makefile src/fits/Makefile \
-psfex.spec man/psfex.1)
+src/lmfit/Makefile psfex.spec man/psfex.1)
 AC_OUTPUT

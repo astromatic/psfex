@@ -9,10 +9,14 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	18/12/2002
+*	Last modify:	25/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _SAMPLE_H_
+#include "sample.h"
+#endif
 
 #ifndef _PSF_H_
 #define _PSF_H_

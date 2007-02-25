@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	25/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -154,6 +154,10 @@ void	makeit(char **incatnames, int ncat)
 
 /*-- Just check the Chi2 */
     out_data.chi2 = set->nsample? psf_clean(psf, set, 0) : 0.0;
+    NFPRINTF(OUTPUT, "");
+
+/*-- Make a diagnostic of the PSF */
+    psf_diagnostic(psf, &out_data);
     NFPRINTF(OUTPUT, "");
 
 /*-- Load the PCs */
