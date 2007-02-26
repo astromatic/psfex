@@ -9,10 +9,14 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	25/02/2007
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _POLY_H_
+#include "poly.h"
+#endif
 
 #ifndef _SAMPLE_H_
 #include "sample.h"
@@ -28,6 +32,7 @@
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
 #define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
 #define PSF_NITER	40	/* Maximum number of iterations in fit */
+#define	PSF_NSNAP	7	/* Number of PSF snapshots/dimension */
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -40,19 +45,36 @@ typedef struct code
   int		nparam;
   }     codestruct;
 
+typedef struct moffat
+  {
+  double	context[POLY_MAXDIM];	/* Context coordinates */
+  double	amplitude;	/* Central amplitude */
+  double	xc[2];		/* Center coordinates */
+  double	fwhm_min;	/* FWHM along the minor axis */
+  double	fwhm_max;	/* FWHM along the major axis */
+  double	theta;		/* Position angle of the major axis / NAXIS1 */
+  double	beta;		/* Moffat beta parameter */
+  double	residuals;	/* Normalized residuals */
+  }	moffatstruct;
+
 typedef struct psf
   {
-  int		dim;	/* Dimensionality of the tabulated data */
-  int		*size;	/* PSF  dimensions */
-  int		npix;	/* Total number of involved PSF pixels */
-  float		*comp; 	/* Complete pix. data (principal components) */
-  float		*loc;	/* Local PSF */
-  float		*resi;	/* Map of residuals */
+  int		dim;		/* Dimensionality of the tabulated data */
+  int		*size;		/* PSF  dimensions */
+  int		npix;		/* Total number of involved PSF pixels */
+  float		*comp; 		/* Complete pix. data (principal components) */
+  float		*loc;		/* Local PSF */
+  float		*resi;		/* Map of residuals */
   char		**contextname;	/* Array of context key-names */
   double	*contextoffset;	/* Offset to apply to context data */
   double	*contextscale;	/* Scaling to apply to context data */
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */
+  int		samples_loaded;		/* Number of detections loaded */
+  int		samples_accepted;	/* Number of detections accepted */
+  double	chi2;			/* chi2/d.o.f. */
+  float		fwhm;			/* Initial guess of the FWHM */
+  moffatstruct	moffat[PSF_NSNAP*PSF_NSNAP]; /* Array of Moffat fits to PSF */
   }	psfstruct;
 
 
@@ -60,21 +82,15 @@ typedef struct pc
   {
   char		name[MAXCHAR];	/* PC filename */
   int		npc;		/* Number of Principal Components */
-  int		dim;	/* Dimensionality of the tabulated data */
-  int		*size;	/* PC  dimensions */
-  int		npix;	/* Total number of involved PC pixels */
-  float		*comp; 	/* Complete pix. data (principal components) */
+  int		dim;		/* Dimensionality of the tabulated data */
+  int		*size;		/* PC  dimensions */
+  int		npix;		/* Total number of involved PC pixels */
+  float		*comp; 		/* Complete pix. data (principal components) */
   double	*mx2,*my2,*mxy;	/* 2nd order moments for each component */
   double	*flux;		/* Flux of each component */
   double	*bt;		/* B/T for each component */
   codestruct	*code;
   }	pcstruct;
-
-typedef struct out_data 
-{ int samples_loaded, samples_accepted;
-  double chi2;
-  float fwhm;
-} out_data_struct;
 
 
 /*---------------------------------- protos --------------------------------*/
@@ -85,7 +101,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set, int npsf),
 		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
-			char *filename, int ext, int next, out_data_struct *out_data);
+			char *filename, int ext, int next);
 
 extern double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag);
 

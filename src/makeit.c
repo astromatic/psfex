@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	25/02/2007
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,6 +28,7 @@
 #include	"globals.h"
 #include	"fits/fitscat.h"
 #include	"check.h"
+#include	"diagnostic.h"
 #include	"prefs.h"
 #include	"psf.h"
 #include	"sample.h"
@@ -51,8 +52,6 @@ void	makeit(char **incatnames, int ncat)
    struct tm		*tm;
    float		psfstep;
    int			i, ntab, ext, next;
-
-   out_data_struct  out_data;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -100,14 +99,12 @@ void	makeit(char **incatnames, int ncat)
 
     NFPRINTF(OUTPUT, "");
     NPRINTF(OUTPUT, "%d samples loaded\n", set->nsample);
-    out_data.samples_loaded = set->nsample;
 
     if (!set->nsample)
       warning("No appropriate source found!!","");
 
     psfstep = (float)(prefs.psf_step? prefs.psf_step
 				: (set->fwhm/2.35)*(1.0-1.0/INTERPFAC));
-    out_data.fwhm = set->fwhm;
 
     NFPRINTF(OUTPUT, "");
     NPRINTF(OUTPUT, "PSF sampled each %.2f pixel%s (%s)\n",
@@ -122,6 +119,9 @@ void	makeit(char **incatnames, int ncat)
 		set->retisize[0], set->retisize[1],
 		psfstep,
 		set->nsample);
+
+    psf->samples_loaded = set->nsample;
+    psf->fwhm = set->fwhm;
 
 /*-- Make the basic PSF-model (1st pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
@@ -147,17 +147,17 @@ void	makeit(char **incatnames, int ncat)
       NPRINTF(OUTPUT, "%d samples accepted\n", set->nsample);
       }
 
-    out_data.samples_accepted = set->nsample;
+    psf->samples_accepted = set->nsample;
 
 /*-- Refine the PSF-model */
     psf_refine(psf, set, prefs.nsuper);
 
 /*-- Just check the Chi2 */
-    out_data.chi2 = set->nsample? psf_clean(psf, set, 0) : 0.0;
+    psf->chi2 = set->nsample? psf_clean(psf, set, 0) : 0.0;
     NFPRINTF(OUTPUT, "");
 
 /*-- Make a diagnostic of the PSF */
-    psf_diagnostic(psf, &out_data);
+    psf_diagnostic(psf);
     NFPRINTF(OUTPUT, "");
 
 /*-- Load the PCs */
@@ -174,7 +174,7 @@ void	makeit(char **incatnames, int ncat)
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
 
-    psf_save(psf, pco, pc, prefs.psf_name, ext, next, &out_data);
+    psf_save(psf, pco, pc, prefs.psf_name, ext, next);
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
@@ -198,7 +198,7 @@ void	makeit(char **incatnames, int ncat)
 /* Write XML */
   if (prefs.xml_flag)
     {
-    init_xml(&out_data, ncat);
+    init_xml(psf, ncat);
     write_xml(prefs.xml_name);
     end_xml();
     }

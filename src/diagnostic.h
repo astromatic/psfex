@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	25/02/2002
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -24,14 +24,16 @@
 /*----------------------------- Internal constants --------------------------*/
 #define		PSF_DIAGMAXITER	100	/* Max. nb of iterations in fitting */
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
-#define		PSF_NSNAP	7	/* Number of PSF snapshots/dimension */
 /*--------------------------- structure definitions -------------------------*/
 /*---------------------------------- protos --------------------------------*/
-extern void	psf_diagnostic(psfstruct *psf, out_data_struct *out),
+extern void	psf_diagnostic(psfstruct *psf),
 		psf_diagprintout(int n_par, double *par, int m_dat,
 			double *fvec, void *data, int iflag,int iter,int nfev),
 		psf_diagresi(double *par, int m_dat, double *fvec, void *data,
-			int *info);
+			int *info),
+		psf_moffat(psfstruct *psf, moffatstruct *moffat);
+
+extern double	psf_normresi(double *par, psfstruct *psf);
 
 #endif
 

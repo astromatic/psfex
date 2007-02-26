@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -35,5 +35,5 @@ extern int	write_xml(char *filename),
 		write_xmlconfigparam(FILE *file, char *name, char *unit,
 				char *ucd, char *format);
 extern void	end_xml(void),
-		init_xml(out_data_struct *out, int nfield),
+		init_xml(psfstruct *psf, int nfield),
 		write_xmlerror(char *filename, char *error);

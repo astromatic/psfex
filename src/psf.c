@@ -5,11 +5,11 @@
 *
 *	Part of:	PSFEx
 *
-*	Author:		E.BERTIN (IAP, Leiden observatory & ESO)
+*	Author:		E.BERTIN (IAP)
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	03/11/2003
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -768,7 +768,7 @@ void	psf_make(psfstruct *psf, setstruct *set)
 Save the PSF data as a FITS file.
 */
 void	psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc, char *filename,
-		int ext, int next, out_data_struct *out_data)
+		int ext, int next)
   {
    static catstruct	*cat;
    tabstruct	*tab;
@@ -791,11 +791,11 @@ void	psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc, char *filename,
 
   head = tab->headbuf;
   addkeywordto_head(tab, "LOADED", "Number of loaded sources");
-  fitswrite(head, "LOADED", &out_data->samples_loaded, H_INT, T_LONG);
+  fitswrite(head, "LOADED", &psf->samples_loaded, H_INT, T_LONG);
   addkeywordto_head(tab, "ACCEPTED", "Number of accepted sources");
-  fitswrite(head, "ACCEPTED", &out_data->samples_accepted, H_INT, T_LONG);
+  fitswrite(head, "ACCEPTED", &psf->samples_accepted, H_INT, T_LONG);
   addkeywordto_head(tab, "CHI2", "Final Chi2");
-  fitswrite(head, "CHI2", &out_data->chi2, H_FLOAT, T_DOUBLE);
+  fitswrite(head, "CHI2", &psf->chi2, H_FLOAT, T_DOUBLE);
   addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
   fitswrite(head, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
   for (i=0; i<psf->poly->ndim; i++)
@@ -827,7 +827,7 @@ void	psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc, char *filename,
 /* Add and write important scalars as FITS keywords */
   /* -- FM -- : write fwhm too */
   addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
-  fitswrite(head, "PSF_FWHM", &out_data->fwhm, H_FLOAT, T_FLOAT);
+  fitswrite(head, "PSF_FWHM", &psf->fwhm, H_FLOAT, T_FLOAT);
   addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
   fitswrite(head, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
   addkeywordto_head(tab, "PSFNAXIS", "Dimensionality of the PSF data");

@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,7 +44,7 @@ pkeystruct key[] =
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
    {"NONE", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
-	"SNAPSHOTS", "WEIGHTS", "PC_CONVOLVED"},
+	"SNAPSHOTS", "WEIGHTS", "PC_CONVOLVED", "MOFFAT", ""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CONTEXT_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},
@@ -113,9 +113,9 @@ char *default_prefs[] =
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
-"CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS",
+"CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT",
 "                                # Check-image types",
-"CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits",
+"CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits",
 "                                # Check-image filenames",
 "* ",
 "*#---------------------- Galaxy Principal Components --------------------------",

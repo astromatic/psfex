@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,7 +36,7 @@ extern time_t		thetime,thetime2;	/* from makeit.c */
 extern pkeystruct	key[];			/* from preflist.h */
 extern char		keylist[][32];		/* from preflist.h */
  
-out_data_struct		*out_xml;
+psfstruct		*psf_xml;
 int			nfield_xml=0;
 
 
@@ -54,9 +54,9 @@ NOTES	-.
 AUTHOR	E. Bertin (IAP)
 VERSION	23/02/2007
  ***/
-void	init_xml(out_data_struct *out, int nfield)
+void	init_xml(psfstruct *psf, int nfield)
   {
-   out_xml = out;
+   psf_xml = psf;
    nfield_xml = nfield;
 
   return;
@@ -151,7 +151,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2007
+VERSION	26/02/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -247,16 +247,16 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n", nfield_xml);
   fprintf(file, "   <PARAM name=\"NStars_Loaded\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n",
-	out_xml->samples_loaded);
+	psf_xml->samples_loaded);
   fprintf(file, "   <PARAM name=\"NStars_Accepted\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n",
-	out_xml->samples_accepted);
+	psf_xml->samples_accepted);
   fprintf(file, "   <PARAM name=\"PSF_FWHM\" unit=\"pix\" datatype=\"float\""
 	" ucd=\"phys.size.diameter;instr.det.psf\" value=\"%.6g\"/>\n",
-	out_xml->fwhm);
+	psf_xml->fwhm);
   fprintf(file, "   <PARAM name=\"Chi2\" datatype=\"float\""
 	" ucd=\"stat.fit.chi2\" value=\"%.6g\"/>\n",
-	out_xml->chi2);
+	psf_xml->chi2);
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");
 

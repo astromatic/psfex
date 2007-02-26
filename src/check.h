@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	19/12/2002
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,7 +32,8 @@
 
 /*----------------------------- Type definitions --------------------------*/
 typedef enum {PSF_NONE, PSF_CHI, PSF_PROTO, PSF_RESIDUALS, PSF_RAWDATA,
-		PSF_SAMPLES, PSF_SNAPSHOTS, PSF_WEIGHTS, PSF_PCPROTO}
+		PSF_SAMPLES, PSF_SNAPSHOTS, PSF_WEIGHTS, PSF_PCPROTO,
+		PSF_MOFFAT}
 	checkenum;
 
 /*---------------------------------- protos --------------------------------*/

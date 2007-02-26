@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	31/10/2003
+*	Last modify:	26/02/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,10 +27,11 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
-#include	"sample.h"
+#include	"check.h"
+#include	"diagnostic.h"
 #include	"poly.h"
 #include	"psf.h"
-#include	"check.h"
+#include	"sample.h"
 
 
 /******************************* psf_writecheck ******************************/
@@ -284,6 +285,31 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
             for (x=w; x--;)
               *(pix++) = *(fpix++);
           }
+        }
+      break;
+    case PSF_MOFFAT:
+/*----  View reconstructed PSFs as Moffat fits */
+      npc = psf->poly->ndim;
+      nw = PSF_SNAPWIDTH;
+      for (nt=PSF_SNAPWIDTH*PSF_SNAPWIDTH, i=npc-2; (i--)>0;)
+        nt *= PSF_SNAPWIDTH;
+      nh = nt/nw;
+      w = set->retisize[0];
+      h = set->retidim>1? set->retisize[1] : 1;
+      tab->naxisn[0] = nw*w;
+      tab->naxisn[1] = nh*h;
+      step = (nw-1)*w;
+      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+      QCALLOC(pix0, float, tab->tabsize);
+      tab->bodybuf = (char *)pix0; 
+      for (n=0; n<nt; n++)
+        {
+        psf_moffat(psf, &psf->moffat[n]);
+        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+        fpix = psf->loc;
+        for (y=h; y--; pix += step)
+          for (x=w; x--;)
+            *(pix++) = *(fpix++);
         }
       break;
     default:
