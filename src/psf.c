@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -123,7 +123,7 @@ INPUT   1D array of degrees of the polynom,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/11/2003
+VERSION 01/03/2007
  ***/
 psfstruct	*psf_init(char **names, int *group, int ndim,
 			int *dim, int ngroup,
@@ -133,7 +133,7 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
    static char	str[MAXCHAR];
    char		**names2, **names2t;
    int		*group2, *dim2,
-		d, ndim2,ngroup2, npix;
+		d, ndim2,ngroup2, npix, nsnap;
 
 /* Allocate memory for the PSF structure itself */
   QCALLOC(psf, psfstruct, 1);
@@ -197,6 +197,7 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
   QCALLOC(psf->resi, float, npix);
 
 /* Context arrays */
+  nsnap = 1;
   if (ndim2)
     {
     QMALLOC(psf->contextoffset, double, ndim2);
@@ -204,11 +205,14 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
     QMALLOC(psf->contextname, char *, ndim2);
     for (names2t=names2, d=0; d<ndim2; d++)
       {
+      nsnap *= prefs.context_nsnap;
       QMALLOC(psf->contextname[d], char, 80);
       strcpy(psf->contextname[d], *(names2t++));
       }
     }
 
+/* Allocate an array of Moffat function fits */
+  QMALLOC(psf->moffat, moffatstruct, nsnap);
 
 /* Free temporary arrays */
   if (ndim)
@@ -229,7 +233,7 @@ INPUT   psfstruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 04/07/98
+VERSION 01/03/2007
  ***/
 void	psf_end(psfstruct *psf)
   {
@@ -244,6 +248,7 @@ void	psf_end(psfstruct *psf)
   free(psf->loc);
   free(psf->resi);
   free(psf->size);
+  free(psf->moffat);
   free(psf);
 
   return;

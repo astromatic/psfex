@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,6 +50,7 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},
   {"CONTEXT_GROUPS", P_INTLIST, prefs.context_group, 1,MAXCONTEXT,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
+  {"CONTEXT_NSNAP", P_INT, &prefs.context_nsnap, 1,16},
   {"GROUP_DEGREES", P_INTLIST, prefs.group_deg, 1,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
@@ -110,6 +111,7 @@ char *default_prefs[] =
 "CONTEXT_KEYS    X_IMAGE,Y_IMAGE # SExtractor or FITS (preceded by :) params",
 "CONTEXT_GROUPS  1,1             # Group tag for each context key",
 "GROUP_DEGREES   1               # Polynom degree for each group",
+"*CONTEXT_NSNAP   7               # Number of PSF snapshots per axis",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

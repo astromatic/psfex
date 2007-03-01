@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,7 +32,7 @@
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
 #define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
 #define PSF_NITER	40	/* Maximum number of iterations in fit */
-#define	PSF_NSNAP	7	/* Number of PSF snapshots/dimension */
+#define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -70,11 +70,11 @@ typedef struct psf
   double	*contextscale;	/* Scaling to apply to context data */
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */
-  int		samples_loaded;		/* Number of detections loaded */
-  int		samples_accepted;	/* Number of detections accepted */
-  double	chi2;			/* chi2/d.o.f. */
-  float		fwhm;			/* Initial guess of the FWHM */
-  moffatstruct	moffat[PSF_NSNAP*PSF_NSNAP]; /* Array of Moffat fits to PSF */
+  int		samples_loaded;	/* Number of detections loaded */
+  int		samples_accepted;/* Number of detections accepted */
+  double	chi2;		/* chi2/d.o.f. */
+  float		fwhm;		/* Initial guess of the FWHM */
+  moffatstruct	*moffat;	/* Array of Moffat fits to PSF */
   }	psfstruct;
 
 

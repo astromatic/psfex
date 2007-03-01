@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,7 +28,6 @@
 /*----------------------------- Internal constants --------------------------*/
 
 #define		MAXCHECK	16		/* max. # of CHECKimages */
-#define		PSF_SNAPWIDTH	7	/* Margin against overfitting */
 
 /*----------------------------- Type definitions --------------------------*/
 typedef enum {PSF_NONE, PSF_CHI, PSF_PROTO, PSF_RESIDUALS, PSF_RAWDATA,

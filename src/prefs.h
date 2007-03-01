@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -54,6 +54,7 @@ typedef struct
   int		ncontext_name;			/* nb of params */
   int		context_group[MAXCONTEXT];	/* Context group */
   int		ncontext_group;			/* nb of params */
+  int		context_nsnap;			/* nb of snapshots / context */
   int		group_deg[MAXCONTEXT];		/* Degree for each group */
   int		ngroup_deg;			/* nb of params */
   int		badpix_flag;			/* Filter bad pixels? */
@@ -80,7 +81,7 @@ typedef struct
 /*-------------------------------- protos -----------------------------------*/
 extern int	cistrcmp(char *cs, char *ct, int mode);
 
-extern void	dumpprefs(void),
+extern void	dumpprefs(int state),
 		readprefs(char *filename,char **argkey,char **argval,int narg),
 		useprefs(void);
 #endif

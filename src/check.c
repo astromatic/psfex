@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	01/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -26,6 +26,7 @@
 #include	"define.h"
 #include	"types.h"
 #include	"globals.h"
+#include	"prefs.h"
 #include	"fits/fitscat.h"
 #include	"check.h"
 #include	"diagnostic.h"
@@ -202,9 +203,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     case PSF_SNAPSHOTS:
 /*----  View reconstructed PSFs as small vignets */
       npc = psf->poly->ndim;
-      nw = PSF_SNAPWIDTH;
-      for (nt=PSF_SNAPWIDTH*PSF_SNAPWIDTH, i=npc-2; (i--)>0;)
-        nt *= PSF_SNAPWIDTH;
+      nw = prefs.context_nsnap;
+      for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+        nt *= prefs.context_nsnap;
       nh = nt/nw;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
@@ -214,7 +215,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      dstep = 1.0/PSF_SNAPWIDTH;
+      dstep = 1.0/prefs.context_nsnap;
       dstart = (1.0-dstep)/2.0;
       memset(dpos, 0, POLY_MAXDIM*sizeof(double));
       for (i=0; i<npc; i++)
@@ -290,9 +291,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
       npc = psf->poly->ndim;
-      nw = PSF_SNAPWIDTH;
-      for (nt=PSF_SNAPWIDTH*PSF_SNAPWIDTH, i=npc-2; (i--)>0;)
-        nt *= PSF_SNAPWIDTH;
+      nw = prefs.context_nsnap;
+      for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+        nt *= prefs.context_nsnap;
       nh = nt/nw;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
