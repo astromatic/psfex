@@ -285,9 +285,10 @@ int	write_xml_meta(FILE *file, char *error)
 	psf_xml[0]->poly->ndim);
   fprintf(file, "   <FIELD name=\"FWHM\" unit=\"pix\""
 	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation\" unit=\"pix\""
-	" datatype=\"float\""
+  fprintf(file, "   <FIELD name=\"Elongation\" datatype=\"float\""
 	" ucd=\"phys.size.axisRatio;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"MoffatBeta\" datatype=\"float\""
+	" ucd=\"stat.param;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Residuals\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
 
@@ -307,10 +308,11 @@ int	write_xml_meta(FILE *file, char *error)
       fprintf(file, " %d", prefs.context_nsnap);
     nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
     fprintf(file, "</TD>\n"
-	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
         "    </TR>\n",
 	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
 	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
+	psf->moffat[nmed].beta,
 	psf->moffat[nmed].residuals);
     }
   fprintf(file, "   </TABLEDATA></DATA>\n");
