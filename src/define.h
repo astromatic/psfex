@@ -139,3 +139,12 @@
 #define	FPRINTF		if (prefs.verbose_type == FULL)	fprintf
 
 #define QPRINTF		if (prefs.verbose_type != QUIET)	fprintf
+#define QIPRINTF(w,x)	{if (prefs.verbose_type == NORM) \
+				fprintf(w, "\33[7m%s\33[0m\n", x); \
+			else if (prefs.verbose_type == LOG) \
+				fprintf(w, "%s\n", x);}
+
+#define QBPRINTF(w,x)	{if (prefs.verbose_type == NORM) \
+				fprintf(w, "\33[01;31m%s\33[0m\n", x); \
+			else if (prefs.verbose_type == LOG) \
+			fprintf(w, "%s\n", x);}

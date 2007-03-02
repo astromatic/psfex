@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	02/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,46 +36,68 @@ extern time_t		thetime,thetime2;	/* from makeit.c */
 extern pkeystruct	key[];			/* from preflist.h */
 extern char		keylist[][32];		/* from preflist.h */
  
-psfstruct		*psf_xml;
-int			nfield_xml=0;
+psfstruct		**psf_xml;
+int			*nfield_xml;
+int			nxml, nxmlmax;
 
 
 /****** init_xml ************************************************************
-PROTO	void init_xml(fieldstruct **fields, int nfield,
-			fgroupstruct **fgroups, int ngroup)
+PROTO	int init_xml(int next)
 PURPOSE	Initialize a set of meta-data kept in memory before being written to the
 	XML file
-INPUT	Array of pointers to fields,
-	number of fields,
-	array of pointers to fgroups,
-	number of groups.
+INPUT	Number of extensions.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2007
+VERSION	02/03/2007
  ***/
-void	init_xml(psfstruct *psf, int nfield)
+int	init_xml(int next)
   {
-   psf_xml = psf;
-   nfield_xml = nfield;
+  QMALLOC(psf_xml, psfstruct *, next);
+  QMALLOC(nfield_xml, int, next);
+  nxml = 0;
+  nxmlmax = next;
 
-  return;
+  return EXIT_SUCCESS;
   }
 
 
 /****** end_xml ************************************************************
 PROTO	void end_xml(void)
-PURPOSE	Here only for consistency.
+PURPOSE	Free the set of meta-data kept in memory.
 INPUT	-.
 OUTPUT	.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/10/2006
+VERSION	02/03/2007
  ***/
 void	end_xml(void)
   {
+  free(psf_xml);
+  free(nfield_xml);
 
   return;
+  }
+
+
+/****** update_xml ***********************************************************
+PROTO	int update_xml(psfstruct *psf, int nfields)
+PURPOSE	Update a set of meta-data kept in memory before being written to the
+	XML file
+INPUT	Pointer to the current PSF,
+	number of fields loaded.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	Global preferences are used.
+AUTHOR	E. Bertin (IAP)
+VERSION	02/03/2007
+ ***/
+int	update_xml(psfstruct *psf, int nfield)
+  {
+  psf_xml[nxml] = psf;
+  nfield_xml[nxml] = nfield;
+  nxml++;
+
+  return EXIT_SUCCESS;
   }
 
 
@@ -151,13 +173,14 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	01/03/2007
+VERSION	02/03/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
+   psfstruct		*psf;
    struct tm		*tm;
    char			*pspath,*psuser, *pshost, *str;
-   int			n;
+   int			d,n, nmed;
 
 /* Processing date and time if msg error present */
   if (error)
@@ -241,29 +264,55 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "  <TABLE ID=\"PSF\" name=\"PSF\">\n");
   fprintf(file, "   <DESCRIPTION>Metadata and stats about the PSF gathered by "
 	"%s</DESCRIPTION>\n", BANNER);
-  fprintf(file, "   <!-- NFields may be 0"
+  fprintf(file, "   <!-- Nextensions may be 0"
 	" if an error occurred early in the processing -->\n");
-  fprintf(file, "   <PARAM name=\"NFields\" datatype=\"int\""
-	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n", nfield_xml);
-  fprintf(file, "   <PARAM name=\"NStars_Loaded\" datatype=\"int\""
-	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n",
-	psf_xml->samples_loaded);
-  fprintf(file, "   <PARAM name=\"NStars_Accepted\" datatype=\"int\""
-	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n",
-	psf_xml->samples_accepted);
-  fprintf(file, "   <PARAM name=\"PSF_FWHM\" unit=\"pix\" datatype=\"float\""
-	" ucd=\"phys.size.diameter;instr.det.psf\" value=\"%.6g\"/>\n",
-	psf_xml->fwhm);
-  fprintf(file, "   <PARAM name=\"Chi2\" datatype=\"float\""
-	" ucd=\"stat.fit.chi2\" value=\"%.6g\"/>\n",
-	psf_xml->chi2);
-  fprintf(file, "   <PARAM name=\"NSnapshots\" datatype=\"int\""
-	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\" value=\"%d",
-	psf_xml->poly->ndim, psf_xml->poly->ndim? prefs.context_nsnap : 1);
-  for (n=1; n<psf_xml->poly->ndim; n++)
-    fprintf(file, " %d", prefs.context_nsnap);
-  fprintf(file, "\"/>\n");
+  fprintf(file, "   <PARAM name=\"NExtensions\" datatype=\"int\""
+	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n", nxmlmax);
+  fprintf(file, "   <!-- CurrExtension may differ from Nextensions"
+	" if an error occurred -->\n");
+  fprintf(file, "   <PARAM name=\"CurrExtension\" datatype=\"int\""
+	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n", nxml);
+  fprintf(file, "   <FIELD name=\"NStars_Loaded\" datatype=\"int\""
+	" ucd=\"meta.number;meta.dataset\"/>\n");
+  fprintf(file, "   <FIELD name=\"NStars_Accepted\" datatype=\"int\""
+	" ucd=\"meta.number;meta.dataset\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_FromFluxRadius\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Chi2\" datatype=\"float\""
+	" ucd=\"stat.fit.chi2;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"NSnapshots\" datatype=\"int\""
+	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\"/>\n",
+	psf_xml[0]->poly->ndim);
+  fprintf(file, "   <FIELD name=\"FWHM\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Elongation\" unit=\"pix\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Residuals\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
 
+  fprintf(file, "   <DATA><TABLEDATA>\n");
+  for (n=0; n<nxml; n++)
+    {
+    psf = psf_xml[n];
+    fprintf(file, "    <TR>\n"
+        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%d",
+	psf->samples_loaded,
+	psf->samples_accepted,
+	psf->fwhm,
+	psf->chi2,
+	psf->poly->ndim? prefs.context_nsnap : 1);
+    for (d=1; d<psf_xml[0]->poly->ndim; d++)
+      fprintf(file, " %d", prefs.context_nsnap);
+    nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
+    fprintf(file, "</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+        "    </TR>\n",
+	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
+	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
+	psf->moffat[nmed].residuals);
+    }
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");
 

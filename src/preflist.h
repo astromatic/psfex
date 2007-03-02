@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	02/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,7 +44,7 @@ pkeystruct key[] =
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
    {"NONE", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
-	"SNAPSHOTS", "WEIGHTS", "PC_CONVOLVED", "MOFFAT", ""},
+	"SNAPSHOTS", "WEIGHTS", "PC_CONVOLVED", "MOFFAT", "-MOFFAT", ""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CONTEXT_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},
@@ -71,7 +71,7 @@ pkeystruct key[] =
      1,2, &prefs.nretisize},
   {"PSF_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
-   {"QUIET","NORMAL","FULL",""}},
+   {"QUIET","NORMAL","LOG","FULL",""}},
   {"XML_NAME", P_STRING, prefs.xml_name},
   {"XSL_URL", P_STRING, prefs.xsl_name},
   {"WRITE_XML", P_BOOL, &prefs.xml_flag},
@@ -128,7 +128,7 @@ char *default_prefs[] =
 " ",
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",
-"VERBOSE_TYPE    NORMAL          # can be \"QUIET\", \"NORMAL\" or \"FULL\"",
+"VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL",
 "WRITE_XML       Y               # Write XML file (Y/N)?",
 "XML_NAME        psfex.xml       # Filename for XML output",
 "*XSL_URL        " XSL_URL,

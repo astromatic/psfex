@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	02/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -18,6 +18,7 @@
 #include        "config.h"
 #endif
 
+#include	<math.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -44,14 +45,14 @@ void	makeit(char **incatnames, int ncat)
 
   {
    setstruct		*set;
-   psfstruct		*psf;
+   psfstruct		**psf;
    pcstruct		*pc, *pcc, *pco;
    catstruct		*cat;
    tabstruct		*tab;
    static char		str[MAXCHAR];
    struct tm		*tm;
    float		psfstep;
-   int			i, ntab, ext, next;
+   int			i, ntab, ext, next, nmed;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -91,14 +92,24 @@ void	makeit(char **incatnames, int ncat)
     next++;
     }
   free_cat(&cat, 1);
+  if (prefs.xml_flag)
+    init_xml(next);
+
+  QIPRINTF(OUTPUT,
+        " extension accepted/total sampling chi2/dof FWHM(pix) elongation"
+	" residuals");
+
+/* Create an array of PSFs (one PSF for each extension) */
+  QMALLOC(psf, psfstruct *, next);
+
   for (ext = 0 ; ext<next; ext++)
     {
 /*-- Load all the samples */
     NFPRINTF(OUTPUT,"Loading samples...");
     set = load_samples(incatnames, ncat, ext, next);
 
-    NFPRINTF(OUTPUT, "");
-    NPRINTF(OUTPUT, "%d samples loaded\n", set->nsample);
+    sprintf(str, "%d samples loaded.", set->nsample);
+    NFPRINTF(OUTPUT, str);
 
     if (!set->nsample)
       warning("No appropriate source found!!","");
@@ -106,67 +117,73 @@ void	makeit(char **incatnames, int ncat)
     psfstep = (float)(prefs.psf_step? prefs.psf_step
 				: (set->fwhm/2.35)*(1.0-1.0/INTERPFAC));
 
+/*
     NFPRINTF(OUTPUT, "");
     NPRINTF(OUTPUT, "PSF sampled each %.2f pixel%s (%s)\n",
 			psfstep,
 			psfstep>=2.0?"s":"",
 			prefs.psf_step?"manual":"automatic");
+*/
 
 /*-- Init the PSF */
     NFPRINTF(OUTPUT,"Initializing PSF modules...");
-    psf = psf_init(prefs.context_name, prefs.context_group,prefs.ncontext_name,
+    psf[ext] = psf_init(prefs.context_name, prefs.context_group,
+		prefs.ncontext_name,
 		prefs.group_deg, prefs.ngroup_deg,
 		set->retisize[0], set->retisize[1],
 		psfstep,
 		set->nsample);
 
-    psf->samples_loaded = set->nsample;
-    psf->fwhm = set->fwhm;
+    psf[ext]->samples_loaded = set->nsample;
+    psf[ext]->fwhm = set->fwhm;
 
 /*-- Make the basic PSF-model (1st pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
-    psf_make(psf, set);
+    psf_make(psf[ext], set);
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
       {
-      psf_clean(psf, set, 1);
-      NFPRINTF(OUTPUT, "");
-      NPRINTF(OUTPUT, "%d samples accepted\n", set->nsample);
+      psf_clean(psf[ext], set, 1);
 
 /*---- Make the basic PSF-model (2nd pass) */
       NFPRINTF(OUTPUT,"Modeling the PSF.");
-      psf_make(psf, set);
+      psf_make(psf[ext], set);
       }
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
-      {
-      psf_clean(psf, set, 1);
-      NFPRINTF(OUTPUT, "");
-      NPRINTF(OUTPUT, "%d samples accepted\n", set->nsample);
-      }
+      psf_clean(psf[ext], set, 1);
 
-    psf->samples_accepted = set->nsample;
+    psf[ext]->samples_accepted = set->nsample;
 
 /*-- Refine the PSF-model */
-    psf_refine(psf, set, prefs.nsuper);
+    psf_refine(psf[ext], set, prefs.nsuper);
 
 /*-- Just check the Chi2 */
-    psf->chi2 = set->nsample? psf_clean(psf, set, 0) : 0.0;
+    psf[ext]->chi2 = set->nsample? psf_clean(psf[ext], set, 0) : 0.0;
     NFPRINTF(OUTPUT, "");
 
 /*-- Make a diagnostic of the PSF */
-    psf_diagnostic(psf);
-    NFPRINTF(OUTPUT, "");
+    psf_diagnostic(psf[ext]);
+    nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
+    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f       %5.3f"
+	"      %5.2f\n",
+	ext+1, next,
+	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
+	psfstep,
+	psf[ext]->chi2,
+	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
+	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
+	psf[ext]->moffat[nmed].residuals);
 
 /*-- Load the PCs */
     if (prefs.pc_flag && set->nsample)
       {
       NFPRINTF(OUTPUT,"Including principal components...");
       pc = pc_load(prefs.pc_name);
-      pcc = pc_convolve(pc, psf);
-      pco = pc_orthogon(pc, pcc, psf->pixstep);
+      pcc = pc_convolve(pc, psf[ext]);
+      pco = pc_orthogon(pc, pcc, psf[ext]->pixstep);
       }
     else
       pc = pcc = pco = NULL;
@@ -174,7 +191,7 @@ void	makeit(char **incatnames, int ncat)
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
 
-    psf_save(psf, pco, pc, prefs.psf_name, ext, next);
+    psf_save(psf[ext], pco, pc, prefs.psf_name, ext, next);
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
@@ -182,10 +199,24 @@ void	makeit(char **incatnames, int ncat)
         {
         sprintf(str, "Saving CHECK-image #%d...", i+1);
         NFPRINTF(OUTPUT, str);
-        psf_writecheck(psf, pco, set, prefs.check_name[i],prefs.check_type[i],
-		ext, next);
+        psf_writecheck(psf[ext], pco, set, prefs.check_name[i],
+		prefs.check_type[i], ext, next);
         }
 
+/*-- Update XML */
+    if (prefs.xml_flag)
+      update_xml(psf[ext], ncat);
+
+/*-- Free memory */
+    end_set(set);
+
+    if (pc)
+      {
+      pc_end(pc);
+      pc_end(pcc);
+      pc_end(pco);
+      }
+    }
 /* Processing end date and time */
   thetime2 = time(NULL);
   tm = localtime(&thetime2);
@@ -198,22 +229,15 @@ void	makeit(char **incatnames, int ncat)
 /* Write XML */
   if (prefs.xml_flag)
     {
-    init_xml(psf, ncat);
+    NFPRINTF(OUTPUT, "Writing XML file...");
     write_xml(prefs.xml_name);
     end_xml();
     }
 
-/*-- Free memory */
-    end_set(set);
-    psf_end(psf);
-
-    if (pc)
-      {
-      pc_end(pc);
-      pc_end(pcc);
-      pc_end(pco);
-      }
-    }
+/* Free memory */
+  for (ext = 0 ; ext<next; ext++)
+    psf_end(psf[ext]);
+  free(psf);
 
   return;
   }

@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	02/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -88,9 +88,10 @@ double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
     }
 
   free(chi);
-
+/*
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "<Chi2/dof> = %.3f\n",chivar/(nsample-(nsample>1?1:0)));
+*/
   chi2 = chivar/(nsample-(nsample>1?1:0));
 
 /* Clip outliers */
@@ -522,10 +523,10 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
       npsf++;
       *psfmaskt = 1;
       }
-
+/*
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "%d PSF pixels retained for super-resolution\n", npsf);
-
+*/
   nvpix = set->vigsize[0]*set->vigsize[1];
   poly = psf->poly;
   ncontext = set->ncontext;

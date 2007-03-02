@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	11/12/2004
+*	Last modify:	02/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -194,11 +194,11 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
     }
 
   free(fwhm);
-
+/*
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "Selected FWHM range: %.2f - %.2f pixels\n",
 		fwhmmin, fwhmmax);
-
+*/
 /* Load the samples */
   set = NULL;
   for (i=0; i<ncat; i++)

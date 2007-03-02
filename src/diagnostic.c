@@ -52,7 +52,8 @@ void	psf_diagnostic(psfstruct *psf)
 			wa3[PSF_DIAGNPARAM],
 			*param, *dresi, *fjac, *wa4,
 			dstep,dstart,
-			sigma, fwhmmin,fwhmmax,twot,c2t,s2t,moffac;
+			sigma, fwhmmin,fwhmmax,twot,c2t,s2t,moffac, temp,
+			cxx,cyy;
    int			ipvt[PSF_DIAGNPARAM],
 			i,m,n, w,h, npc,nt;
 
@@ -101,35 +102,39 @@ void	psf_diagnostic(psfstruct *psf)
 	control.stepbound, &(control.info),
 	&(control.nfev), fjac, ipvt, qtf, wa1, wa2, wa3, wa4,
 	psf_diagresi, psf_diagprintout, psf);
-    param[3] *= param[3];
-    param[4] *= param[4];
-    twot = atan2(param[5], param[3]-param[4]);
+    cxx = param[3]*param[3];
+    cyy = param[4]*param[4];
+    twot = atan2(param[5], cxx-cyy);
     moffac = 2.0*sqrt(pow(2.0, 1.0/param[6]) - 1.0)*psf->pixstep;
     if (fabs(c2t=cos(twot)) > 0.0)
       {
-      fwhmmax = moffac*sqrt(2.0/(param[3]+param[4] + (param[3]-param[4])/c2t));
-      fwhmmin = moffac*sqrt(2.0/(param[3]+param[4] + (param[4]-param[3])/c2t));
+      fwhmmax = moffac*sqrt(2.0/(cxx+cyy + (cxx-cyy)/c2t));
+      fwhmmin = moffac*sqrt(2.0/(cxx+cyy + (cyy-cxx)/c2t));
       }
     else if (fabs(s2t=sin(twot)) > 0.0)
       {
-      fwhmmax = moffac*sqrt(2.0/(param[3]+param[4] + param[5]/s2t));
-      fwhmmin = moffac*sqrt(2.0/(param[3]+param[4] - param[5]/c2t));
+      fwhmmax = moffac*sqrt(2.0/(cxx+cyy + param[5]/s2t));
+      fwhmmin = moffac*sqrt(2.0/(cxx+cyy - param[5]/c2t));
       }
     else
-      fwhmmin = fwhmmax = moffac*sqrt(2.0/(param[3]+param[4]));
+      fwhmmin = fwhmmax = moffac*sqrt(2.0/(cxx+cyy));
     for (i=0; i<npc; i++)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
-    moffat[n].amplitude = param[0];
+    moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
     moffat[n].xc[1] = param[2];
-    moffat[n].fwhm_min = fwhmmin < fwhmmax? fwhmmin : fwhmmax;
-    moffat[n].fwhm_max = fwhmmax > fwhmmin? fwhmmax : fwhmmin;
+    if (fwhmmin > fwhmmax)
+      {
+      temp = fwhmmin;
+      fwhmmin = fwhmmax;
+      fwhmmax = temp;
+      twot = twot+PI;
+      }
+    moffat[n].fwhm_min = fwhmmin;
+    moffat[n].fwhm_max = fwhmmax;
     moffat[n].theta = 90.0/PI*twot;
     moffat[n].beta = param[6];
     moffat[n].residuals = psf_normresi(param, psf);
-/*
-printf("%g %g  %g %g\n", moffat[n].context[0], moffat[n].context[1], moffat[n].beta, moffat[n].residuals);
-*/
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
         {
@@ -264,24 +269,24 @@ INPUT	Pointer to the PSF structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2007
+VERSION	02/03/2007
  ***/
 void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   {
-   double	dx,dy,dy2,r2, xc,yc, ct,st, inva2,invb2, step2, cxx,cyy,cxy,
-		amp, beta;
+   double	dx,dy,dy2,r2, xc,yc, ct,st, inva2,invb2, cxx,cyy,cxy,
+		amp, beta, fac;
    float	*loc;
    int		x,y,w,h;
 
   xc = moffat->xc[0];
   yc = moffat->xc[1];
-  step2 = psf->pixstep*psf->pixstep;
   amp = moffat->amplitude*psf->pixstep*psf->pixstep;
   beta = moffat->beta;
   ct = cos(moffat->theta*PI/180.0);
   st = sin(moffat->theta*PI/180.0);
-  inva2 = step2/(moffat->fwhm_max*moffat->fwhm_max);
-  invb2 = step2/(moffat->fwhm_min*moffat->fwhm_min);
+  fac = 4*(pow(2, 1.0/beta) - 1.0);
+  inva2 = fac/(moffat->fwhm_max*moffat->fwhm_max)*psf->pixstep*psf->pixstep;
+  invb2 = fac/(moffat->fwhm_min*moffat->fwhm_min)*psf->pixstep*psf->pixstep;
   cxx = inva2*ct*ct + invb2*st*st;
   cyy = inva2*st*st + invb2*ct*ct;
   cxy = 2.0*ct*st*(inva2 - invb2);
