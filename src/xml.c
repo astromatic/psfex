@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	04/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,14 +173,17 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	02/03/2007
+VERSION	04/03/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
    psfstruct		*psf;
    struct tm		*tm;
    char			*pspath,*psuser, *pshost, *str;
-   int			d,n, nmed;
+   double		fwhm_best,fwhm_worse, elongation_best,elongation_worse,
+			beta_best,beta_worse, residuals_best,residuals_worse,
+			temp;
+   int			i,d,n, nmed, ntot;
 
 /* Processing date and time if msg error present */
   if (error)
@@ -285,12 +288,28 @@ int	write_xml_meta(FILE *file, char *error)
 	psf_xml[0]->poly->ndim);
   fprintf(file, "   <FIELD name=\"FWHM\" unit=\"pix\""
 	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_Best\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_Worse\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Elongation\" datatype=\"float\""
 	" ucd=\"phys.size.axisRatio;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Elongation_Best\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Elongation_Worse\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta\" datatype=\"float\""
 	" ucd=\"stat.param;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"MoffatBeta_Best\" datatype=\"float\""
+	" ucd=\"stat.param;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"MoffatBeta_Worse\" datatype=\"float\""
+	" ucd=\"stat.param;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Residuals\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Residuals_Best\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Residuals_Worse\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
   for (n=0; n<nxml; n++)
@@ -304,16 +323,55 @@ int	write_xml_meta(FILE *file, char *error)
 	psf->fwhm,
 	psf->chi2,
 	psf->poly->ndim? prefs.context_nsnap : 1);
+    ntot = psf_xml[0]->poly->ndim? prefs.context_nsnap : 1;
     for (d=1; d<psf_xml[0]->poly->ndim; d++)
+      {
       fprintf(file, " %d", prefs.context_nsnap);
+      ntot *= prefs.context_nsnap;
+      }
     nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
+    fwhm_best = elongation_best = beta_worse = residuals_best = BIG;
+    fwhm_worse = elongation_worse = beta_best = residuals_worse = -BIG;
+    for (i=0; i<ntot; i++)
+      {
+      if ((temp=sqrt(psf->moffat[i].fwhm_min*psf->moffat[i].fwhm_max))
+	< fwhm_best)
+        fwhm_best = temp;
+      if (temp > fwhm_worse)
+        fwhm_worse = temp;
+      if ((temp=psf->moffat[i].fwhm_max / psf->moffat[i].fwhm_min)
+	< elongation_best)
+        elongation_best = temp;
+      if (temp > elongation_worse)
+        elongation_worse = temp;
+      if (psf->moffat[i].beta > beta_best)
+        beta_best = psf->moffat[i].beta;
+      if (psf->moffat[i].beta < beta_worse)
+        beta_worse = psf->moffat[i].beta;
+      if (psf->moffat[i].residuals < residuals_best)
+        residuals_best = psf->moffat[i].residuals;
+      if (psf->moffat[i].residuals > residuals_worse)
+        residuals_worse = psf->moffat[i].residuals;
+      }
+
     fprintf(file, "</TD>\n"
-	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
         "    </TR>\n",
 	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
+	fwhm_best,
+	fwhm_worse,
 	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
+	elongation_best,
+	elongation_worse,
 	psf->moffat[nmed].beta,
-	psf->moffat[nmed].residuals);
+	beta_best,
+	beta_worse,
+	psf->moffat[nmed].residuals,
+	residuals_best,
+	residuals_worse);
     }
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");
