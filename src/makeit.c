@@ -166,7 +166,9 @@ void	makeit(char **incatnames, int ncat)
 
 /*-- Make a diagnostic of the PSF */
     psf_diagnostic(psf[ext]);
-    nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
+    nmed = 0;
+    for (i=0; i<psf[ext]->poly->ndim; i++)
+      nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
     QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f       %5.3f"
 	"      %5.2f\n",
 	ext+1, next,

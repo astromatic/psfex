@@ -323,13 +323,14 @@ int	write_xml_meta(FILE *file, char *error)
 	psf->fwhm,
 	psf->chi2,
 	psf->poly->ndim? prefs.context_nsnap : 1);
-    ntot = psf_xml[0]->poly->ndim? prefs.context_nsnap : 1;
-    for (d=1; d<psf_xml[0]->poly->ndim; d++)
+    ntot =  1;
+    nmed = 0;
+    for (d=0; d<psf_xml[0]->poly->ndim; d++)
       {
       fprintf(file, " %d", prefs.context_nsnap);
       ntot *= prefs.context_nsnap;
+      nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
       }
-    nmed = ((prefs.context_nsnap-1)/2)*(prefs.context_nsnap+1);
     fwhm_best = elongation_best = beta_worse = residuals_best = BIG;
     fwhm_worse = elongation_worse = beta_best = residuals_worse = -BIG;
     for (i=0; i<ntot; i++)

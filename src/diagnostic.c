@@ -66,7 +66,7 @@ void	psf_diagnostic(psfstruct *psf)
   control.stepbound = 100.0;
 
   npc = psf->poly->ndim;
-  for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+  for (nt=1, i=npc; (i--)>0;)
     nt *= prefs.context_nsnap;
   w = psf->size[0];
   h = psf->size[1];

@@ -203,8 +203,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     case PSF_SNAPSHOTS:
 /*----  View reconstructed PSFs as small vignets */
       npc = psf->poly->ndim;
-      nw = prefs.context_nsnap;
-      for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+      nw = npc? prefs.context_nsnap : 1;
+      for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
       nh = nt/nw;
       w = set->retisize[0];
@@ -291,8 +291,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
       npc = psf->poly->ndim;
-      nw = prefs.context_nsnap;
-      for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+      nw = npc? prefs.context_nsnap : 1;
+      for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
       nh = nt/nw;
       w = set->retisize[0];
@@ -316,8 +316,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     case PSF_SUBMOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
       npc = psf->poly->ndim;
-      nw = prefs.context_nsnap;
-      for (nt=prefs.context_nsnap*prefs.context_nsnap, i=npc-2; (i--)>0;)
+      nw = npc? prefs.context_nsnap : 1;
+      for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
       nh = nt/nw;
       w = set->retisize[0];
