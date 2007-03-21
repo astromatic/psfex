@@ -34,6 +34,17 @@ CFLAGS=""
 myldflags="$LDFLAGS"
 LDFLAGS=""
 
+# Set the data directory to a true absolute path
+if test "x${datadir}" = 'x${prefix}/share'; then
+  if test "x${prefix}" = "xNONE"; then
+    datadir2="${ac_default_prefix}/share"
+  else
+    datadir2="${prefix}/share"
+  fi
+else
+  datadir2="${datadir}"
+fi
+
 # Provide special option for the Linux Intel C compiler
 AC_MSG_CHECKING([for Linux Intel C compiler mode])
 AC_ARG_ENABLE(icc,
@@ -45,6 +56,16 @@ AC_ARG_ENABLE(icc,
 	AC_MSG_RESULT([yes]),
         use_icc="no"
 	AC_MSG_RESULT([no]))
+
+# Provide a special option for the default XSLT URL
+AC_ARG_WITH(xsl_url,
+        [AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
+        [Provide an alternative default URL of the XSLT filter])],
+    [xsl_url=$withval],
+    [xsl_url="file://$datadir2/$PACKAGE_NAME/$PACKAGE_NAME.xsl"]
+    )
+
+AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
 
 # Provide special option for gprof profiling
 AC_MSG_CHECKING([for gprof profiler mode])
@@ -133,9 +154,18 @@ LDFLAGS="$myldflags"
 fi
 
 # Display compiler and linker flags
-AC_MSG_RESULT([I will compile using:  $CC $CFLAGS])
-AC_MSG_RESULT([I will link using:     $CC $LDFLAGS $LIBS])
+AC_MSG_RESULT([***************************************************************])
+AC_MSG_RESULT([Compile cmdline:  $CC $CFLAGS])
+AC_MSG_RESULT([Link    cmdline:  $CC $LDFLAGS $LIBS])
+AC_MSG_RESULT([Default XSLT URL: $xsl_url])
+AC_MSG_RESULT([***************************************************************])
 
-AC_CONFIG_FILES(Makefile man/Makefile src/Makefile src/fits/Makefile \
-src/lmfit/Makefile psfex.spec man/psfex.1)
+AC_CONFIG_FILES([
+Makefile
+man/Makefile
+src/Makefile
+src/fits/Makefile
+src/lmfit/Makefile
+psfex.spec
+man/psfex.1])
 AC_OUTPUT

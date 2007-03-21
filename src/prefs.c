@@ -81,9 +81,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
   if ((infile = fopen(filename,"r")) == NULL)
     {
     flage = 1;
-/*
     warning(filename, " not found, using internal defaults");
-*/
     }
   else
     flage = 0;

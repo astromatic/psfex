@@ -858,6 +858,13 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-largefile     omit support for large files
 
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-xsl_url=<default URL for XSLT filter>
+                          Provide an alternative default URL of the XSLT
+                          filter
+
 Some influential environment variables:
   CC          C compiler command
   CFLAGS      C compiler flags
@@ -1771,6 +1778,17 @@ CFLAGS=""
 myldflags="$LDFLAGS"
 LDFLAGS=""
 
+# Set the data directory to a true absolute path
+if test "x${datadir}" = 'x${prefix}/share'; then
+  if test "x${prefix}" = "xNONE"; then
+    datadir2="${ac_default_prefix}/share"
+  else
+    datadir2="${prefix}/share"
+  fi
+else
+  datadir2="${datadir}"
+fi
+
 # Provide special option for the Linux Intel C compiler
 echo "$as_me:$LINENO: checking for Linux Intel C compiler mode" >&5
 echo $ECHO_N "checking for Linux Intel C compiler mode... $ECHO_C" >&6
@@ -1786,6 +1804,23 @@ else
 	echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi;
+
+# Provide a special option for the default XSLT URL
+
+# Check whether --with-xsl_url or --without-xsl_url was given.
+if test "${with_xsl_url+set}" = set; then
+  withval="$with_xsl_url"
+  xsl_url=$withval
+else
+  xsl_url="file://$datadir2/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
+
+fi;
+
+
+cat >>confdefs.h <<_ACEOF
+#define XSL_URL "$xsl_url"
+_ACEOF
+
 
 # Provide special option for gprof profiling
 echo "$as_me:$LINENO: checking for gprof profiler mode" >&5
@@ -6760,10 +6795,16 @@ LDFLAGS="$myldflags"
 fi
 
 # Display compiler and linker flags
-echo "$as_me:$LINENO: result: I will compile using:  $CC $CFLAGS" >&5
-echo "${ECHO_T}I will compile using:  $CC $CFLAGS" >&6
-echo "$as_me:$LINENO: result: I will link using:     $CC $LDFLAGS $LIBS" >&5
-echo "${ECHO_T}I will link using:     $CC $LDFLAGS $LIBS" >&6
+echo "$as_me:$LINENO: result: ***************************************************************" >&5
+echo "${ECHO_T}***************************************************************" >&6
+echo "$as_me:$LINENO: result: Compile cmdline:  $CC $CFLAGS" >&5
+echo "${ECHO_T}Compile cmdline:  $CC $CFLAGS" >&6
+echo "$as_me:$LINENO: result: Link    cmdline:  $CC $LDFLAGS $LIBS" >&5
+echo "${ECHO_T}Link    cmdline:  $CC $LDFLAGS $LIBS" >&6
+echo "$as_me:$LINENO: result: Default XSLT URL: $xsl_url" >&5
+echo "${ECHO_T}Default XSLT URL: $xsl_url" >&6
+echo "$as_me:$LINENO: result: ***************************************************************" >&5
+echo "${ECHO_T}***************************************************************" >&6
 
                                                                       ac_config_files="$ac_config_files Makefile man/Makefile src/Makefile src/fits/Makefile src/lmfit/Makefile psfex.spec man/psfex.1"
 
