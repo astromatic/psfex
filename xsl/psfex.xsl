@@ -110,19 +110,19 @@
  <xsl:template name="Resource">
   <xsl:for-each select="RESOURCE">
    <xsl:choose>
-    <xsl:when test="@ID='SCAMP'">
-     <xsl:call-template name="SCAMP"/>
+    <xsl:when test="@ID='PSFEx'">
+     <xsl:call-template name="psfex"/>
     </xsl:when>
    </xsl:choose>
   </xsl:for-each>
  </xsl:template>
 
-<!-- ********************** XSL template for SCAMP *********************** -->
- <xsl:template name="SCAMP">
+<!-- ********************** XSL template for PSFEx *********************** -->
+ <xsl:template name="psfex">
   <xsl:for-each select="RESOURCE[@ID='MetaData']">
    <xsl:call-template name="RunInfo"/>
-   <xsl:for-each select="TABLE[@ID='Fields']">
-    <xsl:call-template name="Fields"/>
+   <xsl:for-each select="TABLE[@ID='PSF']">
+    <xsl:call-template name="PSF"/>
    </xsl:for-each>
   </xsl:for-each>
  </xsl:template>
@@ -179,159 +179,99 @@
   </p>
  </xsl:template>
 
-<!-- ********************** XSL template for Fields ********************** -->
-  <xsl:template name="Fields">
-   <xsl:variable name="name" select="count(FIELD[@name='Catalog_Name']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="ident" select="count(FIELD[@name='Image_Ident']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="next" select="count(FIELD[@name='NExtensions']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="ndet" select="count(FIELD[@name='NDetect']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="headflag" select="count(FIELD[@name='Ext_Header']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="photflag" select="count(FIELD[@name='Photom_Flag']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="group" select="count(FIELD[@name='Group']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="astrinstru" select="count(FIELD[@name='Astr_Instrum']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="photinstru" select="count(FIELD[@name='Phot_Instrum']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="coord" select="count(FIELD[@name='Field_Coordinates']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="radius" select="count(FIELD[@name='Max_Radius']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pixscale" select="count(FIELD[@name='Pixel_Scale']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="ascont" select="count(FIELD[@name='AS_Contrast']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="xycont" select="count(FIELD[@name='XY_Contrast']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="zpcorr" select="count(FIELD[@name='ZeroPoint_Corr']/preceding-sibling::FIELD)+1"/>
+<!-- ********************** XSL template for PSF ********************** -->
+  <xsl:template name="PSF">
+   <xsl:variable name="nload" select="count(FIELD[@name='NStars_Loaded']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="naccept" select="count(FIELD[@name='NStars_Accepted']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmfr" select="count(FIELD[@name='FWHM_FromFluxRadius']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="chi2" select="count(FIELD[@name='Chi2']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="nsnap" select="count(FIELD[@name='NSnapshots']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm_b" select="count(FIELD[@name='FWHM_Best']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm_w" select="count(FIELD[@name='FWHM_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="elong" select="count(FIELD[@name='Elongation']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="elong_b" select="count(FIELD[@name='Elongation_Best']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="elong_w" select="count(FIELD[@name='Elongation_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta" select="count(FIELD[@name='MoffatBeta']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta_b" select="count(FIELD[@name='MoffatBeta_Best']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta_w" select="count(FIELD[@name='MoffatBeta_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="res" select="count(FIELD[@name='Residuals']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="res_b" select="count(FIELD[@name='Residuals_Best']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="res_w" select="count(FIELD[@name='Residuals_Worse']/preceding-sibling::FIELD)+1"/>
    <p>
-    <TABLE class="sortable" id="scamp" BORDER="2">
-<!--
- <TR>
-  <TH COLSPAN="3" BGCOLOR="#DDCC99" ALIGN="LEFT">
-  <FONT SIZE="-1">
-   <xsl:value-of select="ASTROM/nfield"/>
-    input<xsl:if test="ASTROM/nfield &gt; 1">s</xsl:if>
-  </FONT>
-  </TH>
- </TR>
--->
+    <TABLE class="sortable" id="psfex" BORDER="2">
      <TR>
-      <TH BGCOLOR="#FFEECC">Filename</TH>
-      <TH BGCOLOR="#FFEECC">Identifier</TH>
-      <TH BGCOLOR="#FFEECC">Next</TH>
-      <TH BGCOLOR="#FFEECC">Ndet</TH>
-      <TH BGCOLOR="#FFEECC">Flags</TH>
-      <TH BGCOLOR="#FFEECC">G</TH>
-      <TH BGCOLOR="#FFEECC">A</TH>
-      <TH BGCOLOR="#FFEECC">P</TH>
-      <TH BGCOLOR="#FFEECC">alpha</TH>
-      <TH BGCOLOR="#FFEECC">delta</TH>
-      <TH BGCOLOR="#FFEECC">Radius</TH>
-      <TH BGCOLOR="#FFEECC">Pixel scale</TH>
-      <TH BGCOLOR="#FFEECC">A/S contrast</TH>
-      <TH BGCOLOR="#FFEECC">X/Y contrast</TH>
-      <TH BGCOLOR="#FFEECC">MagZP.corr</TH>
+      <TH BGCOLOR="#FFEECC">N. star loaded</TH>
+      <TH BGCOLOR="#FFEECC">N. star accepted</TH>
+      <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
+      <TH BGCOLOR="#FFEECC">Chi2</TH>
+      <TH BGCOLOR="#FFEECC">N. Snapshots</TH>
+      <TH BGCOLOR="#FFEECC">FWHM</TH>
+      <TH BGCOLOR="#FFEECC">Best FWHM</TH>
+      <TH BGCOLOR="#FFEECC">Worse FWHM</TH>
+      <TH BGCOLOR="#FFEECC">Elongation</TH>
+      <TH BGCOLOR="#FFEECC">Best Elongation</TH>
+      <TH BGCOLOR="#FFEECC">Worse Elongation</TH>
+      <TH BGCOLOR="#FFEECC">Beta exponent</TH>
+      <TH BGCOLOR="#FFEECC">Best Beta</TH>
+      <TH BGCOLOR="#FFEECC">Worse Beta</TH>
+      <TH BGCOLOR="#FFEECC">Residual</TH>
+      <TH BGCOLOR="#FFEECC">Best Residual</TH>
+      <TH BGCOLOR="#FFEECC">Worse Residual</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
        <tr>
-        <td  BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$name]"/></el>
+        <td align="center" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$nload]"/></el>
         </td>
         <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$ident]"/></el>
+         <el><xsl:value-of select="TD[$naccept]"/></el>
         </td>
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$next]"/></el>
-        </td>
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$ndet]"/></el>
-        </td>
-        <td align="center" BGCOLOR="#EEEEEE">
-         <xsl:choose>
-          <xsl:when test="TD[$headflag] = 'T'">
-           <elen>H</elen>
-          </xsl:when>
-          <xsl:otherwise>
-            <el>-</el>
-          </xsl:otherwise>
-         </xsl:choose>
-         <xsl:choose>
-          <xsl:when test="TD[$photflag] = 'T'">
-            <elen>P</elen>
-          </xsl:when>
-          <xsl:otherwise>
-            <el>-</el>
-          </xsl:otherwise>
-         </xsl:choose>
-        </td>
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$group]"/></el>
-        </td>
-        <td align="left" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$astrinstru]"/></el>
-        </td>
-        <td align="left" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$photinstru]"/></el>
-        </td>
-<!-- Alpha -->
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el>
-          <xsl:variable name="alpha" select="substring-before(string(TD[$coord]), ' ')"/>
-          <xsl:value-of
-		select='concat(format-number(floor($alpha div 15.0), "00"),":",
-		format-number(floor(($alpha * 4) mod 60.0), "00"),":",
-		format-number(floor(($alpha * 240.0) mod 60.0), "00.00"))'/>
-         </el>
-        </td>
-<!-- Delta -->
-        <td align="center" BGCOLOR="#EEEEEE">
-         <xsl:variable name="delta" select="substring-after(string(TD[$coord]), ' ')"/>
-         <el>
-          <xsl:choose>
-           <xsl:when test="$delta &lt; 0.0">
-            <xsl:value-of
-		select='concat("-", format-number(floor(-$delta), "00"),":",
-		format-number(floor((-$delta * 60) mod 60.0), "00"),":",
-		format-number(floor((-$delta * 3600.0) mod 60.0), "00.0"))'/>
-           </xsl:when>
-           <xsl:otherwise>
-            <xsl:value-of
-		select='concat("+", format-number(floor($delta), "00"),":",
-		format-number(floor(($delta * 60) mod 60.0), "00"),":",
-		format-number(floor(($delta * 3600.0) mod 60.0), "00.0"))'/>
-           </xsl:otherwise>
-          </xsl:choose>
-         </el>
-        </td>
-<!-- Radius -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$radius],'##0.000')"/>&amin;</el>
+         <el><xsl:value-of select="format-number(TD[$fwhmfr], '#0.000')"/></el>
         </td>
-<!-- Pixel scale --> 
         <td align="right" BGCOLOR="#EEEEEE">
-         <xsl:variable name="pix1" select="number(substring-before(string(TD[$pixscale]), ' '))"/>
-         <xsl:variable name="pix2" select="number(substring-after(string(TD[$pixscale]), ' '))"/>
-         <el><xsl:value-of select="format-number(($pix1+$pix2) div 2.0, '##0.0000')"/>&asec;</el>
+         <el><xsl:value-of select="format-number(TD[$chi2], '#0.000')"/></el>
         </td>
-<!-- A/S contrast --> 
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$ascont], '##0.0')"/></el>
+        <td align="center" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$nsnap]"/></el>
         </td>
-<!-- X/Y contrast --> 
         <td align="right" BGCOLOR="#EEEEEE">
-         <xsl:choose>
-          <xsl:when test="TD[$xycont] &lt; 2.0">
-           <elep><xsl:value-of select="format-number(TD[$xycont], '##0.0')"/></elep>
-          </xsl:when>
-          <xsl:otherwise>
-            <elen><xsl:value-of select="format-number(TD[$xycont], '##0.0')"/></elen>
-          </xsl:otherwise>
-         </xsl:choose>
+         <el><xsl:value-of select="format-number(TD[$fwhm], '#0.000')"/></el>
         </td>
-<!-- Zero-Point correction --> 
         <td align="right" BGCOLOR="#EEEEEE">
-         <xsl:choose>
-          <xsl:when test="contains(TD[$zpcorr],'e')">
-           <el><xsl:value-of select="format-number('0', '#0.000')"/></el>
-          </xsl:when>
-          <xsl:otherwise>
-           <el><xsl:value-of select="format-number(TD[$zpcorr], '#0.000')"/></el>
-          </xsl:otherwise>
-         </xsl:choose>
+         <el><xsl:value-of select="format-number(TD[$fwhm_b], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$fwhm_w], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$elong], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$elong_b], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$elong_w], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$beta], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$beta_b], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$beta_w], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$res], '#0.0000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$res_b], '#0.0000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$res_w], '#0.0000')"/></el>
         </td>
        </tr>
       </xsl:for-each>
