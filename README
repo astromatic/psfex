@@ -109,13 +109,7 @@ Using it in SExtractor (this is not recommended for serious science use at
 the moment):
 % sex -PSF_NAME foo.psf foo.fits
 
-In case of problems, questions or suggestions related to the software,
-please don't hesitate to send a mail to the official mailing list:
-psfex@iap.fr
-You may consult questions and their answers on the Web at:
-http://terapix.iap.fr/soft/psfex
-In any case you can still reach me at bertin@iap.fr. I cannot garantee
-that I will reply immediately, but I will try for sure to provide
-an answer.
+Please report any bug or strange behaviour to the TERAPIX forum:
+http://terapix.iap.fr/forum
 
 					Emmanuel Bertin.

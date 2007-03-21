@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	04/03/2007
+*	Last modify:	21/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/03/2007
+VERSION	21/03/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -285,7 +285,7 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.chi2;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"NSnapshots\" datatype=\"int\""
 	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\"/>\n",
-	psf_xml[0]->poly->ndim);
+	nxml? psf_xml[0]->poly->ndim: 1);
   fprintf(file, "   <FIELD name=\"FWHM\" unit=\"pix\""
 	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"FWHM_Best\" unit=\"pix\" datatype=\"float\""
