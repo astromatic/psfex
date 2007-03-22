@@ -1,5 +1,5 @@
 /*
-                                changes.log
+                                Changelog
 
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -9,11 +9,108 @@
 *
 *       Contents:       log of changes made to the PSFEx source
 *
-*       Last modify:    11/12/2004
+*       Last modify:    21/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
+------------------------------------------------------------------------
+r415 | bertin | 2007-03-21 14:41:57 +0100 (Wed, 21 Mar 2007) | 2 lines
+
+Added missing psfex.xsl entry in .spec file.
+
+------------------------------------------------------------------------
+r414 | bertin | 2007-03-21 14:32:17 +0100 (Wed, 21 Mar 2007) | 4 lines
+
+Fixed the segfault in case of a filename error (reported by Chiara Marmo).
+Updated the THANKS and README files.
+Version number pushed to 2.0.2
+
+------------------------------------------------------------------------
+r413 | bertin | 2007-03-21 13:37:53 +0100 (Wed, 21 Mar 2007) | 3 lines
+
+Added XSLT filter (currently a copy of SCAMP's).
+Added proper default URL to XSLT filter in RPM builds (new configure --with-xsl_url option).
+
+------------------------------------------------------------------------
+r404 | bertin | 2007-03-07 13:04:25 +0100 (Wed, 07 Mar 2007) | 2 lines
+
+Added missing src/lmfit/Makefile.in.
+
+------------------------------------------------------------------------
+r403 | bertin | 2007-03-06 15:46:08 +0100 (Tue, 06 Mar 2007) | 2 lines
+
+Fixed segfaults with 0 contexts; as a consequence, SNAPSHOTS and MOFFAT check-images now generate a single snapshot in the absence of contexts.
+
+------------------------------------------------------------------------
+r402 | bertin | 2007-03-04 16:48:26 +0100 (Sun, 04 Mar 2007) | 2 lines
+
+Added output of "best" and "worse" values of fitted parameters to XML output.
+
+------------------------------------------------------------------------
+r401 | bertin | 2007-03-02 20:55:57 +0100 (Fri, 02 Mar 2007) | 2 lines
+
+Added output of the fitted Moffat beta to XML output.
+
+------------------------------------------------------------------------
+r400 | bertin | 2007-03-02 20:32:51 +0100 (Fri, 02 Mar 2007) | 5 lines
+
+Fixed computation of PSF residuals (many bugs removed, checked on real data).
+Fixed Moffat processing of multiple extensions.
+Finalized XML output.
+Added new VERBOSE_TYPE LOG option.
+
+------------------------------------------------------------------------
+r399 | bertin | 2007-03-01 20:34:31 +0100 (Thu, 01 Mar 2007) | 3 lines
+
+Added new CONTEXT_NSNAP advanced config parameter to specify the number of PSF snapshots per context axis.
+Added actual code and support for the -dd command line option. 
+
+------------------------------------------------------------------------
+r397 | bertin | 2007-02-26 20:20:41 +0100 (Mon, 26 Feb 2007) | 5 lines
+
+Reorganized structures for diagnostics.
+Activated Moffat function profile fitting (tuning and XML output still have to be completed).
+Added MOFFAT check_image type.
+Replace poly routines with the last versions.
+
+------------------------------------------------------------------------
+r396 | bertin | 2007-02-25 19:47:38 +0100 (Sun, 25 Feb 2007) | 4 lines
+
+Added LMFit library.
+Added diagnostic module with 2D Moffat function-fitting (initialization and testing not done yet).
+Pushed version number to 2.0b.
+
+------------------------------------------------------------------------
+r395 | bertin | 2007-02-23 19:40:05 +0100 (Fri, 23 Feb 2007) | 6 lines
+
+Added XML_VOTable output in preparation for new diagnostics.
+Updated to the latest version of the FITS-LDAC library.
+Updated displayed info to the latest Bertin software standards.
+Added support for compilation with the INTEL compiler.
+Pushed version number to 1.16.
+
+------------------------------------------------------------------------
+r305 | baillard | 2006-07-19 15:28:15 +0200 (Wed, 19 Jul 2006) | 2 lines
+
+Change name
+
+------------------------------------------------------------------------
+r303 | baillard | 2006-07-19 15:05:48 +0200 (Wed, 19 Jul 2006) | 2 lines
+
+Change names
+
+------------------------------------------------------------------------
+r293 | baillard | 2006-07-18 13:53:48 +0200 (Tue, 18 Jul 2006) | 2 lines
+
+Move psfex to public repository
+
+------------------------------------------------------------------------
+r16 | bertin | 2005-10-17 17:08:31 +0200 (Mon, 17 Oct 2005) | 1 line
+
+first PSFEx import
+------------------------------------------------------------------------
+-------------------------------- old ChangeLog -------------------------
 Who     When            Where(mostly)   What
 
 EB      17/12/2002      -               Moved to autoconf'ed distribution.

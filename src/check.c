@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	22/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -33,6 +33,7 @@
 #include	"poly.h"
 #include	"psf.h"
 #include	"sample.h"
+#include	"vignet.h"
 
 
 /******************************* psf_writecheck ******************************/
@@ -207,8 +208,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
       nh = nt/nw;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
+      w = set->vigsize[0];
+      h = set->vigdim>1? set->vigsize[1] : 1;
       tab->naxisn[0] = nw*w;
       tab->naxisn[1] = nh*h;
       step = (nw-1)*w;
@@ -224,10 +225,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
         {
         psf_build(psf, dpos);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = psf->loc;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
-            *(pix++) = *(fpix++);
+        vignet_resample(psf->loc, psf->size[0], psf->size[1],
+	pix, set->vigsize[0], set->vigsize[1], 0.0, 0.0, 1.0/psf->pixstep, 1.0);
         for (i=0; i<npc; i++)
           if (dpos[i]<dstart-0.01)
             {
