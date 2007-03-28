@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	28/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ void	makeit(char **incatnames, int ncat)
 	"      %5.2f\n",
 	ext+1, next,
 	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
-	psfstep,
+	psf[ext]->pixstep,
 	psf[ext]->chi2,
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,

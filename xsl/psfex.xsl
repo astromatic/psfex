@@ -184,6 +184,7 @@
    <xsl:variable name="nload" select="count(FIELD[@name='NStars_Loaded']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="naccept" select="count(FIELD[@name='NStars_Accepted']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="fwhmfr" select="count(FIELD[@name='FWHM_FromFluxRadius']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="sampling" select="count(FIELD[@name='Sampling']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2" select="count(FIELD[@name='Chi2']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="nsnap" select="count(FIELD[@name='NSnapshots']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM']/preceding-sibling::FIELD)+1"/>
@@ -204,6 +205,7 @@
       <TH BGCOLOR="#FFEECC">N. star loaded</TH>
       <TH BGCOLOR="#FFEECC">N. star accepted</TH>
       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
+      <TH BGCOLOR="#FFEECC">Sampling</TH>
       <TH BGCOLOR="#FFEECC">Chi2</TH>
       <TH BGCOLOR="#FFEECC">N. Snapshots</TH>
       <TH BGCOLOR="#FFEECC">FWHM</TH>
@@ -230,6 +232,9 @@
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$fwhmfr], '#0.000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$sampling], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$chi2], '#0.000')"/></el>

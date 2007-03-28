@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	21/03/2007
+*	Last modify:	28/03/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	21/03/2007
+VERSION	28/03/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -281,6 +281,8 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"FWHM_FromFluxRadius\" unit=\"pix\""
 	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Sampling\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"arith.factor;instr.pixel;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Chi2\" datatype=\"float\""
 	" ucd=\"stat.fit.chi2;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"NSnapshots\" datatype=\"int\""
@@ -316,11 +318,12 @@ int	write_xml_meta(FILE *file, char *error)
     {
     psf = psf_xml[n];
     fprintf(file, "    <TR>\n"
-        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%d",
 	psf->samples_loaded,
 	psf->samples_accepted,
 	psf->fwhm,
+        psf->pixstep,
 	psf->chi2,
 	psf->poly->ndim? prefs.context_nsnap : 1);
     ntot =  1;
