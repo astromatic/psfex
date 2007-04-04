@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	26/02/2007
+*	Last modify:	04/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,8 +29,8 @@
 extern void	psf_diagnostic(psfstruct *psf),
 		psf_diagprintout(int n_par, double *par, int m_dat,
 			double *fvec, void *data, int iflag,int iter,int nfev),
-		psf_diagresi(double *par, int m_dat, double *fvec, void *data,
-			int *info),
+		psf_diagresi(double *par, double *fvec, int m, int n,
+			void *adata),
 		psf_moffat(psfstruct *psf, moffatstruct *moffat);
 
 extern double	psf_normresi(double *par, psfstruct *psf);

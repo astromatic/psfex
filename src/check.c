@@ -51,7 +51,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 			*head;
    static double	dpos[POLY_MAXDIM], *dpost;
    double		dstep,dstart, dval1,dval2, scalefac;
-   float		*pix,*pix0, *fpix, val;
+   float		*pix,*pix0, *vig,*vig0, *fpix,
+			val;
    int			i,x,y, w,h,n, npc,nt, nw,nh, step, ival1, ival2;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
@@ -214,6 +215,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       tab->naxisn[1] = nh*h;
       step = (nw-1)*w;
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+      QMALLOC(vig0, float, w*h);
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
       dstep = 1.0/prefs.context_nsnap;
@@ -224,9 +226,13 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       for (n=0; n<nt; n++)
         {
         psf_build(psf, dpos);
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         vignet_resample(psf->loc, psf->size[0], psf->size[1],
-	pix, set->vigsize[0], set->vigsize[1], 0.0, 0.0, 1.0/psf->pixstep, 1.0);
+	vig0, set->vigsize[0], set->vigsize[1], 0.0, 0.0, 1.0/psf->pixstep, 1.0);
+        vig = vig0;
+        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+        for (y=h; y--; pix += step)
+          for (x=w; x--;)
+            *(pix++) = *(vig++);
         for (i=0; i<npc; i++)
           if (dpos[i]<dstart-0.01)
             {
@@ -236,6 +242,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
           else
             dpos[i] = -dstart;
         }
+      free(vig0);
       break;
 
     case PSF_WEIGHTS:

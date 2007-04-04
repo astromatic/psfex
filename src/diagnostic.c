@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	04/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,7 +27,7 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
-#include	"lmfit/lmmin.h"
+#include	"levmar/lm.h"
 #include	"diagnostic.h"
 #include	"prefs.h"
 #include	"poly.h"
@@ -40,30 +40,19 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 02/03/2007
+VERSION 04/04/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
-   lm_control_type	control;
    moffatstruct		*moffat;
    double		dpos[POLY_MAXDIM],
-			diag[PSF_DIAGNPARAM], qtf[PSF_DIAGNPARAM],
-			wa1[PSF_DIAGNPARAM],wa2[PSF_DIAGNPARAM],
-			wa3[PSF_DIAGNPARAM],
-			*param, *dresi, *fjac, *wa4,
+			param[PSF_DIAGNPARAM],
+			parammin[PSF_DIAGNPARAM],parammax[PSF_DIAGNPARAM],
+			*dresi,
 			dstep,dstart,
 			sigma, fwhmmin,fwhmmax,twot,c2t,s2t,moffac, temp,
 			cxx,cyy;
-   int			ipvt[PSF_DIAGNPARAM],
-			i,m,n, w,h, npc,nt;
-
-/* Initialize fitting */
-  control.ftol =      1.0e-10;
-  control.xtol =      1.0e-10;
-  control.gtol =      1.0e-10;
-  control.maxcall =   PSF_DIAGMAXITER;
-  control.epsilon =   1.0e-8;
-  control.stepbound = 100.0;
+   int			i,m,n, w,h, npc,nt;
 
   npc = psf->poly->ndim;
   for (nt=1, i=npc; (i--)>0;)
@@ -71,10 +60,7 @@ void	psf_diagnostic(psfstruct *psf)
   w = psf->size[0];
   h = psf->size[1];
   m = w*h;
-  QMALLOC(param, double, PSF_DIAGNPARAM);
-  QMALLOC(fjac, double, PSF_DIAGNPARAM*m);
-  QMALLOC(wa4, double, m);
-  QMALLOC(dresi, double, m);
+  QCALLOC(dresi, double, m);
   moffat = psf->moffat;
   dstep = 1.0/prefs.context_nsnap;
   dstart = (1.0-dstep)/2.0;
@@ -85,23 +71,42 @@ void	psf_diagnostic(psfstruct *psf)
   for (n=0; n<nt; n++)
     {
     psf_build(psf, dpos);
-    control.info = 0;
-    control.nfev = 0;
 /*-- Initialize PSF parameters */
-    param[1] = (w-1)/2.0;			/* x_center */
-    param[2] = (h-1)/2.0;			/* y_center */
     sigma = psf->fwhm / (2.35*psf->pixstep);
-    param[0] = 	1.0/(2*PI*sigma*sigma);		/* amplitude */
-    param[3] = param[4] = 1.0/sigma;		/* Cxx and Cyy */
-    param[5] = 0.0;				/* Cxy */
-    param[6] = 1.0;				/* Moffat beta */
-/*-- This goes through the modified legacy interface */
-    lm_lmdif(m, PSF_DIAGNPARAM, param, dresi,
-	control.ftol, control.xtol, control.gtol,
-	control.maxcall*(PSF_DIAGNPARAM+1), control.epsilon, diag, 1,
-	control.stepbound, &(control.info),
-	&(control.nfev), fjac, ipvt, qtf, wa1, wa2, wa3, wa4,
-	psf_diagresi, psf_diagprintout, psf);
+/*-- Amplitude */
+    param[0] = 	1.0/(2*PI*sigma*sigma);
+    parammin[0] = 0.0;
+    parammax[0] = 1000.0;
+/*-- Xcenter */
+    param[1] = (w-1)/2.0;
+    parammin[1] = 0.0;
+    parammax[1] = w - 1.0;
+/*-- Ycenter */
+    param[2] = (h-1)/2.0;
+    parammin[2] = 0.0;
+    parammax[2] = h - 1.0;
+/*-- Cxx */
+    param[3] = 1.0/sigma;
+    parammin[3] = 1.0/w;
+    parammax[3] = 10.0;
+/*-- Cyy */
+    param[4] = 1.0/sigma;
+    parammin[4] = 1.0/h;
+    parammax[4] = 10.0;
+/*-- Cxy */
+    param[5] = 0.0;
+    parammin[5] = -1.0*w*h;
+    parammax[5] = 1.0*w*h;
+/*-- Moffat beta */
+    param[6] = 1.0;
+    parammin[6] = 0.01;
+    parammax[6] = 10.0;
+    dlevmar_dif(psf_diagresi, param, dresi,
+	PSF_DIAGNPARAM, m, 
+//	parammin, parammax,
+	PSF_DIAGMAXITER, 
+	NULL, NULL, NULL, NULL, psf);
+
     cxx = param[3]*param[3];
     cyy = param[4]*param[4];
     twot = atan2(param[5], cxx-cyy);
@@ -145,65 +150,34 @@ void	psf_diagnostic(psfstruct *psf)
         dpos[i] = -dstart;
     }
 
-  free(param);
-  free(fjac);
   free(dresi);
-  free(wa4);
-
-  return;
-  }
-
-
-/****** psf_diagprintout *****************************************************
-PROTO	void psf_diagprintout(int n_par, double* par, int m_dat, double* fvec,
-		void *data, int iflag, int iter, int nfev)
-PURPOSE	Provide a function to print out results to lmfit.
-INPUT	Number of fitted parameters,
-	pointer to the vector of parameters,
-	number of data points,
-	pointer to the vector of residuals (output),
-	pointer to the data structure (unused),
-	0 (init) 1 (outer loop) 2(inner loop) -1(terminated),
-	outer loop counter,
-	number of calls to evaluate().
-OUTPUT	-.
-NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2007
- ***/
-void	psf_diagprintout(int n_par, double* par, int m_dat, double* fvec,
-		void *data, int iflag, int iter, int nfev)
-  {
-  if (0)
-    lm_print_default(n_par, par, m_dat, fvec, data, iflag, iter, nfev);
 
   return;
   }
 
 
 /****** psf_diagresi *********************************************************
-PROTO	void psf_diagresi(double *par, int m_dat, double *fvec, void *data,
-		int *info)
+PROTO	void psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
 PURPOSE	Provide a function returning residuals to lmfit.
 INPUT	Pointer to the vector of parameters,
-	number of data points,
 	pointer to the vector of residuals (output),
-	pointer to the PSF structure,
-	pointer to the info structure (unused).
+	number of parameters,
+	number of data points,
+	pointer to the PSF structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2007
+VERSION	04/04/2007
  ***/
-void	psf_diagresi(double *par, int m_dat, double *fvec, void *data,
-		int *info)
+void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
   {
    psfstruct	*psf;
    double	dx,dy,dy2,r2;
    float	*loc;
    int		x,y,w,h;
 
-  psf = (psfstruct *)data;
+// printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
+  psf = (psfstruct *)adata;
   loc = psf->loc;
   w = psf->size[0];
   h = psf->size[1];
