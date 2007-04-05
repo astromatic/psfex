@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	05/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -158,7 +158,8 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
 
 /*-- Compute the maximum advised number of degrees of freedom */
   if (ngroup2)
-    while ((int)(psf->poly->ncoeff/(psfstep*psfstep*PSF_FREEDFACTOR)+0.499)
+    while (psf->poly->ncoeff>nsample
+	|| (int)(psf->poly->ncoeff/(psfstep*psfstep*PSF_FREEDFACTOR)+0.499)
 	   >nsample)
       {
       poly_end(psf->poly);

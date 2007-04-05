@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	04/04/2007
+*	Last modify:	05/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -24,6 +24,9 @@
 /*----------------------------- Internal constants --------------------------*/
 #define		PSF_DIAGMAXITER	100	/* Max. nb of iterations in fitting */
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
+#define		PSF_FWHMMIN	0.1	/* Minimum FWHM for fit (model pixels)*/
+#define		PSF_FWHMMAX	100.0	/* Maximum FWHM for fit (model pixels)*/
+#define		PSF_BETAMIN	0.1	/* Minimum Moffat beta for fit */
 /*--------------------------- structure definitions -------------------------*/
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_diagnostic(psfstruct *psf),

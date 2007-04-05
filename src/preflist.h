@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	05/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,7 +44,8 @@ pkeystruct key[] =
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
    {"NONE", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
-	"SNAPSHOTS", "WEIGHTS", "PC_CONVOLVED", "MOFFAT", "-MOFFAT", ""},
+	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS", "PC_CONVOLVED",
+	"MOFFAT", "-MOFFAT", ""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CONTEXT_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},

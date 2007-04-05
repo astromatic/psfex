@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 04/04/2007
+VERSION 05/04/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -49,9 +49,7 @@ void	psf_diagnostic(psfstruct *psf)
 			param[PSF_DIAGNPARAM],
 			parammin[PSF_DIAGNPARAM],parammax[PSF_DIAGNPARAM],
 			*dresi,
-			dstep,dstart,
-			sigma, fwhmmin,fwhmmax,twot,c2t,s2t,moffac, temp,
-			cxx,cyy;
+			dstep,dstart, fwhm;
    int			i,m,n, w,h, npc,nt;
 
   npc = psf->poly->ndim;
@@ -72,9 +70,9 @@ void	psf_diagnostic(psfstruct *psf)
     {
     psf_build(psf, dpos);
 /*-- Initialize PSF parameters */
-    sigma = psf->fwhm / (2.35*psf->pixstep);
+    fwhm = psf->fwhm / psf->pixstep;
 /*-- Amplitude */
-    param[0] = 	1.0/(2*PI*sigma*sigma);
+    param[0] = 	1.0/(fwhm*fwhm);
     parammin[0] = 0.0;
     parammax[0] = 1000.0;
 /*-- Xcenter */
@@ -85,60 +83,47 @@ void	psf_diagnostic(psfstruct *psf)
     param[2] = (h-1)/2.0;
     parammin[2] = 0.0;
     parammax[2] = h - 1.0;
-/*-- Cxx */
-    param[3] = 1.0/sigma;
-    parammin[3] = 1.0/w;
-    parammax[3] = 10.0;
-/*-- Cyy */
-    param[4] = 1.0/sigma;
-    parammin[4] = 1.0/h;
-    parammax[4] = 10.0;
-/*-- Cxy */
+/*-- Major axis FWHM (pixels) */
+    param[3] = fwhm;
+    parammin[3] = PSF_FWHMMIN;
+    parammax[3] = PSF_FWHMMAX;
+/*-- Major axis FWHM (pixels) */
+    param[4] = psf->fwhm;
+    parammin[4] = PSF_FWHMMIN;
+    parammax[4] = PSF_FWHMMAX;
+/*-- Position angle (deg)  */
     param[5] = 0.0;
-    parammin[5] = -1.0*w*h;
-    parammax[5] = 1.0*w*h;
+    parammin[5] = -360.0;
+    parammax[5] = 360.0;
 /*-- Moffat beta */
     param[6] = 1.0;
     parammin[6] = 0.01;
     parammax[6] = 10.0;
-    dlevmar_dif(psf_diagresi, param, dresi,
+    dlevmar_bc_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
-//	parammin, parammax,
+	parammin, parammax,
 	PSF_DIAGMAXITER, 
 	NULL, NULL, NULL, NULL, psf);
-
-    cxx = param[3]*param[3];
-    cyy = param[4]*param[4];
-    twot = atan2(param[5], cxx-cyy);
-    moffac = 2.0*sqrt(pow(2.0, 1.0/param[6]) - 1.0)*psf->pixstep;
-    if (fabs(c2t=cos(twot)) > 0.0)
-      {
-      fwhmmax = moffac*sqrt(2.0/(cxx+cyy + (cxx-cyy)/c2t));
-      fwhmmin = moffac*sqrt(2.0/(cxx+cyy + (cyy-cxx)/c2t));
-      }
-    else if (fabs(s2t=sin(twot)) > 0.0)
-      {
-      fwhmmax = moffac*sqrt(2.0/(cxx+cyy + param[5]/s2t));
-      fwhmmin = moffac*sqrt(2.0/(cxx+cyy - param[5]/c2t));
-      }
-    else
-      fwhmmin = fwhmmax = moffac*sqrt(2.0/(cxx+cyy));
-    for (i=0; i<npc; i++)
-      moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
     moffat[n].xc[1] = param[2];
-    if (fwhmmin > fwhmmax)
+    if (param[3] > param[4])
       {
-      temp = fwhmmin;
-      fwhmmin = fwhmmax;
-      fwhmmax = temp;
-      twot = twot+PI;
+      moffat[n].fwhm_max = param[3]*psf->pixstep;
+      moffat[n].fwhm_min = param[4]*psf->pixstep;
+      moffat[n].theta = (fmod(param[5]+360.0, 180.0));
       }
-    moffat[n].fwhm_min = fwhmmin;
-    moffat[n].fwhm_max = fwhmmax;
-    moffat[n].theta = 90.0/PI*twot;
+    else
+      {
+      moffat[n].fwhm_max = param[4]*psf->pixstep;
+      moffat[n].fwhm_min = param[3]*psf->pixstep;
+      moffat[n].theta = (fmod(param[5]+450.0, 180.0));
+      }
+    if (moffat[n].theta > 90.0)
+      moffat[n].theta -= 180.0;
     moffat[n].beta = param[6];
+    for (i=0; i<npc; i++)
+      moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     moffat[n].residuals = psf_normresi(param, psf);
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -167,20 +152,28 @@ INPUT	Pointer to the vector of parameters,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/04/2007
+VERSION	05/04/2007
  ***/
 void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
   {
    psfstruct	*psf;
-   double	dx,dy,dy2,r2;
+   double	dx,dy,dy2, ct,st, r2,fac,inva2,invb2, cxx,cyy,cxy;
    float	*loc;
    int		x,y,w,h;
 
-// printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
+//printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
   psf = (psfstruct *)adata;
   loc = psf->loc;
   w = psf->size[0];
   h = psf->size[1];
+  ct = cos(par[5]*PI/180.0);
+  st = sin(par[5]*PI/180.0);
+  fac = 4.0*(pow(2.0, par[6]>PSF_BETAMIN? 1.0/par[6] : 1.0/PSF_BETAMIN) - 1.0);
+  inva2 = fac/(par[3]>PSF_FWHMMIN? par[3]*par[3] : PSF_FWHMMIN*PSF_FWHMMIN);
+  invb2 = fac/(par[4]>PSF_FWHMMIN? par[4]*par[4] : PSF_FWHMMIN*PSF_FWHMMIN);
+  cxx = inva2*ct*ct + invb2*st*st;
+  cyy = inva2*st*st + invb2*ct*ct;
+  cxy = 2.0*ct*st*(inva2 - invb2);
   for (y=0; y<h; y++)
     {
     dy = y - par[2];
@@ -188,11 +181,13 @@ void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
     for (x=0; x<w; x++)
       {
       dx = x-par[1];
-      r2 = par[3]*par[3]*dx*dx+par[4]*par[4]*dy2+par[5]*dx*dy;
+      r2 = cxx*dx*dx + cyy*dy2 + cxy*dx*dy;
+if (isnan(r2))
+printf("%g ", r2);
       *(fvec++) = *(loc++) - par[0]*pow(1.0 + r2, -par[6]);
       }
     }
-
+//printf("\n");
   return;
   }
 
@@ -205,11 +200,12 @@ INPUT	Pointer to the vector of fitted parameters,
 OUTPUT	Normalized residuals.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2007
+VERSION	05/04/2007
  ***/
 double	psf_normresi(double *par, psfstruct *psf)
   {
-   double	dx,dy,dy2,r2, resi, val, norm;
+   double	dx,dy,dy2, ct,st, r2,fac,inva2,invb2, cxx,cyy,cxy,
+		resi,val,norm;
    float	*loc;
    int		x,y,w,h;
 
@@ -217,6 +213,14 @@ double	psf_normresi(double *par, psfstruct *psf)
   loc = psf->loc;
   w = psf->size[0];
   h = psf->size[1];
+  ct = cos(par[5]*PI/180.0);
+  st = sin(par[5]*PI/180.0);
+  fac = 4.0*(pow(2.0, par[6]>PSF_BETAMIN? 1.0/par[6] : 1.0/PSF_BETAMIN) - 1.0);
+  inva2 = fac/(par[3]>PSF_FWHMMIN? par[3]*par[3] : PSF_FWHMMIN*PSF_FWHMMIN);
+  invb2 = fac/(par[4]>PSF_FWHMMIN? par[4]*par[4] : PSF_FWHMMIN*PSF_FWHMMIN);
+  cxx = inva2*ct*ct + invb2*st*st;
+  cyy = inva2*st*st + invb2*ct*ct;
+  cxy = 2.0*ct*st*(inva2 - invb2);
   for (y=0; y<h; y++)
     {
     dy = y - par[2];
@@ -224,7 +228,7 @@ double	psf_normresi(double *par, psfstruct *psf)
     for (x=0; x<w; x++)
       {
       dx = x-par[1];
-      r2 = par[3]*par[3]*dx*dx+par[4]*par[4]*dy2+par[5]*dx*dy;
+      r2 = cxx*dx*dx + cyy*dy2 + cxy*dx*dy;
       val = (double)*(loc++);
       norm += val*val;
       resi += fabs(val*(val - par[0]*pow(1.0 + r2, -par[6])));

@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	22/03/2007
+*	Last modify:	05/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -53,7 +53,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,
 			val;
-   int			i,x,y, w,h,n, npc,nt, nw,nh, step, ival1, ival2;
+   int			i,x,y, w,h,n, npc,nt,nr, nw,nh, step, ival1, ival2;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
   if (!ext)
@@ -204,7 +204,46 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_SNAPSHOTS:
 /*----  View reconstructed PSFs as small vignets */
-      npc = psf->poly->ndim;
+      npc = prefs.ncontext_name;
+      nw = npc? prefs.context_nsnap : 1;
+      for (nt=1, i=npc; (i--)>0;)
+        nt *= prefs.context_nsnap;
+      nh = nt/nw;
+      w = set->retisize[0];
+      h = set->retidim>1? set->retisize[1] : 1;
+      tab->naxisn[0] = nw*w;
+      tab->naxisn[1] = nh*h;
+      step = (nw-1)*w;
+      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+      QCALLOC(pix0, float, tab->tabsize);
+      tab->bodybuf = (char *)pix0; 
+      dstep = 1.0/prefs.context_nsnap;
+      dstart = (1.0-dstep)/2.0;
+      memset(dpos, 0, POLY_MAXDIM*sizeof(double));
+      for (i=0; i<npc; i++)
+        dpos[i] = -dstart;
+      for (n=0; n<nt; n++)
+        {
+        psf_build(psf, dpos);
+        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+        fpix = psf->loc;
+        for (y=h; y--; pix += step)
+          for (x=w; x--;)
+            *(pix++) = *(fpix++);
+        for (i=0; i<npc; i++)
+          if (dpos[i]<dstart-0.01)
+            {
+            dpos[i] += dstep;
+            break;
+            }
+          else
+            dpos[i] = -dstart;
+        }
+      break;
+
+    case PSF_SNAPSHOTS_IMRES:
+/*----  View reconstructed PSFs as small vignets */
+      npc = prefs.ncontext_name;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -296,7 +335,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       break;
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
-      npc = psf->poly->ndim;
+      npc = prefs.ncontext_name;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -309,9 +348,11 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
+      for (nr=1, i=psf->poly->ndim; (i--)>0;)
+        nr *= prefs.context_nsnap;	/* nr is the true number of Moffats */
       for (n=0; n<nt; n++)
         {
-        psf_moffat(psf, &psf->moffat[n]);
+        psf_moffat(psf, &psf->moffat[n%nr]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)
@@ -319,9 +360,10 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
             *(pix++) = *(fpix++);
         }
       break;
-    case PSF_SUBMOFFAT:
+ 
+   case PSF_SUBMOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
-      npc = psf->poly->ndim;
+      npc = prefs.ncontext_name;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -334,6 +376,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
+      for (nr=1, i=psf->poly->ndim; (i--)>0;)
+        nr *= prefs.context_nsnap;	/* nr is the true number of Moffats */
       for (n=0; n<nt; n++)
         {
         psf_build(psf, dpos);
@@ -342,7 +386,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) = *(fpix++);
-        psf_moffat(psf, &psf->moffat[n]);
+        psf_moffat(psf, &psf->moffat[n%nr]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)
