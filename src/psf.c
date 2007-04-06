@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	05/04/2007
+*	Last modify:	06/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,6 +32,7 @@
 #include	"poly.h"
 #include	"psf.h"
 #include	"vignet.h"
+#include	ATLAS_LAPACK_H
 
 /********************************* psf_clean *********************************/
 /*
@@ -407,7 +408,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag)
           }
 
 /*------ Solve the system */
-        cholsolve(amat,bmat, 3);
+        clapack_dpotrf(CblasRowMajor, CblasUpper, 3, amat, 3);
+        clapack_dpotrs(CblasRowMajor, CblasUpper, 3, 1, amat, 3, bmat, 3);
 
 /*------ Convert to a shift */
         dx += 0.5*(ddx = (bmat[1]*mx2 + bmat[2]*mxy) / bmat[0]); 
@@ -496,7 +498,8 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
    int			*psfmask,*psfmaskt, *desindex,*desindext,*desindext2,
 			*desindex0,*desindex02;
    int			i,j,jo,k,l,c,n, npix,nvpix, ndata,ncoeff,nsample,
-			ncontext, nunknown, matoffset, dindex;
+			ncontext, nunknown, matoffset, dindex, ix,iy,
+			irad, ixmin,ixmax,iymin,iymax;
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
   if (!npsf || !set->nsample)
@@ -514,16 +517,29 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
   hmedian(psforder, npix);
   psfthresh = psforder[npix-npsf];
   free(psforder);
+  vigstep = 1/psf->pixstep;
 
 /* Mark pixels which have to be reexamined */
   QCALLOC(psfmask, int, npix);
   npsf = 0;
-  for (psfmaskt=psfmask, ppix=psf->comp, i=npix; i--; psfmaskt++)
-    if (fabs(*(ppix++))>=psfthresh)
-      {
-      npsf++;
-      *psfmaskt = 1;
-      }
+  irad = (int)(vigstep*(set->vigsize[1]-1)/2);
+  iymin = psf->size[1]/2 - irad;
+  iymax = psf->size[1]/2 + irad;
+  irad = (int)(vigstep*(set->vigsize[0]-1)/2);
+  ixmin = psf->size[0]/2 - irad;
+  ixmax = psf->size[0]/2 + irad;
+  ppix=psf->comp;
+  for (iy=psf->size[1]; iy--;)
+    {
+    i = iy*psf->size[0];
+    if (iy>=iymin && iy<=iymax)
+      for (ix=psf->size[0]; ix--; i++)
+        if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax)
+            {
+            npsf++;
+            psfmask[i] = 1;
+            }
+    }
 /*
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "%d PSF pixels retained for super-resolution\n", npsf);
@@ -534,7 +550,6 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
   ncoeff = poly->ncoeff;
   nsample = set->nsample;
   nunknown = ncoeff*npsf;
-  vigstep = 1/psf->pixstep;
 /* Prepare a PSF mask that will contain Dirac peaks only... */
   QCALLOC(diracpsf, float, npix);
 /* ... and a vignet that will contain interpolating coefficients */
@@ -686,7 +701,10 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
   free(sigvig);
 
   NFPRINTF(OUTPUT,"Solving the system...");
-  cholsolve(alphamat,betamat,nunknown);
+
+  clapack_dpotrf(CblasRowMajor, CblasUpper, nunknown, alphamat, nunknown);
+  clapack_dpotrs(CblasRowMajor, CblasUpper, nunknown, 1, alphamat, nunknown,
+	betamat, nunknown);
 
   NFPRINTF(OUTPUT,"Updating the PSF...");
   for (ppix=psf->comp,betamatt=betamat, psfmaskt=psfmask, i=npix; i--; ppix++)

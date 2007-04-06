@@ -20,6 +20,7 @@ AC_SUBST(DATE2, "$date2")
 AC_SUBST(DATE3, "$date3")
 
 # Include macros
+sinclude(acx_atlas.m4)
 sinclude(acx_prog_cc_optim.m4)
 
 # Display pakage and version number
@@ -33,6 +34,59 @@ mycflags="$CFLAGS"
 CFLAGS=""
 myldflags="$LDFLAGS"
 LDFLAGS=""
+
+# Provide special option for the Linux Intel C compiler
+AC_MSG_CHECKING([for Linux Intel C compiler mode])
+AC_ARG_ENABLE(icc,
+	[AC_HELP_STRING([--enable-icc],
+	[Enable special mode for compilation with the Intel compiler \
+(off by default)])],
+        use_icc="yes"
+        cclist="icc $cclist"
+	AC_MSG_RESULT([yes]),
+        use_icc="no"
+	AC_MSG_RESULT([no]))
+
+# Checks for programs.
+# GCC is chosen last because it is likely to yield less optimized code
+AC_LANG(C)
+AC_PROG_CC([$cclist])
+# C Compiler: Check that it is ANSI C
+AM_PROG_CC_STDC
+AC_DISABLE_STATIC
+AC_PROG_LIBTOOL
+
+# C Compiler: Check that it is POSIX-compliant
+AC_ISC_POSIX
+ACX_PROG_CC_OPTIM
+AC_PROG_INSTALL
+
+# Checks for libraries.
+AC_CHECK_LIB(m, sin)
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h sys/types.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+AC_TYPE_UID_T
+
+# Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_MMAP
+AC_TYPE_SIGNAL
+AC_FUNC_STAT
+AC_FUNC_STRFTIME
+AC_CHECK_FUNCS([atexit getenv memcpy memmove memset mkdir munmap strstr \
+sysconf])
+
+# Check support for large files
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
 
 # Set the data directory to a true absolute path
 if test "x${datadir}" = 'x${prefix}/share'; then
@@ -53,17 +107,13 @@ else
   datadir2="${datadir}"
 fi
 
-# Provide special option for the Linux Intel C compiler
-AC_MSG_CHECKING([for Linux Intel C compiler mode])
-AC_ARG_ENABLE(icc,
-	[AC_HELP_STRING([--enable-icc],
-	[Enable special mode for compilation with the Intel compiler \
-(off by default)])],
-        use_icc="yes"
-        cclist="icc $cclist"
-	AC_MSG_RESULT([yes]),
-        use_icc="no"
-	AC_MSG_RESULT([no]))
+# Provide a special option for ATLAS
+AC_ARG_WITH(atlas_libpath,
+	[AC_HELP_STRING([--with-atlas_libpath=<ATLAS library path>],
+	[Provide an alternative path to the ATLAS library])],
+    atlas_libdir=$withval,
+    atlas_libdir=""
+    )
 
 # Provide a special option for the default XSLT URL
 AC_ARG_WITH(xsl_url,
@@ -87,53 +137,27 @@ AC_ARG_ENABLE(gprof,
 	AC_MSG_RESULT([no]))
 
 # Enable static linking
-AC_MSG_CHECKING([static linking])
+AC_MSG_CHECKING([for static linking])
 AC_ARG_ENABLE(static,
 	[AC_HELP_STRING([--enable-static],
-	[Enable static linking \
-(off by default)])],
-        use_static="yes"
+	[Enable static linking (off by default)])],
+        use_static="$enableval"
 	AC_MSG_RESULT([yes]),
         use_static="no"
 	AC_MSG_RESULT([no]))
 
-# Checks for programs.
-# GCC is chosen last because it is likely to yield less optimized code
-AC_PROG_CC([$cclist])
-# C Compiler: Check that it is ANSI C
-AM_PROG_CC_STDC
-# C Compiler: Check that it is POSIX-compliant
-AC_ISC_POSIX
-ACX_PROG_CC_OPTIM
-AC_PROG_RANLIB
-AC_PROG_INSTALL
+ACX_ATLAS($atlas_libdir,[use_atlas=yes],[use_atlas=no])
 
-# Checks for libraries.
-AC_CHECK_LIB(m, sin)
-
-# Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h sys/types.h unistd.h])
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_TYPE_OFF_T
-AC_TYPE_SIZE_T
-AC_STRUCT_TM
-AC_TYPE_UID_T
-
-# Checks for library functions.
-AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MALLOC
-AC_FUNC_MMAP
-AC_TYPE_SIGNAL
-AC_FUNC_STAT
-AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([atexit memcpy memmove memset mkdir munmap strstr])
-
-# Check support for large files
-AC_SYS_LARGEFILE
-AC_FUNC_FSEEKO
+################## handle the ATLAS library(linear algebra) ##################
+if test "$use_atlas" = "yes"; then
+  if test "$use_pthreads" = "yes"; then
+    LIBS="-llapack -lptcblas -lcblas -latlas $LIBS"
+  else
+    LIBS="-llapack -lcblas -latlas $LIBS"
+  fi
+else
+  AC_MSG_ERROR([CBLAS/LAPack library not found! Exiting.])
+fi
 
 # Special optimization options for the INTEL C compiler
 if test $use_icc = "yes" -a $CC = "icc"; then
