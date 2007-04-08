@@ -75,6 +75,18 @@ typedef struct psf
   double	chi2;		/* chi2/d.o.f. */
   float		fwhm;		/* Initial guess of the FWHM */
   moffatstruct	*moffat;	/* Array of Moffat fits to PSF */
+  double	moffat_fwhm_min;
+  double	moffat_fwhm;	/* Central Moffat FWHM */
+  double	moffat_fwhm_max;
+  double	moffat_elongation_min;
+  double	moffat_elongation;/* Central Moffat elongation */
+  double	moffat_elongation_max;
+  double	moffat_beta_min;
+  double	moffat_beta;	/* Central Moffat beta */
+  double	moffat_beta_max;
+  double	moffat_residuals_min;
+  double	moffat_residuals;/* Central Moffat residuals */
+  double	moffat_residuals_max;
   }	psfstruct;
 
 

@@ -186,19 +186,18 @@
    <xsl:variable name="fwhmfr" select="count(FIELD[@name='FWHM_FromFluxRadius']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="sampling" select="count(FIELD[@name='Sampling']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2" select="count(FIELD[@name='Chi2']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="nsnap" select="count(FIELD[@name='NSnapshots']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm_min" select="count(FIELD[@name='FWHM_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm_b" select="count(FIELD[@name='FWHM_Best']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm_w" select="count(FIELD[@name='FWHM_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm_max" select="count(FIELD[@name='FWHM_Max']/preceding-sibling::FIELD)+1"/>
+  <xsl:variable name="elong_min" select="count(FIELD[@name='Elongation_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="elong" select="count(FIELD[@name='Elongation']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="elong_b" select="count(FIELD[@name='Elongation_Best']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="elong_w" select="count(FIELD[@name='Elongation_Worse']/preceding-sibling::FIELD)+1"/>
+    <xsl:variable name="elong_max" select="count(FIELD[@name='Elongation_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta_min" select="count(FIELD[@name='MoffatBeta_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="beta" select="count(FIELD[@name='MoffatBeta']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="beta_b" select="count(FIELD[@name='MoffatBeta_Best']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="beta_w" select="count(FIELD[@name='MoffatBeta_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta_max" select="count(FIELD[@name='MoffatBeta_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="res_min" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="res" select="count(FIELD[@name='Residuals']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="res_b" select="count(FIELD[@name='Residuals_Best']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="res_w" select="count(FIELD[@name='Residuals_Worse']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="res_max" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
    <p>
     <TABLE class="sortable" id="psfex" BORDER="2">
      <TR>
@@ -207,19 +206,18 @@
       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
       <TH BGCOLOR="#FFEECC">Sampling</TH>
       <TH BGCOLOR="#FFEECC">Chi2</TH>
-      <TH BGCOLOR="#FFEECC">N. Snapshots</TH>
+      <TH BGCOLOR="#FFEECC">Min FWHM</TH>
       <TH BGCOLOR="#FFEECC">FWHM</TH>
-      <TH BGCOLOR="#FFEECC">Best FWHM</TH>
-      <TH BGCOLOR="#FFEECC">Worse FWHM</TH>
+      <TH BGCOLOR="#FFEECC">Max FWHM</TH>
+      <TH BGCOLOR="#FFEECC">Min Elongation</TH>
       <TH BGCOLOR="#FFEECC">Elongation</TH>
-      <TH BGCOLOR="#FFEECC">Best Elongation</TH>
-      <TH BGCOLOR="#FFEECC">Worse Elongation</TH>
+      <TH BGCOLOR="#FFEECC">Max Elongation</TH>
+      <TH BGCOLOR="#FFEECC">Min Beta</TH>
       <TH BGCOLOR="#FFEECC">Beta exponent</TH>
-      <TH BGCOLOR="#FFEECC">Best Beta</TH>
-      <TH BGCOLOR="#FFEECC">Worse Beta</TH>
-      <TH BGCOLOR="#FFEECC">Residual</TH>
-      <TH BGCOLOR="#FFEECC">Best Residual</TH>
-      <TH BGCOLOR="#FFEECC">Worse Residual</TH>
+      <TH BGCOLOR="#FFEECC">Max Beta</TH>
+      <TH BGCOLOR="#FFEECC">Min Residuals</TH>
+      <TH BGCOLOR="#FFEECC">Residuals</TH>
+      <TH BGCOLOR="#FFEECC">Max Residuals</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
@@ -239,44 +237,41 @@
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$chi2], '#0.000')"/></el>
         </td>
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$nsnap]"/></el>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$fwhm_min], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$fwhm], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhm_b], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$fwhm_max], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhm_w], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$elong_min], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$elong], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$elong_b], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$elong_max], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$elong_w], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$beta_min], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$beta], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$beta_b], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$beta_max], '#0.000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$beta_w], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$res_min], '#0.0000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$res], '#0.0000')"/></el>
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$res_b], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$res_w], '#0.0000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$res_max], '#0.0000')"/></el>
         </td>
        </tr>
       </xsl:for-each>

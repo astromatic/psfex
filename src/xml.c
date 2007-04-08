@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	28/03/2007
+*	Last modify:	08/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,17 +173,24 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2007
+VERSION	08/04/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
    psfstruct		*psf;
    struct tm		*tm;
    char			*pspath,*psuser, *pshost, *str;
-   double		fwhm_best,fwhm_worse, elongation_best,elongation_worse,
-			beta_best,beta_worse, residuals_best,residuals_worse,
-			temp;
-   int			i,d,n, nmed, ntot;
+   double		minrad_min,minrad_mean,minrad_max,
+			sampling_min,sampling_mean,sampling_max,
+			chi2_min,chi2_mean,chi2_max,
+			fwhm_min,fwhm_mean,fwhm_max,
+			elongation_min,elongation_mean,elongation_max,
+			beta_min,beta_mean,beta_max,
+			residuals_min,residuals_mean,residuals_max,
+			nloaded_mean,naccepted_mean;
+   int			d,n,
+			nloaded_min,nloaded_max,
+			naccepted_min,naccepted_max;
 
 /* Processing date and time if msg error present */
   if (error)
@@ -263,6 +270,79 @@ int	write_xml_meta(FILE *file, char *error)
 	"!!!!!!!!!!!!!!!!!!!! -->\n\n");
     }
 
+/* Compute min,average and max of Moffat fitted parameters */
+  nloaded_min = naccepted_min = 2<<29;
+  nloaded_max = naccepted_max = 0;
+  minrad_min = sampling_min = chi2_min = fwhm_min = elongation_min
+	= beta_min = residuals_min = BIG;
+  minrad_mean = sampling_mean = chi2_mean = fwhm_mean = elongation_mean
+	= beta_mean = residuals_mean = nloaded_mean = naccepted_mean = 0.0;
+  minrad_max = sampling_max = chi2_max = fwhm_max = elongation_max
+	= beta_max = residuals_max = -BIG;
+  for (n=0; n<nxml; n++)
+    {
+    psf = psf_xml[n];
+    if (psf->samples_loaded < nloaded_min)
+      nloaded_min = psf->samples_loaded ;
+    nloaded_mean += (double)psf->samples_loaded;
+    if (psf->samples_loaded > nloaded_max)
+      nloaded_max = psf->samples_loaded ;
+    if (psf->samples_accepted < naccepted_min)
+      naccepted_min = psf->samples_accepted ;
+    naccepted_mean += (double)psf->samples_accepted;
+    if (psf->samples_accepted > naccepted_max)
+      naccepted_max = psf->samples_accepted ;
+    if (psf->fwhm < minrad_min)
+      minrad_min = psf->fwhm;
+    minrad_mean += psf->fwhm;
+    if (psf->fwhm > minrad_max)
+      minrad_max = psf->fwhm;
+    if (psf->pixstep < sampling_min)
+      sampling_min = psf->pixstep;
+    sampling_mean += psf->pixstep;
+    if (psf->pixstep > sampling_max)
+      sampling_max = psf->pixstep;
+    if (psf->chi2 < chi2_min)
+      chi2_min = psf->chi2;
+    chi2_mean += psf->chi2;
+    if (psf->chi2 > chi2_max)
+      chi2_max = psf->chi2;
+    if (psf->moffat_fwhm_min < fwhm_min)
+      fwhm_min = psf->moffat_fwhm_min;
+    fwhm_mean += psf->moffat_fwhm;
+    if (psf->moffat_fwhm_max > fwhm_max)
+      fwhm_max = psf->moffat_fwhm_max;
+    if (psf->moffat_elongation_min < elongation_min)
+      elongation_min = psf->moffat_elongation_min;
+    elongation_mean += psf->moffat_elongation;
+    if (psf->moffat_elongation_max > elongation_max)
+      elongation_max = psf->moffat_elongation_max;
+    if (psf->moffat_beta_min < beta_min)
+      beta_min = psf->moffat_beta_min;
+    beta_mean += psf->moffat_beta;
+    if (psf->moffat_beta_max > beta_max)
+      beta_max = psf->moffat_beta_max;
+    if (psf->moffat_residuals_min < residuals_min)
+      residuals_min = psf->moffat_residuals_min;
+    residuals_mean += psf->moffat_residuals;
+    if (psf->moffat_residuals_max > residuals_max)
+      residuals_max = psf->moffat_residuals_max;
+    }
+
+  if (nxml>1)
+    {
+    nloaded_mean /= (double)nxml;
+    naccepted_mean /= (double)nxml;
+    minrad_mean /= (double)nxml;
+    sampling_mean /= (double)nxml;
+    chi2_mean /= (double)nxml;
+    fwhm_mean /= (double)nxml;
+    elongation_mean /= (double)nxml;
+    beta_mean /= (double)nxml;
+    residuals_mean /= (double)nxml;
+    }
+
+
 /* Meta-data for the PSF */
   fprintf(file, "  <TABLE ID=\"PSF\" name=\"PSF\">\n");
   fprintf(file, "   <DESCRIPTION>Metadata and stats about the PSF gathered by "
@@ -275,6 +355,98 @@ int	write_xml_meta(FILE *file, char *error)
 	" if an error occurred -->\n");
   fprintf(file, "   <PARAM name=\"CurrExtension\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\" value=\"%d\"/>\n", nxml);
+  fprintf(file, "   <PARAM name=\"NSnapshots\" datatype=\"int\""
+	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\""
+	" value=\"%d",
+	prefs.ncontext_name? prefs.ncontext_name : 1,
+	prefs.ncontext_name? prefs.context_nsnap : 1);
+  for (d=1; d<prefs.ncontext_name; d++)
+    fprintf(file, " %d", prefs.context_nsnap);
+  fprintf(file, "\"/>\n");
+  fprintf(file, "   <PARAM name=\"NStars_Loaded_Min\" datatype=\"int\""
+	" ucd=\"meta.number;stat.min;meta.dataset\""
+	" value=\"%d\"/>\n", nloaded_min);
+  fprintf(file, "   <PARAM name=\"NStars_Loaded_Mean\" datatype=\"int\""
+	" ucd=\"meta.number;stat.mean;meta.dataset\""
+	" value=\"%.6g\"/>\n", nloaded_mean);
+  fprintf(file, "   <PARAM name=\"NStars_Loaded_Max\" datatype=\"int\""
+	" ucd=\"meta.number;stat.max;meta.dataset\""
+	" value=\"%d\"/>\n", nloaded_max);
+  fprintf(file, "   <PARAM name=\"NStars_Accepted_Min\" datatype=\"int\""
+	" ucd=\"meta.number;stat.min;meta.dataset\""
+	" value=\"%d\"/>\n", naccepted_min);
+  fprintf(file, "   <PARAM name=\"NStars_Accepted_Mean\" datatype=\"int\""
+	" ucd=\"meta.number;stat.mean;meta.dataset\""
+	" value=\"%.6g\"/>\n", naccepted_mean);
+  fprintf(file, "   <PARAM name=\"NStars_Accepted_Max\" datatype=\"int\""
+	" ucd=\"meta.number;stat.max;meta.dataset\""
+	" value=\"%d\"/>\n", naccepted_max);
+  fprintf(file, "   <PARAM name=\"FWHM_FromFluxRadius_Min\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.min;instr.det.psf\""
+	" value=\"%.6g\"/>\n", minrad_min);
+  fprintf(file, "   <PARAM name=\"FWHM_FromFluxRadius_Mean\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\""
+	" value=\"%.6g\"/>\n", minrad_mean);
+  fprintf(file, "   <PARAM name=\"FWHM_FromFluxRadius_Max\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.max;instr.det.psf\""
+	" value=\"%.6g\"/>\n", minrad_max);
+  fprintf(file, "   <PARAM name=\"Sampling_Min\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"arith.factor;instr.pixel;stat.min;instr.det.psf\""
+	" value=\"%.6g\"/>\n", sampling_min);
+  fprintf(file, "   <PARAM name=\"Sampling_Mean\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"arith.factor;instr.pixel;stat.mean;instr.det.psf\""
+	" value=\"%.6g\"/>\n", sampling_mean);
+  fprintf(file, "   <PARAM name=\"Sampling_Max\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"arith.factor;instr.pixel;stat.max;instr.det.psf\""
+	" value=\"%.6g\"/>\n", sampling_max);
+  fprintf(file, "   <PARAM name=\"Chi2_Min\" datatype=\"float\""
+	" ucd=\"stat.fit.chi2;stat.min;instr.det.psf\""
+	" value=\"%.6g\"/>\n", chi2_min);
+  fprintf(file, "   <PARAM name=\"Chi2_Mean\" datatype=\"float\""
+	" ucd=\"stat.fit.chi2;stat.mean;instr.det.psf\""
+	" value=\"%.6g\"/>\n", chi2_mean);
+  fprintf(file, "   <PARAM name=\"Chi2_Max\" datatype=\"float\""
+	" ucd=\"stat.fit.chi2;stat.max;instr.det.psf\""
+	" value=\"%.6g\"/>\n", chi2_max);
+
+
+  fprintf(file, "   <PARAM name=\"FWHM_Min\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.min;instr.det.psf\""
+	" value=\"%.6g\"/>\n", fwhm_min);
+  fprintf(file, "   <PARAM name=\"FWHM_Mean\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\""
+	" value=\"%.6g\"/>\n", fwhm_mean);
+  fprintf(file, "   <PARAM name=\"FWHM_Max\" unit=\"pix\""
+	" datatype=\"float\" ucd=\"phys.size.diameter;stat.max;instr.det.psf\""
+	" value=\"%.6g\"/>\n", fwhm_max);
+  fprintf(file, "   <PARAM name=\"Elongation_Min\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\""
+	" value=\"%.6g\"/>\n", elongation_min);
+  fprintf(file, "   <PARAM name=\"Elongation_Mean\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.mean;instr.det.psf\""
+	" value=\"%.6g\"/>\n", elongation_mean);
+  fprintf(file, "   <PARAM name=\"Elongation_Max\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.max;instr.det.psf\""
+	" value=\"%.6g\"/>\n", elongation_max);
+  fprintf(file, "   <PARAM name=\"MoffatBeta_Min\" datatype=\"float\""
+	" ucd=\"stat.param;stat.min;instr.det.psf\" value=\"%.6g\"/>\n",
+	beta_min);
+  fprintf(file, "   <PARAM name=\"MoffatBeta_Mean\" datatype=\"float\""
+	" ucd=\"stat.param;stat.mean;instr.det.psf\" value=\"%.6g\"/>\n",
+	beta_mean);
+  fprintf(file, "   <PARAM name=\"MoffatBeta_Max\" datatype=\"float\""
+	" ucd=\"stat.param;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
+	beta_max);
+  fprintf(file, "   <PARAM name=\"Residuals_Min\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\" value=\"%.6g\"/>\n",
+	residuals_min);
+  fprintf(file, "   <PARAM name=\"Residuals_Mean\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\" value=\"%.6g\"/>\n",
+	residuals_mean);
+  fprintf(file, "   <PARAM name=\"Residuals_max\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
+	residuals_max);
+
   fprintf(file, "   <FIELD name=\"NStars_Loaded\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted\" datatype=\"int\""
@@ -285,32 +457,29 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"arith.factor;instr.pixel;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Chi2\" datatype=\"float\""
 	" ucd=\"stat.fit.chi2;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"NSnapshots\" datatype=\"int\""
-	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\"/>\n",
-	nxml? psf_xml[0]->poly->ndim: 1);
+  fprintf(file, "   <FIELD name=\"FWHM_Min\" unit=\"pix\" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"FWHM\" unit=\"pix\""
 	" datatype=\"float\" ucd=\"phys.size.diameter;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"FWHM_Best\" unit=\"pix\" datatype=\"float\""
-	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"FWHM_Worse\" unit=\"pix\" datatype=\"float\""
+  fprintf(file, "   <FIELD name=\"FWHM_Max\" unit=\"pix\" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Elongation_Min\" datatype=\"float\""
+	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Elongation\" datatype=\"float\""
 	" ucd=\"phys.size.axisRatio;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Best\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Worse\" datatype=\"float\""
+  fprintf(file, "   <FIELD name=\"Elongation_Max\" datatype=\"float\""
 	" ucd=\"phys.size.axisRatio;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"MoffatBeta_Min\" datatype=\"float\""
+	" ucd=\"stat.param;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta\" datatype=\"float\""
 	" ucd=\"stat.param;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"MoffatBeta_Best\" datatype=\"float\""
+  fprintf(file, "   <FIELD name=\"MoffatBeta_Max\" datatype=\"float\""
 	" ucd=\"stat.param;stat.max;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"MoffatBeta_Worse\" datatype=\"float\""
-	" ucd=\"stat.param;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Residuals_Min\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Residuals\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Residuals_Best\" datatype=\"float\""
-	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Residuals_Worse\" datatype=\"float\""
+  fprintf(file, "   <FIELD name=\"Residuals_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
@@ -318,64 +487,24 @@ int	write_xml_meta(FILE *file, char *error)
     {
     psf = psf_xml[n];
     fprintf(file, "    <TR>\n"
-        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
-	"     <TD>%d",
+        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n",
 	psf->samples_loaded,
 	psf->samples_accepted,
 	psf->fwhm,
         psf->pixstep,
-	psf->chi2,
-	psf->poly->ndim? prefs.context_nsnap : 1);
-    ntot =  1;
-    nmed = 0;
-    for (d=0; d<psf_xml[0]->poly->ndim; d++)
-      {
-      fprintf(file, " %d", prefs.context_nsnap);
-      ntot *= prefs.context_nsnap;
-      nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
-      }
-    fwhm_best = elongation_best = beta_worse = residuals_best = BIG;
-    fwhm_worse = elongation_worse = beta_best = residuals_worse = -BIG;
-    for (i=0; i<ntot; i++)
-      {
-      if ((temp=sqrt(psf->moffat[i].fwhm_min*psf->moffat[i].fwhm_max))
-	< fwhm_best)
-        fwhm_best = temp;
-      if (temp > fwhm_worse)
-        fwhm_worse = temp;
-      if ((temp=psf->moffat[i].fwhm_max / psf->moffat[i].fwhm_min)
-	< elongation_best)
-        elongation_best = temp;
-      if (temp > elongation_worse)
-        elongation_worse = temp;
-      if (psf->moffat[i].beta > beta_best)
-        beta_best = psf->moffat[i].beta;
-      if (psf->moffat[i].beta < beta_worse)
-        beta_worse = psf->moffat[i].beta;
-      if (psf->moffat[i].residuals < residuals_best)
-        residuals_best = psf->moffat[i].residuals;
-      if (psf->moffat[i].residuals > residuals_worse)
-        residuals_worse = psf->moffat[i].residuals;
-      }
-
-    fprintf(file, "</TD>\n"
+	psf->chi2);
+    fprintf(file,
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
         "    </TR>\n",
-	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
-	fwhm_best,
-	fwhm_worse,
-	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
-	elongation_best,
-	elongation_worse,
-	psf->moffat[nmed].beta,
-	beta_best,
-	beta_worse,
-	psf->moffat[nmed].residuals,
-	residuals_best,
-	residuals_worse);
+	psf->moffat_fwhm_min, psf->moffat_fwhm, psf->moffat_fwhm_max,
+	psf->moffat_elongation_min, psf->moffat_elongation,
+		psf->moffat_elongation_max,
+	psf->moffat_beta_min, psf->moffat_beta, psf->moffat_beta_max,
+	psf->moffat_residuals_min, psf->moffat_residuals,
+		psf->moffat_residuals_max);
     }
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");

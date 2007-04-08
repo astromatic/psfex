@@ -174,7 +174,7 @@ if test "$use_gprof" = "yes"; then
 fi
 
 if test "$use_static" = "yes"; then
-  LDFLAGS="$LDFLAGS -static"
+  LDFLAGS="$LDFLAGS -all-static"
 fi
 
 # Override automatic CFLAGS and LDFLAGS with those of user

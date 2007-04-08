@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 06/04/2007
+VERSION 08/04/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -49,12 +49,17 @@ void	psf_diagnostic(psfstruct *psf)
 			param[PSF_DIAGNPARAM],
 			parammin[PSF_DIAGNPARAM],parammax[PSF_DIAGNPARAM],
 			*dresi,
-			dstep,dstart, fwhm;
-   int			i,m,n, w,h, npc,nt;
+			dstep,dstart, fwhm, temp;
+   int			i,m,n, w,h, npc,nt, nmed;
 
+  nmed = 0;
   npc = psf->poly->ndim;
   for (nt=1, i=npc; (i--)>0;)
+    {
     nt *= prefs.context_nsnap;
+    nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
+    }
+
   w = psf->size[0];
   h = psf->size[1];
   m = w*h;
@@ -65,6 +70,12 @@ void	psf_diagnostic(psfstruct *psf)
   memset(dpos, 0, POLY_MAXDIM*sizeof(double));
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
+
+  psf->moffat_fwhm_min = psf->moffat_elongation_min = psf->moffat_beta_min
+		= psf->moffat_residuals_min = BIG;
+  psf->moffat_fwhm_max = psf->moffat_elongation_max = psf->moffat_beta_max
+		= psf->moffat_residuals_max = -BIG;
+
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
     {
@@ -125,6 +136,26 @@ void	psf_diagnostic(psfstruct *psf)
     for (i=0; i<npc; i++)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     moffat[n].residuals = psf_normresi(param, psf);
+
+    if ((temp=sqrt(psf->moffat[n].fwhm_min*psf->moffat[n].fwhm_max))
+		< psf->moffat_fwhm_min)
+      psf->moffat_fwhm_min = temp;
+    if (temp > psf->moffat_fwhm_max)
+      psf->moffat_fwhm_max = temp;
+    if ((temp=psf->moffat[n].fwhm_max/psf->moffat[n].fwhm_min)
+		< psf->moffat_elongation_min)
+      psf->moffat_elongation_min = temp;
+    if (temp > psf->moffat_elongation_max)
+      psf->moffat_elongation_max = temp;
+    if (psf->moffat[n].beta < psf->moffat_beta_min)
+      psf->moffat_beta_min = psf->moffat[n].beta;
+    if (psf->moffat[n].beta > psf->moffat_beta_max)
+      psf->moffat_beta_max = psf->moffat[n].beta;
+    if (psf->moffat[n].residuals < psf->moffat_residuals_min)
+      psf->moffat_residuals_min = psf->moffat[n].residuals;
+    if (psf->moffat[n].residuals > psf->moffat_residuals_max)
+      psf->moffat_residuals_max = psf->moffat[n].residuals;
+
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
         {
@@ -134,6 +165,13 @@ void	psf_diagnostic(psfstruct *psf)
       else
         dpos[i] = -dstart;
     }
+
+  psf->moffat_fwhm = sqrt(psf->moffat[nmed].fwhm_min
+		* psf->moffat[nmed].fwhm_max);
+  psf->moffat_elongation = psf->moffat[nmed].fwhm_max
+		/ psf->moffat[nmed].fwhm_min;
+  psf->moffat_beta = psf->moffat[nmed].beta;
+  psf->moffat_residuals = psf->moffat[nmed].residuals;
 
   free(dresi);
 
@@ -182,12 +220,10 @@ void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
       {
       dx = x-par[1];
       r2 = cxx*dx*dx + cyy*dy2 + cxy*dx*dy;
-if (isnan(r2))
-printf("%g ", r2);
       *(fvec++) = *(loc++) - par[0]*pow(1.0 + r2, -par[6]);
       }
     }
-//printf("\n");
+
   return;
   }
 
