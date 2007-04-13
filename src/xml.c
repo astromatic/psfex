@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	08/04/2007
+*	Last modify:	13/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	08/04/2007
+VERSION	13/04/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -443,7 +443,7 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <PARAM name=\"Residuals_Mean\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\" value=\"%.6g\"/>\n",
 	residuals_mean);
-  fprintf(file, "   <PARAM name=\"Residuals_max\" datatype=\"float\""
+  fprintf(file, "   <PARAM name=\"Residuals_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
 	residuals_max);
 
