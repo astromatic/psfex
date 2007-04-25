@@ -807,6 +807,8 @@ int info, rank, worksz, *iwork, iworksz;
 #include        "config.h"
 #endif
 #include        ATLAS_LAPACK_H
+#define ATLAS_POTRF	LM_CAT_(clapack_, LM_ADD_PREFIX(potrf))
+#define ATLAS_POTRS	LM_CAT_(clapack_, LM_ADD_PREFIX(potrs))
 #define GETRF LM_ADD_PREFIX(getrf_)
 #define GETRS LM_ADD_PREFIX(getrs_)
 extern int GETRF(int *m, int *n, LM_REAL *a, int *lda, int *ipiv, int *info);
@@ -839,7 +841,7 @@ __STATIC__ int buf_sz=0;
 
 int a_sz, ipiv_sz, b_sz, work_sz, tot_sz;
 register int i, j;
-int info, *ipiv, nrhs=1;
+int info, *ipiv;
 LM_REAL *a, *b, *work;
    
 #ifdef LINSOLVERS_RETAIN_MEMORY
@@ -892,7 +894,7 @@ LM_REAL *a, *b, *work;
     }
 
   /* LU decomposition for A */
-        info = clapack_dpotrf(CblasRowMajor, CblasUpper, m, a, m);
+        info = ATLAS_POTRF(CblasRowMajor, CblasUpper, m, a, m);
 	if(info!=0){
 		if(info<0){
       fprintf(stderr, RCAT(RCAT("argument %d of ", GETRF) " illegal in ", AX_EQ_B_LU) "()\n", -info);
@@ -909,7 +911,7 @@ LM_REAL *a, *b, *work;
 	}
 
   /* solve the system with the computed LU */
-        info = clapack_dpotrs(CblasRowMajor, CblasUpper, m, 1, a, m, b, m);
+        info = ATLAS_POTRS(CblasRowMajor, CblasUpper, m, 1, a, m, b, m);
 	if(info!=0){
 		if(info<0){
 			fprintf(stderr, RCAT(RCAT("argument %d of ", GETRS) " illegal in ", AX_EQ_B_LU) "()\n", -info);
