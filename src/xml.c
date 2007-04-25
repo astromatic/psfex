@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	13/04/2007
+*	Last modify:	25/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	13/04/2007
+VERSION	25/04/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -190,7 +190,7 @@ int	write_xml_meta(FILE *file, char *error)
 			nloaded_mean,naccepted_mean;
    int			d,n,
 			nloaded_min,nloaded_max,
-			naccepted_min,naccepted_max;
+			naccepted_min,naccepted_max, neff;
 
 /* Processing date and time if msg error present */
   if (error)
@@ -279,6 +279,7 @@ int	write_xml_meta(FILE *file, char *error)
 	= beta_mean = residuals_mean = nloaded_mean = naccepted_mean = 0.0;
   minrad_max = sampling_max = chi2_max = fwhm_max = elongation_max
 	= beta_max = residuals_max = -BIG;
+  neff = 0;
   for (n=0; n<nxml; n++)
     {
     psf = psf_xml[n];
@@ -286,12 +287,16 @@ int	write_xml_meta(FILE *file, char *error)
       nloaded_min = psf->samples_loaded ;
     nloaded_mean += (double)psf->samples_loaded;
     if (psf->samples_loaded > nloaded_max)
-      nloaded_max = psf->samples_loaded ;
+      nloaded_max = psf->samples_loaded;
     if (psf->samples_accepted < naccepted_min)
-      naccepted_min = psf->samples_accepted ;
+      naccepted_min = psf->samples_accepted;
     naccepted_mean += (double)psf->samples_accepted;
     if (psf->samples_accepted > naccepted_max)
       naccepted_max = psf->samples_accepted ;
+/*-- Drop it if no valid stars have been kept */
+    if (!psf->samples_accepted)
+      continue;
+    neff++;
     if (psf->fwhm < minrad_min)
       minrad_min = psf->fwhm;
     minrad_mean += psf->fwhm;
@@ -333,13 +338,17 @@ int	write_xml_meta(FILE *file, char *error)
     {
     nloaded_mean /= (double)nxml;
     naccepted_mean /= (double)nxml;
-    minrad_mean /= (double)nxml;
-    sampling_mean /= (double)nxml;
-    chi2_mean /= (double)nxml;
-    fwhm_mean /= (double)nxml;
-    elongation_mean /= (double)nxml;
-    beta_mean /= (double)nxml;
-    residuals_mean /= (double)nxml;
+    }
+
+  if (neff>1)
+    {
+    minrad_mean /= (double)neff;
+    sampling_mean /= (double)neff;
+    chi2_mean /= (double)neff;
+    fwhm_mean /= (double)neff;
+    elongation_mean /= (double)neff;
+    beta_mean /= (double)neff;
+    residuals_mean /= (double)neff;
     }
 
 
