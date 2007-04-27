@@ -293,7 +293,7 @@ VERSION	27/04/2007
  ***/
 double	psf_symresi(psfstruct *psf)
   {
-   double	resi,val,valsym,norm;
+   double	resi,val,valsym,valmean,norm;
    float	*loc,*locsym;
    int		i;
 
@@ -304,11 +304,12 @@ double	psf_symresi(psfstruct *psf)
     {
     val = (double)*(loc++);
     valsym = (double)*(--locsym);
-    norm += val*val;
-    resi += fabs(val*(val - valsym));
+    valmean = val + valsym;
+    norm += valmean*valmean;
+    resi += fabs(valmean * (val - valsym));
     }
 
-  return norm > 0.0? resi / norm : 1.0;
+  return norm > 0.0? 2.0 * resi / norm : 1.0;
   }
 
 
