@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	25/04/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/04/2007
+VERSION	27/04/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -187,6 +187,7 @@ int	write_xml_meta(FILE *file, char *error)
 			elongation_min,elongation_mean,elongation_max,
 			beta_min,beta_mean,beta_max,
 			residuals_min,residuals_mean,residuals_max,
+			symresiduals_min,symresiduals_mean,symresiduals_max,
 			nloaded_mean,naccepted_mean;
    int			d,n,
 			nloaded_min,nloaded_max,
@@ -274,11 +275,12 @@ int	write_xml_meta(FILE *file, char *error)
   nloaded_min = naccepted_min = 2<<29;
   nloaded_max = naccepted_max = 0;
   minrad_min = sampling_min = chi2_min = fwhm_min = elongation_min
-	= beta_min = residuals_min = BIG;
+	= beta_min = residuals_min = symresiduals_min = BIG;
   minrad_mean = sampling_mean = chi2_mean = fwhm_mean = elongation_mean
-	= beta_mean = residuals_mean = nloaded_mean = naccepted_mean = 0.0;
+	= beta_mean = residuals_mean = symresiduals_mean
+	= nloaded_mean = naccepted_mean = 0.0;
   minrad_max = sampling_max = chi2_max = fwhm_max = elongation_max
-	= beta_max = residuals_max = -BIG;
+	= beta_max = residuals_max = symresiduals_max = -BIG;
   neff = 0;
   for (n=0; n<nxml; n++)
     {
@@ -332,6 +334,11 @@ int	write_xml_meta(FILE *file, char *error)
     residuals_mean += psf->moffat_residuals;
     if (psf->moffat_residuals_max > residuals_max)
       residuals_max = psf->moffat_residuals_max;
+    if (psf->moffat_symresiduals_min < symresiduals_min)
+      symresiduals_min = psf->moffat_symresiduals_min;
+    symresiduals_mean += psf->moffat_symresiduals;
+    if (psf->moffat_symresiduals_max > symresiduals_max)
+      symresiduals_max = psf->moffat_symresiduals_max;
     }
 
   if (nxml>1)
@@ -349,6 +356,7 @@ int	write_xml_meta(FILE *file, char *error)
     elongation_mean /= (double)neff;
     beta_mean /= (double)neff;
     residuals_mean /= (double)neff;
+    symresiduals_mean /= (double)neff;
     }
 
 
@@ -367,9 +375,9 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <PARAM name=\"NSnapshots\" datatype=\"int\""
 	" arraysize=\"%d\" ucd=\"meta.number;meta.dataset\""
 	" value=\"%d",
-	prefs.ncontext_name? prefs.ncontext_name : 1,
-	prefs.ncontext_name? prefs.context_nsnap : 1);
-  for (d=1; d<prefs.ncontext_name; d++)
+	prefs.ncontext_group? prefs.ncontext_group : 1,
+	prefs.ncontext_group? prefs.context_nsnap : 1);
+  for (d=1; d<prefs.ncontext_group; d++)
     fprintf(file, " %d", prefs.context_nsnap);
   fprintf(file, "\"/>\n");
   fprintf(file, "   <PARAM name=\"NStars_Loaded_Min\" datatype=\"int\""
@@ -455,6 +463,15 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <PARAM name=\"Residuals_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
 	residuals_max);
+  fprintf(file, "   <PARAM name=\"Asymmetry_Min\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\" value=\"%.6g\"/>\n",
+	symresiduals_min);
+  fprintf(file, "   <PARAM name=\"Asymmetry_Mean\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\" value=\"%.6g\"/>\n",
+	symresiduals_mean);
+  fprintf(file, "   <PARAM name=\"Asymmetry_Max\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
+	symresiduals_max);
 
   fprintf(file, "   <FIELD name=\"NStars_Loaded\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\"/>\n");
@@ -490,6 +507,12 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Residuals_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Asymmetry_Min\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Asymmetry\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Asymmetry_Max\" datatype=\"float\""
+	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
   for (n=0; n<nxml; n++)
@@ -507,13 +530,16 @@ int	write_xml_meta(FILE *file, char *error)
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
         "    </TR>\n",
 	psf->moffat_fwhm_min, psf->moffat_fwhm, psf->moffat_fwhm_max,
 	psf->moffat_elongation_min, psf->moffat_elongation,
 		psf->moffat_elongation_max,
 	psf->moffat_beta_min, psf->moffat_beta, psf->moffat_beta_max,
 	psf->moffat_residuals_min, psf->moffat_residuals,
-		psf->moffat_residuals_max);
+		psf->moffat_residuals_max,
+	psf->moffat_symresiduals_min, psf->moffat_symresiduals,
+		psf->moffat_symresiduals_max);
     }
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");

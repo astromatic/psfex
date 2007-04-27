@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	05/04/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -45,14 +45,14 @@ pkeystruct key[] =
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
    {"NONE", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
 	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS", "PC_CONVOLVED",
-	"MOFFAT", "-MOFFAT", ""},
+	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CONTEXT_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},
   {"CONTEXT_GROUPS", P_INTLIST, prefs.context_group, 1,MAXCONTEXT,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"CONTEXT_NSNAP", P_INT, &prefs.context_nsnap, 1,16},
-  {"GROUP_DEGREES", P_INTLIST, prefs.group_deg, 1,32,0.0,0.0,
+  {"GROUP_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PC_INCLUDE", P_BOOL, &prefs.pc_flag},
@@ -116,9 +116,9 @@ char *default_prefs[] =
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
-"CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT",
+"CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
 "                                # Check-image types",
-"CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits",
+"CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
 "                                # Check-image filenames",
 "* ",
 "*#---------------------- Galaxy Principal Components --------------------------",

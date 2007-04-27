@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -55,6 +55,7 @@ typedef struct moffat
   double	theta;		/* Position angle of the major axis / NAXIS1 */
   double	beta;		/* Moffat beta parameter */
   double	residuals;	/* Normalized residuals */
+  double	symresiduals;	/* Normalized symmetry residuals */
   }	moffatstruct;
 
 typedef struct psf
@@ -87,6 +88,9 @@ typedef struct psf
   double	moffat_residuals_min;
   double	moffat_residuals;/* Central Moffat residuals */
   double	moffat_residuals_max;
+  double	moffat_symresiduals_min;
+  double	moffat_symresiduals;/* Symmetry residuals */
+  double	moffat_symresiduals_max;
   }	psfstruct;
 
 

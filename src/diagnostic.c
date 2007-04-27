@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	06/04/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 08/04/2007
+VERSION 27/04/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -72,9 +72,11 @@ void	psf_diagnostic(psfstruct *psf)
      dpos[i] = -dstart;
 
   psf->moffat_fwhm_min = psf->moffat_elongation_min = psf->moffat_beta_min
-		= psf->moffat_residuals_min = BIG;
+		= psf->moffat_residuals_min = psf->moffat_symresiduals_min
+		= BIG;
   psf->moffat_fwhm_max = psf->moffat_elongation_max = psf->moffat_beta_max
-		= psf->moffat_residuals_max = -BIG;
+		= psf->moffat_residuals_max = psf->moffat_residuals_max
+		= -BIG;
 
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
@@ -104,10 +106,10 @@ void	psf_diagnostic(psfstruct *psf)
     parammax[4] = PSF_FWHMMAX;
 /*-- Position angle (deg)  */
     param[5] = 0.0;
-    parammin[5] = -360.0;
-    parammax[5] = 360.0;
+    parammin[5] = -720.0;
+    parammax[5] = 720.0;
 /*-- Moffat beta */
-    param[6] = 1.0;
+    param[6] = 2.0;
     parammin[6] = 0.01;
     parammax[6] = 10.0;
     dlevmar_dif(psf_diagresi, param, dresi,
@@ -136,7 +138,7 @@ void	psf_diagnostic(psfstruct *psf)
     for (i=0; i<npc; i++)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     moffat[n].residuals = psf_normresi(param, psf);
-
+    moffat[n].symresiduals = psf_symresi(psf);
     if ((temp=sqrt(psf->moffat[n].fwhm_min*psf->moffat[n].fwhm_max))
 		< psf->moffat_fwhm_min)
       psf->moffat_fwhm_min = temp;
@@ -155,6 +157,10 @@ void	psf_diagnostic(psfstruct *psf)
       psf->moffat_residuals_min = psf->moffat[n].residuals;
     if (psf->moffat[n].residuals > psf->moffat_residuals_max)
       psf->moffat_residuals_max = psf->moffat[n].residuals;
+    if (psf->moffat[n].symresiduals < psf->moffat_symresiduals_min)
+      psf->moffat_symresiduals_min = psf->moffat[n].symresiduals;
+    if (psf->moffat[n].symresiduals > psf->moffat_symresiduals_max)
+      psf->moffat_symresiduals_max = psf->moffat[n].symresiduals;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -172,6 +178,7 @@ void	psf_diagnostic(psfstruct *psf)
 		/ psf->moffat[nmed].fwhm_min;
   psf->moffat_beta = psf->moffat[nmed].beta;
   psf->moffat_residuals = psf->moffat[nmed].residuals;
+  psf->moffat_symresiduals = psf->moffat[nmed].symresiduals;
 
   free(dresi);
 
@@ -269,6 +276,36 @@ double	psf_normresi(double *par, psfstruct *psf)
       norm += val*val;
       resi += fabs(val*(val - par[0]*pow(1.0 + r2, -par[6])));
       }
+    }
+
+  return norm > 0.0? resi / norm : 1.0;
+  }
+
+
+/****** psf_symresi *********************************************************
+PROTO	double psf_symresi(psfstruct *psf)
+PURPOSE	Compute a normalized estimate of PSF assymetry.
+INPUT	Pointer to the PSF structure.
+OUTPUT	Normalized residuals.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	27/04/2007
+ ***/
+double	psf_symresi(psfstruct *psf)
+  {
+   double	resi,val,valsym,norm;
+   float	*loc,*locsym;
+   int		i;
+
+  loc = psf->loc;
+  locsym = loc + psf->size[0]*psf->size[1];
+  resi = norm = 0.0;
+  for (i=psf->size[0]*psf->size[1]; i--;)
+    {
+    val = (double)*(loc++);
+    valsym = (double)*(--locsym);
+    norm += val*val;
+    resi += fabs(val*(val - valsym));
     }
 
   return norm > 0.0? resi / norm : 1.0;

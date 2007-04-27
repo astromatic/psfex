@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	05/04/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -51,7 +51,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 			*head;
    static double	dpos[POLY_MAXDIM], *dpost;
    double		dstep,dstart, dval1,dval2, scalefac;
-   float		*pix,*pix0, *vig,*vig0, *fpix,
+   float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
    int			i,x,y, w,h,n, npc,nt,nr, nw,nh, step, ival1, ival2;
 
@@ -204,7 +204,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_SNAPSHOTS:
 /*----  View reconstructed PSFs as small vignets */
-      npc = prefs.ncontext_name;
+      npc = prefs.ncontext_group;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -243,7 +243,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_SNAPSHOTS_IMRES:
 /*----  View reconstructed PSFs as small vignets */
-      npc = prefs.ncontext_name;
+      npc = prefs.ncontext_group;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -335,7 +335,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       break;
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
-      npc = prefs.ncontext_name;
+      npc = prefs.ncontext_group;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -362,8 +362,8 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
       break;
  
    case PSF_SUBMOFFAT:
-/*----  View reconstructed PSFs as Moffat fits */
-      npc = prefs.ncontext_name;
+/*----  View the difference between reconstructed PSFs and Moffat fits */
+      npc = prefs.ncontext_group;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
@@ -392,6 +392,32 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) -= *(fpix++);
+        }
+      break;
+   case PSF_SUBSYM:
+/*----  View the difference between reconstructed PSFs and their symmetrical */
+      npc = prefs.ncontext_group;
+      nw = npc? prefs.context_nsnap : 1;
+      for (nt=1, i=npc; (i--)>0;)
+        nt *= prefs.context_nsnap;
+      nh = nt/nw;
+      w = set->retisize[0];
+      h = set->retidim>1? set->retisize[1] : 1;
+      tab->naxisn[0] = nw*w;
+      tab->naxisn[1] = nh*h;
+      step = (nw-1)*w;
+      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+      QCALLOC(pix0, float, tab->tabsize);
+      tab->bodybuf = (char *)pix0; 
+      for (n=0; n<nt; n++)
+        {
+        psf_build(psf, dpos);
+        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+        fpix = psf->loc;
+        fpixsym = psf->loc + w*h;
+        for (y=h; y--; pix += step)
+          for (x=w; x--;)
+            *(pix++) = *(fpix++)-*(--fpixsym);
         }
       break;
     default:

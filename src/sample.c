@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	25/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -685,7 +685,7 @@ INPUT   -.
 OUTPUT  -.
 NOTES   See prefs.h.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 04/07/98
+VERSION 25/04/2007
 */
 setstruct	*init_set(void)
 
@@ -701,7 +701,7 @@ setstruct	*init_set(void)
   set->retisize[0] = prefs.retisize[0];
   set->retisize[1] = prefs.retisize[1];
   set->nreti = set->retisize[0]*set->retisize[1];/* Temporary solution (?) */
-  set->ncontext = prefs.ncontext_name;
+  set->ncontext = prefs.ncontext_group;
   if (set->ncontext)
     {
     QMALLOC(set->contextoffset, double, set->ncontext);

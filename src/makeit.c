@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	28/03/2007
+*	Last modify:	27/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -96,8 +96,8 @@ void	makeit(char **incatnames, int ncat)
     init_xml(next);
 
   QIPRINTF(OUTPUT,
-        " extension accepted/total sampling chi2/dof FWHM(pix) elongation"
-	" residuals");
+        " extension accepted/total sampling chi2/dof FWHM(pix) elong."
+	" residuals asymmetry");
 
 /* Create an array of PSFs (one PSF for each extension) */
   QMALLOC(psf, psfstruct *, next);
@@ -117,18 +117,10 @@ void	makeit(char **incatnames, int ncat)
     psfstep = (float)(prefs.psf_step? prefs.psf_step
 				: (set->fwhm/2.35)*(1.0-1.0/INTERPFAC));
 
-/*
-    NFPRINTF(OUTPUT, "");
-    NPRINTF(OUTPUT, "PSF sampled each %.2f pixel%s (%s)\n",
-			psfstep,
-			psfstep>=2.0?"s":"",
-			prefs.psf_step?"manual":"automatic");
-*/
-
 /*-- Init the PSF */
     NFPRINTF(OUTPUT,"Initializing PSF modules...");
     psf[ext] = psf_init(prefs.context_name, prefs.context_group,
-		prefs.ncontext_name,
+		prefs.ncontext_group,
 		prefs.group_deg, prefs.ngroup_deg,
 		set->retisize[0], set->retisize[1],
 		psfstep,
@@ -169,15 +161,15 @@ void	makeit(char **incatnames, int ncat)
     nmed = 0;
     for (i=0; i<psf[ext]->poly->ndim; i++)
       nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
-    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f       %5.3f"
-	"      %5.2f\n",
+    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
+	"    %5.2f     %5.2f\n",
 	ext+1, next,
 	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
 	psf[ext]->pixstep,
 	psf[ext]->chi2,
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
-	psf[ext]->moffat[nmed].residuals);
+	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
 
 /*-- Load the PCs */
     if (prefs.pc_flag && set->nsample)

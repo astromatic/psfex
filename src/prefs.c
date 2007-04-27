@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	25/04/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -445,9 +445,11 @@ void	useprefs()
 		" PSF_SAMPLING will default to 1 pixel");
 
 /*------------------------------- Contexts ---------------------------------*/
-  if (prefs.ncontext_group != prefs.ncontext_name)
+  if ((prefs.group_deg[0]!=0) && prefs.ncontext_group != prefs.ncontext_name)
     error(EXIT_FAILURE, "*Error*: CONTEXT_GROUPS and CONTEXT_KEYS do not ",
 			"match");
+  if (!prefs.group_deg[0])
+    prefs.ncontext_group = 0;
   for (i=0; i<prefs.ncontext_group; i++)
     if (prefs.context_group[i]>prefs.ngroup_deg)
       error(EXIT_FAILURE, "*Error*: CONTEXT_GROUPS out of range for ",
