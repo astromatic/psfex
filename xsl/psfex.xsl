@@ -198,6 +198,9 @@
    <xsl:variable name="res_min" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="res" select="count(FIELD[@name='Residuals']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="res_max" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="as_min" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="as" select="count(FIELD[@name='Asymmetry']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="as_max" select="count(FIELD[@name='Asymmetry_max']/preceding-sibling::FIELD)+1"/>
    <p>
     <TABLE class="sortable" id="psfex" BORDER="2">
      <TR>
@@ -206,18 +209,21 @@
       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
       <TH BGCOLOR="#FFEECC">Sampling</TH>
       <TH BGCOLOR="#FFEECC">Chi2</TH>
-      <TH BGCOLOR="#FFEECC">Min FWHM</TH>
-      <TH BGCOLOR="#FFEECC">FWHM</TH>
-      <TH BGCOLOR="#FFEECC">Max FWHM</TH>
-      <TH BGCOLOR="#FFEECC">Min Elongation</TH>
-      <TH BGCOLOR="#FFEECC">Elongation</TH>
-      <TH BGCOLOR="#FFEECC">Max Elongation</TH>
-      <TH BGCOLOR="#FFEECC">Min Beta</TH>
-      <TH BGCOLOR="#FFEECC">Beta exponent</TH>
-      <TH BGCOLOR="#FFEECC">Max Beta</TH>
-      <TH BGCOLOR="#FFEECC">Min Residuals</TH>
-      <TH BGCOLOR="#FFEECC">Residuals</TH>
-      <TH BGCOLOR="#FFEECC">Max Residuals</TH>
+      <TH BGCOLOR="#FFEECC">FWHM Min</TH>
+      <TH BGCOLOR="#FFEECC">FWHM Mean</TH>
+      <TH BGCOLOR="#FFEECC">FWHM Max</TH>
+      <TH BGCOLOR="#FFEECC">Elongation Min</TH>
+      <TH BGCOLOR="#FFEECC">Elongation Mean</TH>
+      <TH BGCOLOR="#FFEECC">Elongation Max</TH>
+      <TH BGCOLOR="#FFEECC">Beta exp Min</TH>
+      <TH BGCOLOR="#FFEECC">Beta exp Mean</TH>
+      <TH BGCOLOR="#FFEECC">Beta exp Max</TH>
+      <TH BGCOLOR="#FFEECC">Residuals Min</TH>
+      <TH BGCOLOR="#FFEECC">Residuals Mean</TH>
+      <TH BGCOLOR="#FFEECC">Residuals Max</TH>
+      <TH BGCOLOR="#FFEECC">Asymmetry Min</TH>
+      <TH BGCOLOR="#FFEECC">Asymmetry Mean</TH>
+      <TH BGCOLOR="#FFEECC">Asymmetry Max</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
@@ -272,6 +278,15 @@
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$res_max], '#0.0000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$as_min], '#0.0000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$as], '#0.0000')"/></el>
+        </td>
+        <td align="right" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="format-number(TD[$as_max], '#0.0000')"/></el>
         </td>
        </tr>
       </xsl:for-each>
