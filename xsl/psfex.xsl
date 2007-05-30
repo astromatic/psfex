@@ -124,6 +124,12 @@
    <xsl:for-each select="TABLE[@ID='PSF']">
     <xsl:call-template name="PSF"/>
    </xsl:for-each>
+   <xsl:for-each select="RESOURCE[@ID='Config']">
+    <xsl:call-template name="Config"/>
+   </xsl:for-each>
+   <xsl:for-each select="TABLE[@ID='Warnings']">
+    <xsl:call-template name="Warnings"/>
+   </xsl:for-each>
   </xsl:for-each>
  </xsl:template>
 
@@ -177,6 +183,9 @@
    from <b><xsl:value-of select="PARAM[@name='Host']/@value"/></b>
    in <b><mono><xsl:value-of select="PARAM[@name='Path']/@value"/></mono></b>
   </p>
+  <p>
+  <sans-serif><i>click to expand or hide tables</i></sans-serif>
+  </p>
  </xsl:template>
 
 <!-- ********************** XSL template for PSF ********************** -->
@@ -202,7 +211,10 @@
    <xsl:variable name="as" select="count(FIELD[@name='Asymmetry']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="as_max" select="count(FIELD[@name='Asymmetry_max']/preceding-sibling::FIELD)+1"/>
    <p>
-    <TABLE class="sortable" id="psfex" BORDER="2">
+    <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('psfex')">
+     Summary Table on PSF Model
+    </BUTTON>
+    <TABLE class="sortable" id="psfex" BORDER="2" style="display: none">
      <TR>
       <TH BGCOLOR="#FFEECC">N. star loaded</TH>
       <TH BGCOLOR="#FFEECC">N. star accepted</TH>
@@ -287,6 +299,145 @@
         </td>
         <td align="right" BGCOLOR="#EEEEEE">
          <el><xsl:value-of select="format-number(TD[$as_max], '#0.0000')"/></el>
+        </td>
+       </tr>
+      </xsl:for-each>
+     </xsl:for-each>
+    </TABLE>
+   </p>
+ </xsl:template>
+
+<!-- ********************** XSL template for Config File ********************** -->
+  <xsl:template name="Config">
+   <p>
+    <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('config')">
+     Configuration File: <xsl:value-of select="PARAM[@name='Prefs_Name']/@value"/>
+    </BUTTON>
+    <TABLE id="config" class="sortable" style="display: none">
+     <TR>
+      <TH BGCOLOR="#FFEECC">Config Parameter</TH>
+      <TH BGCOLOR="#FFEECC">Value</TH>
+     </TR>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_NAME</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Name']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_ACCURACY</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Accuracy']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_NSUPER</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_NSuper']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_SAMPLING</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Sampling']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_SIZE</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Size']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_RECENTER</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Recenter']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_AUTOSELECT</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_AutoSelect']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_FWHMRANGE</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_FWHMRange']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_VARIABILITY</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_Variability']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_MINSN</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_MinSN']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>PSF_MAXELONG</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='PSF_MaxElong']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>BADPIXEL_FILTER</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='BadPixel_Filter']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>BADPIXEL_NMAX</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='BadPixel_NMax']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>CONTEXT_KEYS</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='Context_Keys']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>CONTEXT_GROUPS</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='Context_Groups']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>CHECKIMAGE_TYPE</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='CheckImage_Type']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>CHECKIMAGE_NAME</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='CheckImage_Name']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>VERBOSE_TYPE</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='Verbose_Type']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>WRITE_XML</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='Write_XML']/@value"/></el></td>
+     </tr>
+     <tr BGCOLOR="#EEEEEE">
+      <td><el>NTHREADS</el></td>
+      <td><el><xsl:value-of select="PARAM[@name='NThreads']/@value"/></el></td>
+     </tr>
+    </TABLE>
+   </p>
+   <p>
+    <BUTTON type="button" style="background:#CCEECC; font-family: monospace; font-weight: bold: font-size: 80%;" onclick="showhideTable('commandline')">
+     Command Line
+    </BUTTON>
+    <TABLE id="commandline" style="display: none">
+     <TR>
+      <TD BGCOLOR="#FFEECC" style="font-size: 80%;"><el>Command Line: <xsl:value-of select="PARAM[@name='Command_Line']/@value"/></el></TD>
+     </TR>
+    </TABLE>
+   </p>
+  </xsl:template>
+
+<!-- ********************** XSL template for Warnings ********************** -->
+  <xsl:template name="Warnings">
+   <xsl:variable name="date" select="count(FIELD[@name='Date']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="time" select="count(FIELD[@name='Time']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="msg" select="count(FIELD[@name='Msg']/preceding-sibling::FIELD)+1"/>
+   <p>
+    <BUTTON type="button" style="background:#CCEECC; font-family: monospace; font-weight: bold: font-size: 80%;" onclick="showhideTable('warnings')">
+     Warnings (limited to the last 100)
+    </BUTTON>
+    <TABLE id="warnings" style="display: none">
+     <TR style="font-size: 80%;">
+      <TH BGCOLOR="#FFEECC">Date</TH>
+      <TH BGCOLOR="#FFEECC">Time</TH>
+      <TH BGCOLOR="#FFEECC">Message</TH>
+     </TR>
+     <xsl:for-each select="DATA/TABLEDATA">
+      <xsl:for-each select="TR">
+       <tr>
+        <td  BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$date]"/></el>
+        </td>
+        <td BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$time]"/></el>
+        </td>
+        <td align="center" BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$msg]"/></el>
         </td>
        </tr>
       </xsl:for-each>
