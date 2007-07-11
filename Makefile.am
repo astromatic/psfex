@@ -13,26 +13,40 @@ rpm:	dist
 
 rpm-opteron:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -funroll-loops -fomit-frame-pointer -Wall \
-		-march=opteron" rpmbuild -ba --target=x86_64 --clean \
-		$(PACKAGE_NAME).spec
+	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -march=opteron" TPXLIBS="-llapack -lcblas -latlas -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
 
 rpm-athlon:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -funroll-loops -fomit-frame-pointer -Wall \
-		-m32 -march=i686 -msse -mfpmath=sse -mtune=athlon" rpmbuild \
-		-ba --target=i686 --clean $(PACKAGE_NAME).spec
+	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
+
+rpm-pentium:	dist
+	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	TPXCC="gcc" TPXFLAGS="-O3 -g -pthread -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas -latlas -L/usr/local/lib/ -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME).spec
 
 rpm-opteron-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-		TPXCC="icc" TPXFLAGS="-O3 -g -axWP -ip -unroll" rpmbuild -ba \
-		--target=x86_64 --clean $(PACKAGE_NAME).spec
+	TPXCC="icc" TPXFLAGS="-O3 -axWP -ip -unroll" TPXLIBS="-llapack -lcblas -latlas -lm" rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
 
 rpm-athlon-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc32" TPXFLAGS="-O3 -g -axKWNPB -ip -unroll" rpmbuild \
-		-ba --target=i686 --clean $(PACKAGE_NAME).spec
+	TPXCC="icc32" TPXFLAGS="-O3 -axKWNPB -ip -unroll" TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
+
+rpm-pentium-icc:	dist
+	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	TPXCC="icc32" TPXFLAGS="-O3 -axKWNPB -ip -unroll" TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas -latlas -L/usr/local/lib/ -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME).spec
+
+athlon:
+	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+
+pentium:
+	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
 
 icc:
-	$(MAKE) CC="icc" CFLAGS="-O3 -g -axWP -ip -unroll" LIBS="-lm"
+	$(MAKE) CC="icc" CFLAGS="-O3 -axKNPB -ip -unroll"
+
+athlon-icc:
+	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+
+pentium-icc:
+	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
 
