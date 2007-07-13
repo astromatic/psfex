@@ -36,17 +36,17 @@ rpm-pentium-icc:	dist
 	TPXCC="icc32" TPXFLAGS="-O3 -axKWNPB -ip -unroll" TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas -latlas -L/usr/local/lib/ -lm" rpmbuild -ba --target=i686 --clean $(PACKAGE_NAME).spec
 
 athlon:
-	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm"
 
 pentium:
-	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm"
 
 icc:
 	$(MAKE) CC="icc" CFLAGS="-O3 -axKNPB -ip -unroll"
 
 athlon-icc:
-	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm"
 
 pentium-icc:
-	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lptcblas -latlas -lm"
+	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" LIBS="-L/usr/local/lib/ -L/usr/lib/ -llapack -lcblas -latlas -lm"
 
