@@ -98,11 +98,11 @@ void	psf_diagnostic(psfstruct *psf)
 /*-- Major axis FWHM (pixels) */
     param[3] = fwhm;
     moffat_parammin[3] = PSF_FWHMMIN;
-    moffat_parammax[3] = PSF_FWHMMAX;
+    moffat_parammax[3] = fwhm*3.0;
 /*-- Major axis FWHM (pixels) */
     param[4] = fwhm;
     moffat_parammin[4] = PSF_FWHMMIN;
-    moffat_parammax[4] = PSF_FWHMMAX;
+    moffat_parammax[4] = fwhm*3.0;
 /*-- Position angle (deg)  */
     param[5] = 0.0;
     moffat_parammin[5] = -3600.0;
