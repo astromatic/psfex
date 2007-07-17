@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	17/07/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,14 +40,13 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 27/04/2007
+VERSION 17/07/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
    moffatstruct		*moffat;
    double		dpos[POLY_MAXDIM],
 			param[PSF_DIAGNPARAM],
-			parammin[PSF_DIAGNPARAM],parammax[PSF_DIAGNPARAM],
 			*dresi,
 			dstep,dstart, fwhm, temp;
    int			i,m,n, w,h, npc,nt, nmed;
@@ -86,37 +85,38 @@ void	psf_diagnostic(psfstruct *psf)
     fwhm = psf->fwhm / psf->pixstep;
 /*-- Amplitude */
     param[0] = 	1.0/(fwhm*fwhm);
-    parammin[0] = 0.0;
-    parammax[0] = 1000.0;
+    moffat_parammin[0] = param[0]*2.0;
+    moffat_parammax[0] = param[0]/10.0;
 /*-- Xcenter */
     param[1] = (w-1)/2.0;
-    parammin[1] = 0.0;
-    parammax[1] = w - 1.0;
+    moffat_parammin[1] = 0.0;
+    moffat_parammax[1] = w - 1.0;
 /*-- Ycenter */
     param[2] = (h-1)/2.0;
-    parammin[2] = 0.0;
-    parammax[2] = h - 1.0;
+    moffat_parammin[2] = 0.0;
+    moffat_parammax[2] = h - 1.0;
 /*-- Major axis FWHM (pixels) */
     param[3] = fwhm;
-    parammin[3] = PSF_FWHMMIN;
-    parammax[3] = PSF_FWHMMAX;
+    moffat_parammin[3] = PSF_FWHMMIN;
+    moffat_parammax[3] = PSF_FWHMMAX;
 /*-- Major axis FWHM (pixels) */
     param[4] = fwhm;
-    parammin[4] = PSF_FWHMMIN;
-    parammax[4] = PSF_FWHMMAX;
+    moffat_parammin[4] = PSF_FWHMMIN;
+    moffat_parammax[4] = PSF_FWHMMAX;
 /*-- Position angle (deg)  */
     param[5] = 0.0;
-    parammin[5] = -720.0;
-    parammax[5] = 720.0;
+    moffat_parammin[5] = -3600.0;
+    moffat_parammax[5] = 3600.0;
 /*-- Moffat beta */
     param[6] = 2.0;
-    parammin[6] = 0.01;
-    parammax[6] = 10.0;
+    moffat_parammin[6] = 0.5;
+    moffat_parammax[6] = 10.0;
+    psf_boundtounbound(param);
     dlevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
-//	parammin, parammax,
 	PSF_DIAGMAXITER, 
 	NULL, NULL, NULL, NULL, psf);
+    psf_unboundtobound(param);
     moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
     moffat[n].xc[1] = param[2];
@@ -197,7 +197,7 @@ INPUT	Pointer to the vector of parameters,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/04/2007
+VERSION	17/07/2007
  ***/
 void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
   {
@@ -208,6 +208,7 @@ void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
 
 //printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
   psf = (psfstruct *)adata;
+  psf_unboundtobound(par);
   loc = psf->loc;
   w = psf->size[0];
   h = psf->size[1];
@@ -230,6 +231,8 @@ void	psf_diagresi(double *par, double *fvec, int m, int n, void *adata)
       *(fvec++) = *(loc++) - par[0]*pow(1.0 + r2, -par[6]);
       }
     }
+
+  psf_boundtounbound(par);
 
   return;
   }
@@ -360,4 +363,51 @@ void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   return;
   }
 
+
+/****** psf_boundtounbound **************************************************
+PROTO	void psf_boundtounbound(profitstruct *profit)
+PURPOSE	Convert parameters from bounded to unbounded space.
+INPUT	Pointer to the vector of parameters.
+OUTPUT	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	17/07/2007
+ ***/
+void    psf_boundtounbound(double *param)
+  {
+   double       num,den;
+   int          p;
+
+  for (p=0; p<PSF_DIAGNPARAM; p++)
+    if (moffat_parammin[p]!=moffat_parammax[p])
+      {
+      num = param[p] - moffat_parammin[p];
+      den = moffat_parammax[p] - param[p];
+      param[p] = num>1e-100? (den>1e-100? log(num/den): 200.0) : -200.0;
+      }
+
+  return;
+
+  }
+
+
+/****** psf_unboundtobound **************************************************
+PROTO	void profit_unboundtobound(profitstruct *profit)
+PURPOSE	Convert parameters from unbounded to bounded space.
+INPUT	Pointer to the vector of parameters.
+OUTPUT	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	17/07/2007
+ ***/
+void    psf_unboundtobound(double *param)
+  {
+   int          p;
+
+  for (p=0; p<PSF_DIAGNPARAM; p++)
+    if (moffat_parammin[p]!=moffat_parammax[p])
+      param[p] = (moffat_parammax[p] - moffat_parammin[p])
+                / (1.0 + exp(-(param[p]>200.0? 200.0 : param[p])))
+                + moffat_parammin[p];
+
+  return;
+  }
 

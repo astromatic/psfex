@@ -58,7 +58,6 @@ am_psfex_OBJECTS = check.$(OBJEXT) diagnostic.$(OBJEXT) fft.$(OBJEXT) \
 	vignet.$(OBJEXT) xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a \
-	$(top_builddir)/src/lmfit/liblmfit.a \
 	$(top_builddir)/src/levmar/liblevmar.a
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -187,7 +186,7 @@ target_alias = @target_alias@
 
 # Program Makefile for PSFEx
 # Copyright (C) 2002-2007 Emmanuel Bertin.
-SUBDIRS = fits lmfit levmar
+SUBDIRS = fits levmar
 psfex_SOURCES = check.c diagnostic.c fft.c main.c makeit.c misc.c \
 			  pc.c poly.c prefs.c psf.c sample.c vignet.c xml.c \
 			  check.h define.h diagnostic.h fft.h globals.h key.h \
@@ -195,7 +194,6 @@ psfex_SOURCES = check.c diagnostic.c fft.c main.c makeit.c misc.c \
 			  vignet.h xml.h
 
 psfex_LDADD = $(top_builddir)/src/fits/libfits.a \
-			  $(top_builddir)/src/lmfit/liblmfit.a \
 			  $(top_builddir)/src/levmar/liblevmar.a
 
 DATE = `date +"%Y-%m-%d"`
@@ -212,9 +210,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --foreign  src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
