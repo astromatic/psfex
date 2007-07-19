@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	17/07/2007
+*	Last modify:	19/07/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 17/07/2007
+VERSION 19/07/2007
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -85,8 +85,8 @@ void	psf_diagnostic(psfstruct *psf)
     fwhm = psf->fwhm / psf->pixstep;
 /*-- Amplitude */
     param[0] = 	1.0/(fwhm*fwhm);
-    moffat_parammin[0] = param[0]*2.0;
-    moffat_parammax[0] = param[0]/10.0;
+    moffat_parammin[0] = param[0]/10.0;
+    moffat_parammax[0] = param[0]*10.0;
 /*-- Xcenter */
     param[1] = (w-1)/2.0;
     moffat_parammin[1] = 0.0;
@@ -109,7 +109,7 @@ void	psf_diagnostic(psfstruct *psf)
     moffat_parammax[5] = 3600.0;
 /*-- Moffat beta */
     param[6] = 2.0;
-    moffat_parammin[6] = 0.5;
+    moffat_parammin[6] = PSF_BETAMIN;
     moffat_parammax[6] = 10.0;
     psf_boundtounbound(param);
     dlevmar_dif(psf_diagresi, param, dresi,
