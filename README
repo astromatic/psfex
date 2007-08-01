@@ -102,8 +102,8 @@ Modeling the PSF variability
 A typical session
 -----------------
 Building a model of the PSF:
-% sex -c psf.sex foo.fits -CATALOG_NAME psf.cat
-% psfex psf.cat -PSF_NAME foo.psf
+% sex -c prepsf.sex foo.fits -CATALOG_NAME prepsf.cat
+% psfex prepsf.cat -PSF_NAME foo.psf
 
 Using it in SExtractor (this is not recommended for serious science use at
 the moment):

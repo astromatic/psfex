@@ -41,7 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/local/man/man1/@PACKAGE_NAME@.1
 /usr/local/man/manx/@PACKAGE_NAME@.x
 /usr/local/share/@PACKAGE_NAME@
-%doc AUTHORS BUGS ChangeLog COPYING HISTORY INSTALL README THANKS
+%doc config AUTHORS BUGS ChangeLog COPYING HISTORY INSTALL README THANKS
 
 %changelog
 * @DATE2@ @PACKAGER@ <@PACKAGE_BUGREPORT@>

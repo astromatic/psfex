@@ -9,10 +9,138 @@
 *
 *       Contents:       log of changes made to the PSFEx source
 *
-*       Last modify:    21/03/2007
+*       Last modify:    01/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+------------------------------------------------------------------------
+r560 | bertin | 2007-07-19 17:14:20 +0200 (Thu, 19 Jul 2007) | 3 lines
+
+Fixed wrong FWHM boundaries in parameter remapping.
+Pushed version number to 2.0.9.
+
+------------------------------------------------------------------------
+r556 | bertin | 2007-07-17 17:48:42 +0200 (Tue, 17 Jul 2007) | 2 lines
+
+Set narrower constraints for PSF axes.
+
+------------------------------------------------------------------------
+r555 | bertin | 2007-07-17 17:27:24 +0200 (Tue, 17 Jul 2007) | 4 lines
+
+Removed lmfit library (relies now only on levmar).
+Added bounding box limits to fitting parameters.
+Pushed version number to 2.0.8.
+
+------------------------------------------------------------------------
+r548 | bertin | 2007-07-17 13:45:45 +0200 (Tue, 17 Jul 2007) | 2 lines
+
+Updated the FITS library to the latest version.
+
+------------------------------------------------------------------------
+r541 | bertin | 2007-07-13 18:59:25 +0200 (Fri, 13 Jul 2007) | 2 lines
+
+Removed dependency on multithreaded ATLAS library on custom builds.
+
+------------------------------------------------------------------------
+r537 | bertin | 2007-07-11 18:20:33 +0200 (Wed, 11 Jul 2007) | 5 lines
+
+Added Akim Demaille's absolute path trick.
+Added explicit ATLAS support in RPM builds.
+Updated FITS library to the latest version.
+Pushed version number to 2.0.7.
+
+------------------------------------------------------------------------
+r510 | marmo | 2007-06-19 20:56:26 +0200 (Tue, 19 Jun 2007) | 1 line
+
+rpm building generalised.
+------------------------------------------------------------------------
+r475 | marmo | 2007-05-30 17:04:07 +0200 (Wed, 30 May 2007) | 1 line
+
+all tables in xml are displayed.
+------------------------------------------------------------------------
+r455 | marmo | 2007-04-30 15:26:47 +0200 (Mon, 30 Apr 2007) | 1 line
+
+xslt stylesheet updated
+------------------------------------------------------------------------
+r454 | bertin | 2007-04-27 20:20:13 +0200 (Fri, 27 Apr 2007) | 2 lines
+
+Changed the normalizing factor of asymmetry to improve the contrast between "goo
+d" and "bad" PSFs: it is now computed from the average of profile and its symmet
+rical instead of the profile only. Pushed the version number to 2.0.6.
+
+------------------------------------------------------------------------
+r453 | bertin | 2007-04-27 17:59:45 +0200 (Fri, 27 Apr 2007) | 2 lines
+
+Added new asymmetry measurement and -SUBSYM check-images.
+
+------------------------------------------------------------------------
+r444 | bertin | 2007-04-25 15:40:51 +0200 (Wed, 25 Apr 2007) | 2 lines
+
+Fixed warnings for patched Levmar during compilation.
+
+------------------------------------------------------------------------
+r443 | bertin | 2007-04-25 15:11:57 +0200 (Wed, 25 Apr 2007) | 2 lines
+
+Fixed the wrong stats for catalogs with empty extensions.
+
+------------------------------------------------------------------------
+r437 | bertin | 2007-04-13 17:33:24 +0200 (Fri, 13 Apr 2007) | 3 lines
+
+Fixed memory leak in levmar.
+Replaced LU decomposition with ATLAS' Cholesky in levmar library,
+
+------------------------------------------------------------------------
+r431 | bertin | 2007-04-08 22:14:11 +0200 (Sun, 08 Apr 2007) | 5 lines
+
+Fixed issue with missing Levmar source files in distribution.
+Added min, average and max values of all PSF parameters over all extensions in X
+ML-VOTable output.
+Replaced "Best" and "Worse" labels with "Min" and "Max" (the XSLT filter was upd
+ated accordingly).
+Added support for static compilation with icc.
+
+------------------------------------------------------------------------
+r430 | bertin | 2007-04-06 21:15:44 +0200 (Fri, 06 Apr 2007) | 2 lines
+
+Added autoconfiguration script for the ATLAS library (as required now).
+
+------------------------------------------------------------------------
+r429 | bertin | 2007-04-06 21:14:46 +0200 (Fri, 06 Apr 2007) | 3 lines
+
+Fixed singular matrix issue in super-resolution for too small input vignets.
+Added linking and usage of the ATLAS library throughout the code.
+
+------------------------------------------------------------------------
+r428 | bertin | 2007-04-05 22:03:50 +0200 (Thu, 05 Apr 2007) | 6 lines
+
+Fixed unphysical Moffat fits by reverting to basic parameterisation.
+Fixed insufficient pruning of degrees of freedom for oversampled, variable PSFs.
+Changed behaviour of SNAPSHOTS, MOFFAT and -MOFFAT check-images.
+Added new SNAPSHOTS_IMRES check-images.
+Fixed SNAPSHOTS check-images.
+
+------------------------------------------------------------------------
+r427 | bertin | 2007-04-04 20:28:11 +0200 (Wed, 04 Apr 2007) | 4 lines
+
+Added levmar library.
+Fixed SNAPSHOTS check-images.
+Fixed XSL_URL datarootdir pb.
+
+------------------------------------------------------------------------
+r422 | bertin | 2007-03-28 17:46:53 +0200 (Wed, 28 Mar 2007) | 2 lines
+
+Added PSF sampling step in XML-VOTable output.
+
+------------------------------------------------------------------------
+r417 | bertin | 2007-03-22 18:33:51 +0100 (Thu, 22 Mar 2007) | 2 lines
+
+Changed pixel scale of SNAPSHOTS output to that of the input images.
+
+------------------------------------------------------------------------
+r416 | marmo | 2007-03-21 17:09:21 +0100 (Wed, 21 Mar 2007) | 1 line
+
+basic xslt stylesheet for PSFEx
 
 ------------------------------------------------------------------------
 r415 | bertin | 2007-03-21 14:41:57 +0100 (Wed, 21 Mar 2007) | 2 lines

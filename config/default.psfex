@@ -1,0 +1,52 @@
+# Default configuration file for PSFEx 2.0.9
+# EB 2007-07-19
+#
+ 
+#-------------------------------- PSF model ----------------------------------
+ 
+PSF_NAME        default.psf     # Output PSF filename
+PSF_ACCURACY    0.01            # Accuracy to expect from PSF "pixel" values
+PSF_NSUPER      64              # Max number of super-resolved pixels
+PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)
+PSF_SIZE        25,25           # Image size of the PSF model
+PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?
+ 
+#----------------------------- Sample selection ------------------------------
+ 
+PSF_AUTOSELECT  Y               # Automatically select the FWHM (Y/N) ?
+PSF_FWHMRANGE   2.0,10.0        # Allowed FWHM range
+PSF_VARIABILITY 0.2             # Allowed PSF variability (1.0 = 100%)
+PSF_MINSN       20              # Minimum S/N for a source to be used
+PSF_MAXELONG    2.0             # Maximum A/B for a source to be used
+BADPIXEL_FILTER N               # Filter bad-pixels in samples (Y/N) ?
+BADPIXEL_NMAX   0               # Maximum number of bad pixels allowed
+ 
+#----------------------------- PSF dependencies ------------------------------
+ 
+CONTEXT_KEYS    X_IMAGE,Y_IMAGE # SExtractor or FITS (preceded by :) params
+CONTEXT_GROUPS  1,1             # Group tag for each context key
+GROUP_DEGREES   1               # Polynom degree for each group
+CONTEXT_NSNAP   7               # Number of PSF snapshots per axis
+ 
+#------------------------------ Check-Images ---------------------------------
+ 
+CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL
+                                # Check-image types
+CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits
+                                # Check-image filenames
+ 
+#---------------------- Galaxy Principal Components --------------------------
+ 
+PC_INCLUDE      N               # Process galaxy Principal Components (Y/N) ?
+PC_NAME         default.pc      # File to store galaxy Principal Components
+PC_NPC          0               # Number of principal components
+ 
+#----------------------------- Miscellaneous ---------------------------------
+ 
+VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL
+WRITE_XML       Y               # Write XML file (Y/N)?
+XML_NAME        psfex.xml       # Filename for XML output
+XSL_URL        file:///usr/local/share/psfex/psfex.xsl
+                                # Filename for XSL style-sheet
+NTHREADS        1               # 1 single thread
+ 
