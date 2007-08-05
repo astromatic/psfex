@@ -318,86 +318,12 @@
       <TH BGCOLOR="#FFEECC">Config Parameter</TH>
       <TH BGCOLOR="#FFEECC">Value</TH>
      </TR>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_NAME</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Name']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_ACCURACY</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Accuracy']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_NSUPER</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_NSuper']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_SAMPLING</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Sampling']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_SIZE</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Size']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_RECENTER</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Recenter']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_AUTOSELECT</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_AutoSelect']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_FWHMRANGE</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_FWHMRange']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_VARIABILITY</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_Variability']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_MINSN</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_MinSN']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>PSF_MAXELONG</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='PSF_MaxElong']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>BADPIXEL_FILTER</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='BadPixel_Filter']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>BADPIXEL_NMAX</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='BadPixel_NMax']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>CONTEXT_KEYS</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='Context_Keys']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>CONTEXT_GROUPS</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='Context_Groups']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>CHECKIMAGE_TYPE</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='CheckImage_Type']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>CHECKIMAGE_NAME</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='CheckImage_Name']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>VERBOSE_TYPE</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='Verbose_Type']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>WRITE_XML</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='Write_XML']/@value"/></el></td>
-     </tr>
-     <tr BGCOLOR="#EEEEEE">
-      <td><el>NTHREADS</el></td>
-      <td><el><xsl:value-of select="PARAM[@name='NThreads']/@value"/></el></td>
-     </tr>
+     <xsl:for-each select="PARAM[position()>2]">
+      <tr BGCOLOR="#EEEEEE">
+       <td><el><xsl:value-of select="@name"/></el></td>
+       <td><el><xsl:value-of select="@value"/></el></td>
+      </tr>
+     </xsl:for-each>
     </TABLE>
    </p>
    <p>
