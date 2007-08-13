@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	25/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -190,7 +190,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
           case P_INT:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," keyword has no value!");
-            ival = atoi(value);
+            ival = (int)strtol(value, (char **)NULL, 0);
             if (ival>=key[nkey].imin && ival<=key[nkey].imax)
               *(int *)(key[nkey].ptr) = ival;
             else
@@ -243,7 +243,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
               {
               if (i>=key[nkey].nlistmax)
                 error(EXIT_FAILURE, keyword, " has too many members");
-              ival = strtol(value, NULL, 0);
+              ival = strtol(value, (char **)NULL, 0);
               if (ival>=key[nkey].imin && ival<=key[nkey].imax)
                 ((int *)key[nkey].ptr)[i] = ival;
               else

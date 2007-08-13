@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	12/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -132,20 +132,22 @@ void	makeit(char **incatnames, int ncat)
 /*-- Make the basic PSF-model (1st pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
     psf_make(psf[ext], set);
+    psf_refine(psf[ext], set, prefs.nsuper);
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
       {
-      psf_clean(psf[ext], set, 1);
+      psf_clean(psf[ext], set);
 
 /*---- Make the basic PSF-model (2nd pass) */
       NFPRINTF(OUTPUT,"Modeling the PSF.");
       psf_make(psf[ext], set);
+      psf_refine(psf[ext], set, prefs.nsuper);
       }
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
-      psf_clean(psf[ext], set, 1);
+      psf_clean(psf[ext], set);
 
     psf[ext]->samples_accepted = set->nsample;
 
@@ -153,7 +155,7 @@ void	makeit(char **incatnames, int ncat)
     psf_refine(psf[ext], set, prefs.nsuper);
 
 /*-- Just check the Chi2 */
-    psf[ext]->chi2 = set->nsample? psf_clean(psf[ext], set, 0) : 0.0;
+    psf[ext]->chi2 = set->nsample? psf_chi2(psf[ext], set) : 0.0;
     NFPRINTF(OUTPUT, "");
 
 /*-- Make a diagnostic of the PSF */

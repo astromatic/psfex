@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,6 +41,7 @@ typedef struct
   double	maxvar;				/* Maximum FWHM variability */
   double	fwhmrange[2];			/* Allowed FWHM range */
   int		nfwhmrange;	       		/* nb of params */
+  int		flag_mask;			/* Rejection mask on SEx FLAGS*/
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
   int		nsuper;				/* nb of supersampled pixels */

@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -61,6 +61,7 @@ pkeystruct key[] =
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_AUTOSELECT", P_BOOL, &prefs.autoselect_flag},
   {"PSF_NSUPER", P_INT, &prefs.nsuper,0,1000000000},
+  {"PSF_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
   {"PSF_FWHMRANGE", P_FLOATLIST, prefs.fwhmrange, 0,0, 0.0,1e3, {""},
      2,2, &prefs.nfwhmrange},
   {"PSF_MAXELONG", P_FLOAT, &prefs.maxelong, 0,0, 1.0, BIG},
@@ -104,6 +105,7 @@ char *default_prefs[] =
 "PSF_VARIABILITY 0.2             # Allowed PSF variability (1.0 = 100%)",
 "PSF_MINSN       20              # Minimum S/N for a source to be used",
 "PSF_MAXELONG    2.0             # Maximum A/B for a source to be used",
+"*PSF_FLAGMASK    0x00fe          # Rejection mask on SExtractor FLAGS",
 "*BADPIXEL_FILTER N               # Filter bad-pixels in samples (Y/N) ?",
 "*BADPIXEL_NMAX   0               # Maximum number of bad pixels allowed",
 " ",

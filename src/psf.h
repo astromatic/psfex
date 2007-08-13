@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -113,13 +113,15 @@ typedef struct pc
 extern void	psf_build(psfstruct *psf, double *pos),
 		psf_end(psfstruct *psf),
 		psf_make(psfstruct *psf, setstruct *set),
-		psf_makeresi(psfstruct *psf, setstruct *set, int centflag),
+		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
+			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set, int npsf),
 		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
 			char *filename, int ext, int next);
 
-extern double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag);
+extern double	psf_chi2(psfstruct *psf, setstruct *set),
+		psf_clean(psfstruct *psf, setstruct *set);
 
 extern psfstruct	*psf_init(char **names, int *group, int ndim,
 				int *dim, int ngroup,

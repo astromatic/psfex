@@ -24,6 +24,9 @@
 #define	INTERPF(x)	(x==0.0?1.0 \
 			:(x>INTERPLIM?0.0:(x<-INTERPLIM?0.0 \
 			:sin(PI*x)*sin(PI/INTERPFAC*x)/(PI*PI/INTERPFAC*x*x))))
+
+//#define	INTERPF(x)	(fabs(x)>1.0?0.0 : 1 - fabs(x))
+//#define	INTERPF(x)	(fabs(x)>0.5? 0.0:1.0)
 /*
 #define	INTERPF(x)	(x==0.0?1.0 \
 			:(x>INTERPLIM?0.0:(x<-INTERPLIM?0.0 \

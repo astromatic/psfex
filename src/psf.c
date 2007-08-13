@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	06/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,7 +39,7 @@
 Filter PSF candidates.
 */
 #define	EPS	(1e-4)  /* a small number */
-double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
+double	psf_clean(psfstruct *psf, setstruct *set)
   {
    samplestruct	*sample;
    double	chi2,chimean,chivar,chisig,chisig1,chival, locut,hicut;
@@ -49,7 +49,7 @@ double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
 
 /* First compute residuals for each sample (chi^2) */
   NFPRINTF(OUTPUT,"Computing residuals...");
-  psf_makeresi(psf, set, prefs.recenter_flag);
+  psf_makeresi(psf, set, prefs.recenter_flag, 0.3);
 
 /* Store the chi's (sqrt(chi2) pdf close to gaussian) */
   NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
@@ -64,7 +64,7 @@ double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
   chisig = BIG;
   chisig1 = 1.0;
   chivar = 0.0;
-  for (i=clean_flag?100:1; i-- && chisig>=0.1 && fabs(chisig/chisig1-1.0)>EPS;)
+  for (i=100; i-- && chisig>=0.1 && fabs(chisig/chisig1-1.0)>EPS;)
     {
     chisig1 = chisig;
     chimed = fast_median(chi, nsample);
@@ -84,8 +84,8 @@ double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
 
     chimean /= (double)nsample;
     chisig = sqrt((chivar-chimean*chimean*nsample)/(nsample-(nsample>1?1:0)));
-    locut = chimed - 3.0*chisig;
-    hicut = chimed + 3.0*chisig;
+    locut = chimed - 4.0*chisig;
+    hicut = chimed + 4.0*chisig;
     }
 
   free(chi);
@@ -96,21 +96,44 @@ double	psf_clean(psfstruct *psf, setstruct *set, int clean_flag)
   chi2 = chivar/(nsample-(nsample>1?1:0));
 
 /* Clip outliers */
-  if (clean_flag)
+  NFPRINTF(OUTPUT,"Filtering PSF-candidates...");
+  chi2max = (float)hicut;
+  chi2max *= chi2max;
+  nsample=set->nsample;
+  for (sample=set->sample, n=0; n<nsample;)
+  if ((sample++)->chi2>chi2max)
     {
-    NFPRINTF(OUTPUT,"Filtering PSF-candidates...");
-    chi2max = (float)hicut;
-    chi2max *= chi2max;
-    nsample=set->nsample;
-    for (sample=set->sample, n=0; n<nsample;)
-    if ((sample++)->chi2>chi2max)
-      {
-      sample=remove_sample(set, n);
-      nsample--;
-      }
-    else
-      n++;
+    sample=remove_sample(set, n);
+    nsample--;
     }
+  else
+    n++;
+
+  return chi2;
+  }
+
+
+/********************************* psf_chi2 *********************************/
+/*
+Return the chi2 of the PSF fitting.
+*/
+double	psf_chi2(psfstruct *psf, setstruct *set)
+  {
+   samplestruct	*sample;
+   double	chi2;
+   int		n, nsample;
+
+/* First compute residuals for each sample (chi^2) */
+  NFPRINTF(OUTPUT,"Computing residuals...");
+  psf_makeresi(psf, set, prefs.recenter_flag, 0.0);
+
+/* Store the chi's (sqrt(chi2) pdf close to gaussian) */
+  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
+  nsample = set->nsample;
+  chi2 = 0.0;
+  for (sample=set->sample, n=nsample; n--; sample++)
+    chi2 += sample->chi2;
+  chi2 /= (nsample-(nsample>1?1:0));
 
   return chi2;
   }
@@ -293,19 +316,23 @@ void	psf_build(psfstruct *psf, double *pos)
 /*
 Compute PSF residuals (chi2).
 */
-void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag)
+void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
+		float psf_extraccu)
   {
    samplestruct		*sample;
    static double	pos[MAXCONTEXT], amat[9], bmat[3];
    double		*dresi, *dresit, *amatt,
 			*cvigx,*cvigxt, *cvigy,*cvigyt,
 			nm1, chi2, dx,dy, ddx,ddy, dval,dvalx,dvaly,dwval,
-			radmin2,radmax2, hcw,hch, yb, mx2,my2,mxy;
+			radmin2,radmax2, hcw,hch, yb, mx2,my2,mxy,
+			xc,yc,rmax2,x,y;
    float		*vigresi, *vig, *vigw, *fresi,*fresit,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
-			norm, fval, vigstep;
-   int			i,j,n,x,y, ndim,npix,nsample, cw,ch,ncpix, okflag;
+			norm, fval, vigstep, psf_extraccu2, wval;
+   int			i,j,n,ix,iy, ndim,npix,nsample, cw,ch,ncpix, okflag,
+			accuflag, nchi2;
 
+  accuflag = (psf_extraccu > 1.0/BIG);
   vigstep = 1/psf->pixstep;
   nsample = set->nsample;
   npix = set->vigsize[0]*set->vigsize[1];
@@ -332,12 +359,12 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag)
     hch = (double)(ch/2);
     cvigxt = cvigx;
     cvigyt = cvigy;
-    for (y=0; y<ch; y++)
+    for (iy=0; iy<ch; iy++)
       {
-      yb = y-hch;
-      for (x=0; x<cw; x++)
+      yb = iy-hch;
+      for (ix=0; ix<cw; ix++)
         {
-        *(cvigxt++) = x-hcw;
+        *(cvigxt++) = ix-hcw;
         *(cvigyt++) = yb;
         }
       }
@@ -439,15 +466,36 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag)
     norm = sample->norm;
     chi2 = 0.0;
     dresit = dresi;
-    for (vigresi=sample->vigresi, vig=sample->vig, vigw=sample->vigweight,
-		i=npix; i--; vigresi++)
+    psf_extraccu2 = psf_extraccu*psf_extraccu*norm*norm;
+    xc = (double)(set->vigsize[0]/2)+sample->dx;
+    yc = (double)(set->vigsize[1]/2)+sample->dy;
+    y = -yc;
+    rmax2 = psf->pixstep*(psf->size[0]<psf->size[1]?
+		(double)(psf->size[0]/2) : (double)(psf->size[1]/2));
+    rmax2 *= rmax2;
+    nchi2 = 0;
+    vig = sample->vig;
+    vigw = sample->vigweight;
+    vigresi=sample->vigresi;
+    for (iy=set->vigsize[1]; iy--; y+=1.0)
       {
-      *vigresi = fval = *(vig++)-*vigresi*norm;
-      chi2 += (double)(fval *= fval**(vigw++));
-      *(dresit++) += fval;
+      x = -xc;
+      for (ix=set->vigsize[0]; ix--; x+=1.0, vig++, vigresi++, dresit++)
+        if ((wval=*(vigw++))>0.0)
+          {
+          if (accuflag)
+            wval = 1.0/(1.0 / wval + psf_extraccu2**vigresi**vigresi);
+          *vigresi = fval = *vig-*vigresi*norm;
+          if (x*x+y*y<rmax2)
+            {
+            nchi2++;
+            chi2 += (double)(fval *= fval*wval);
+            *dresit += fval;
+            }
+          }
       }
 
-    sample->chi2 = (nm1 = (double)(npix - 1)) > 0.0? chi2/nm1 : chi2;
+    sample->chi2 = (nchi2> 1)? chi2/(nchi2-1) : chi2;
     }
 
 /* Normalize and convert to floats the Residual array */

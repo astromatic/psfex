@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -85,7 +85,6 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     {
     case PSF_CHI:
 /*---- sqrt(chi2) map in PSF pixel-space */
-      nw = (int)(sqrt((double)set->nsample*set->nvig)/set->vigsize[0]+1);
       nw = 1;
       nh = 1;
       w = psf->size[0];
@@ -132,9 +131,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_RESIDUALS:
 /*---- Residual vectors for all samples are arranged as small vignets */
-      nw = (int)(sqrt((double)set->nsample*set->nvig)/set->vigsize[0]+1);
+      nw = (int)sqrt((double)set->nsample);
       nw = ((nw-1)/10+1)*10;
-      nh = set->nsample/(nw+1) + 1;
+      nh = (set->nsample-1)/nw + 1;
       w = set->vigsize[0];
       h = set->vigdim>1? set->vigsize[1] : 1;
       tab->naxisn[0] = nw*w;
@@ -156,9 +155,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_RAWDATA:
 /*----  View original samples as small vignets */
-      nw = (int)(sqrt((double)set->nsample*set->nvig)/set->vigsize[0]+1);
+      nw = (int)sqrt((double)set->nsample);
       nw = ((nw-1)/10+1)*10;
-      nh = set->nsample/(nw+1) + 1;
+      nh = (set->nsample-1)/nw + 1;
       w = set->vigsize[0];
       h = set->vigdim>1? set->vigsize[1] : 1;
       tab->naxisn[0] = nw*w;
@@ -180,9 +179,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_SAMPLES:
 /*----  View all training samples as small vignets */
-      nw = (int)(sqrt((double)set->nsample*set->nreti)/set->retisize[0]+1);
+      nw = (int)sqrt((double)set->nsample);
       nw = ((nw-1)/10+1)*10;
-      nh = set->nsample/(nw+1) + 1;
+      nh = (set->nsample-1)/nw + 1;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
       tab->naxisn[0] = nw*w;
@@ -286,9 +285,9 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
     case PSF_WEIGHTS:
 /*----  View all training sample weights as small vignets */
-      nw = (int)(sqrt((double)set->nsample*set->nreti)/set->retisize[0]+1);
+      nw = (int)sqrt((double)set->nsample);
       nw = ((nw-1)/10+1)*10;
-      nh = set->nsample/(nw+1) + 1;
+      nh = (set->nsample-1)/nw + 1;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
       tab->naxisn[0] = nw*w;

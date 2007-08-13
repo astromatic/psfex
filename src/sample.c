@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	25/04/2007
+*	Last modify:	13/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -412,7 +412,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     sn = (double)(backnoise>0.0? *fluxmax/backnoise : BIG);
 /*---- Apply some selection over flags, fluxes... */
-    if (!*flags
+    if (!(*flags&prefs.flag_mask)
 	&& sn>minsn
 	&& *fluxrad>frmin && *fluxrad<frmax
 	&& *elong<maxelong)
@@ -422,10 +422,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       vignett = vignet;
       for (i=vigsize; i--; vignett++)
         if (*vignett <= -BIG)
-          {
-          *vignett = 0.0;
           j++;
-          }
       if (maxbadflag && j > maxbad)
         continue; 
     
@@ -755,7 +752,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP,Leiden observatory & ESO)
-VERSION 12/12/98
+VERSION 13/08/2007
 */
 void make_weights(setstruct *set, samplestruct *sample)
 
@@ -770,11 +767,16 @@ void make_weights(setstruct *set, samplestruct *sample)
   backnoise2 = sample->backnoise2;
   for (vig=sample->vig, vigweight=sample->vigweight, i=set->nvig; i--;)
     {
-    pix = *(vig++);
-    noise2 = backnoise2 + profaccu2*pix*pix;
-    if (pix>0.0 && gain>0.0)
-      noise2 += pix/gain;
-    *(vigweight++) = 1.0/noise2;      
+    if (*vig <= -BIG)
+      *(vig++) = *(vigweight++) = 0.0;
+    else
+      {
+      pix = *(vig++);
+      noise2 = backnoise2 + profaccu2*pix*pix;
+      if (pix>0.0 && gain>0.0)
+        noise2 += pix/gain;
+      *(vigweight++) = 1.0/noise2;      
+      }
     }
 
   return;
