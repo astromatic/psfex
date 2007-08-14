@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	13/08/2007
+*	Last modify:	14/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -49,7 +49,7 @@ double	psf_clean(psfstruct *psf, setstruct *set)
 
 /* First compute residuals for each sample (chi^2) */
   NFPRINTF(OUTPUT,"Computing residuals...");
-  psf_makeresi(psf, set, prefs.recenter_flag, 0.3);
+  psf_makeresi(psf, set, prefs.recenter_flag, 0.2);
 
 /* Store the chi's (sqrt(chi2) pdf close to gaussian) */
   NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
@@ -136,6 +136,52 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
   chi2 /= (nsample-(nsample>1?1:0));
 
   return chi2;
+  }
+
+
+/********************************* psf_clip *********************************/
+/*
+Apply soft-clipping to the PSF model using circular boundaries.
+*/
+void	psf_clip(psfstruct *psf)
+  {
+   double	xc,yc, x,y, r2,rmin2,rmax2,dr2;
+   float	*pix;
+   int		p, ix,iy, npsf;
+
+  xc = (double)(psf->size[0]/2);
+  yc = (double)(psf->size[1]/2);
+  rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
+				: (double)(psf->size[1]/2))+0.5;
+  dr2 = (psf->fwhm / psf->pixstep);
+  if (dr2<1.0)
+    dr2 = 1.0;
+  if (dr2 >= rmax2)
+    dr2 = rmax2/2.0;
+  rmin2 = rmax2 - dr2;
+  rmin2 *= rmin2;
+  rmax2 *= rmax2;
+  dr2 = rmax2 - rmin2;
+  npsf = psf->poly->ncoeff;
+  pix = psf->comp;
+  for (p=npsf; p--;)
+    {
+    y = -yc;
+    for (iy=psf->size[1]; iy--; y+=1.0)
+      {
+      x = -xc;
+      for (ix=psf->size[0]; ix--; x+=1.0, pix++)
+        if ((r2=x*x+y*y)>=rmin2)
+          {
+          if (r2<rmax2)
+            *pix *= (rmax2-r2) / dr2;
+          else
+            *pix = 0.0;
+          }
+      }
+    }
+
+  return;
   }
 
 
@@ -485,11 +531,12 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
           {
           if (accuflag)
             wval = 1.0/(1.0 / wval + psf_extraccu2**vigresi**vigresi);
-          *vigresi = fval = *vig-*vigresi*norm;
+          fval = (*vig-*vigresi*norm);
+          *vigresi = (fval *= fval*wval);
           if (x*x+y*y<rmax2)
             {
             nchi2++;
-            chi2 += (double)(fval *= fval*wval);
+            chi2 += (double)fval;
             *dresit += fval;
             }
           }
@@ -538,7 +585,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
 			*bmat,*bmatt, *basis,*basist, *basist2,
 			*sigvig,*sigvigt, *alphamat,*alphamatt,
 			*betamat,*betamatt, *coeffmat,*coeffmatt,
-			dx,dy, dval, norm;
+			dx,dy, dval, norm, x,y,xc,yc,rmax2;
    float		*vig,*vigt,*vigt2, *wvig, *diracpsf,*diracpsft,
 			*diracvig,*diracvigt, *ppix,*ppixt,
 			*psforder,*psfordert,
@@ -577,12 +624,19 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
   ixmin = psf->size[0]/2 - irad;
   ixmax = psf->size[0]/2 + irad;
   ppix=psf->comp;
-  for (iy=psf->size[1]; iy--;)
+  xc = (double)(psf->size[0]/2);
+  yc = (double)(psf->size[1]/2);
+  y = -yc;
+  rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
+				: (double)(psf->size[1]/2))+0.5;
+  rmax2 *= rmax2;
+  for (iy=psf->size[1]; iy--; y+=1.0)
     {
     i = iy*psf->size[0];
+    x = -xc;
     if (iy>=iymin && iy<=iymax)
-      for (ix=psf->size[0]; ix--; i++)
-        if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax)
+      for (ix=psf->size[0]; ix--; i++, x+=1.0)
+        if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax && x*x+y*y<rmax2)
             {
             npsf++;
             psfmask[i] = 1;

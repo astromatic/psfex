@@ -154,6 +154,9 @@ void	makeit(char **incatnames, int ncat)
 /*-- Refine the PSF-model */
     psf_refine(psf[ext], set, prefs.nsuper);
 
+/*-- Clip the PSF-model */
+    psf_clip(psf[ext]);
+
 /*-- Just check the Chi2 */
     psf[ext]->chi2 = set->nsample? psf_chi2(psf[ext], set) : 0.0;
     NFPRINTF(OUTPUT, "");

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	13/08/2007
+*	Last modify:	14/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -130,7 +130,8 @@ extern psfstruct	*psf_init(char **names, int *group, int ndim,
 
 
 extern void	matinv(double *mat, int nmat),
-		pc_end(pcstruct *pc);
+		pc_end(pcstruct *pc),
+		psf_clip(psfstruct *psf);
 
 extern pcstruct	*pc_convolve(pcstruct *pc, psfstruct *psf),
 		*pc_load(char *filename),
