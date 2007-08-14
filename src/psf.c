@@ -531,12 +531,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
           {
           if (accuflag)
             wval = 1.0/(1.0 / wval + psf_extraccu2**vigresi**vigresi);
-          fval = (*vig-*vigresi*norm);
-          *vigresi = (fval *= fval*wval);
+          *vigresi = fval = (*vig-*vigresi*norm);
           if (x*x+y*y<rmax2)
             {
             nchi2++;
-            chi2 += (double)fval;
+            chi2 += (double)(wval*fval*fval);
             *dresit += fval;
             }
           }
