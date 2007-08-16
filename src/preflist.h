@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	13/08/2007
+*	Last modify:	16/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -71,6 +71,8 @@ pkeystruct key[] =
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 1,1024, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.retisize, 1,1024, 0.0,0.0, {""},
      1,2, &prefs.nretisize},
+  {"PSF_TYPE", P_KEY, &prefs.psf_type, 0,0, 0.0,0.0,
+   {"SINC","GAUSS-LAGUERRE",""}},
   {"PSF_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","LOG","FULL",""}},
@@ -92,9 +94,10 @@ char *default_prefs[] =
 "#-------------------------------- PSF model ----------------------------------",
 " ",
 "PSF_NAME        default.psf     # Output PSF filename",
-"PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
-"PSF_NSUPER      64              # Max number of super-resolved pixels",
+"PSF_TYPE        SINC            # SINC or GAUSS-LAGUERRE",
+"PSF_NSUPER      16              # Super-resolution number parameter",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
+"PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",
 " ",

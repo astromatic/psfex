@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	14/08/2007
+*	Last modify:	16/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -33,6 +33,7 @@
 #define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
 #define PSF_NITER	40	/* Maximum number of iterations in fit */
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
+#define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -119,6 +120,9 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_refine(psfstruct *psf, setstruct *set, int npsf),
 		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
 			char *filename, int ext, int next);
+
+extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
+			double beta);
 
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);

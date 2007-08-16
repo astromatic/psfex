@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	14/08/2007
+*	Last modify:	16/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -34,6 +34,8 @@
 #include	"vignet.h"
 #include	ATLAS_LAPACK_H
 
+static double	psf_laguerre(double x, int p, int q);
+
 /********************************* psf_clean *********************************/
 /*
 Filter PSF candidates.
@@ -51,7 +53,7 @@ double	psf_clean(psfstruct *psf, setstruct *set)
   NFPRINTF(OUTPUT,"Computing residuals...");
   psf_makeresi(psf, set, prefs.recenter_flag, 0.2);
 
-/* Store the chi's (sqrt(chi2) pdf close to gaussian) */
+/* Store the chi's (sqrt(chi2) pdf close to Gaussian) */
   NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
   nsample = set->nsample;
   QMALLOC(chi, float, nsample);
@@ -574,7 +576,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 /*
 Refine PSF by resolving "aliased" pixels.
 */
-void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
+void	psf_refine(psfstruct *psf, setstruct *set, int nvec)
   {
    polystruct		*poly;
    samplestruct		*sample;
@@ -588,77 +590,98 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
    float		*vig,*vigt,*vigt2, *wvig, *diracpsf,*diracpsft,
 			*diracvig,*diracvigt, *ppix,*ppixt,
 			*psforder,*psfordert,
+			*shape,*shapet,
 			psfthresh, vigstep;
    int			*psfmask,*psfmaskt, *desindex,*desindext,*desindext2,
 			*desindex0,*desindex02;
-   int			i,j,jo,k,l,c,n, npix,nvpix, ndata,ncoeff,nsample,
+   int			i,j,jo,k,l,c,n, npix,nvpix, ndata,ncoeff,nsample,npsf,
 			ncontext, nunknown, matoffset, dindex, ix,iy,
 			irad, ixmin,ixmax,iymin,iymax;
 
+  shape = NULL;	/* avoid gcc -Wall warnings */
+
 /* Exit if no pixel is to be "refined" or if no sample is available */
-  if (!npsf || !set->nsample)
+  if (!nvec || !set->nsample)
     return;
 
-/* First Select the brightest pixels */
-  NFPRINTF(OUTPUT,"Selecting pixels...");
   npix = psf->size[0]*psf->size[1];
-  if (npsf>npix)
-    npsf=npix;
-  psforder = (float *)NULL;	/* To avoid gcc -Wall warnings */
-  QMEMCPY(psf->comp, psforder, float, npix);
-  for (psfordert=psforder, i=npix; i--; psfordert++)
-    *psfordert = fabs(*psfordert);
-  hmedian(psforder, npix);
-  psfthresh = psforder[npix-npsf];
-  free(psforder);
+  nvpix = set->vigsize[0]*set->vigsize[1];
   vigstep = 1/psf->pixstep;
 
-/* Mark pixels which have to be reexamined */
-  QCALLOC(psfmask, int, npix);
-  npsf = 0;
-  irad = (int)(vigstep*(set->vigsize[1]-1)/2);
-  iymin = psf->size[1]/2 - irad;
-  iymax = psf->size[1]/2 + irad;
-  irad = (int)(vigstep*(set->vigsize[0]-1)/2);
-  ixmin = psf->size[0]/2 - irad;
-  ixmax = psf->size[0]/2 + irad;
-  ppix=psf->comp;
-  xc = (double)(psf->size[0]/2);
-  yc = (double)(psf->size[1]/2);
-  y = -yc;
-  rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
-				: (double)(psf->size[1]/2))+0.5;
-  rmax2 *= rmax2;
-  for (iy=psf->size[1]; iy--; y+=1.0)
+  switch(prefs.psf_type)
     {
-    i = iy*psf->size[0];
-    x = -xc;
-    if (iy>=iymin && iy<=iymax)
-      for (ix=psf->size[0]; ix--; i++, x+=1.0)
-        if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax && x*x+y*y<rmax2)
+    case PSFBASIS_SINC:
+/*---- The number of elements is set to the square of the input number */
+      npsf = nvec*nvec;
+      if (npsf>npix)
+        npsf=npix;
+/*---- First Select the brightest pixels */
+      NFPRINTF(OUTPUT,"Selecting pixels...");
+      psforder = (float *)NULL;	/* To avoid gcc -Wall warnings */
+      QMEMCPY(psf->comp, psforder, float, npix);
+      for (psfordert=psforder, i=npix; i--; psfordert++)
+        *psfordert = fabs(*psfordert);
+      hmedian(psforder, npix);
+      psfthresh = psforder[npix-npsf];
+      free(psforder);
+
+/*---- Mark pixels which have to be reexamined */
+      QCALLOC(psfmask, int, npix);
+      npsf = 0;
+      irad = (int)(vigstep*(set->vigsize[1]-1)/2);
+      iymin = psf->size[1]/2 - irad;
+      iymax = psf->size[1]/2 + irad;
+      irad = (int)(vigstep*(set->vigsize[0]-1)/2);
+      ixmin = psf->size[0]/2 - irad;
+      ixmax = psf->size[0]/2 + irad;
+      ppix=psf->comp;
+      xc = (double)(psf->size[0]/2);
+      yc = (double)(psf->size[1]/2);
+      y = -yc;
+      rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
+				: (double)(psf->size[1]/2))+0.5;
+      rmax2 *= rmax2;
+      for (iy=psf->size[1]; iy--; y+=1.0)
+        {
+        i = iy*psf->size[0];
+        x = -xc;
+        if (iy>=iymin && iy<=iymax)
+        for (ix=psf->size[0]; ix--; i++, x+=1.0)
+          if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax
+		&& x*x+y*y<rmax2)
             {
             npsf++;
             psfmask[i] = 1;
             }
+        }
+/*---- Prepare a PSF mask that will contain Dirac peaks only... */
+      QCALLOC(diracpsf, float, npix);
+/*---- Size of the compressed design matrix along the "data" axis */
+      ndata = (1+(int)(INTERPW*psf->pixstep))*(1+(int)(INTERPH*psf->pixstep))+1;
+      break;
+    case PSFBASIS_GAUSS_LAGUERRE:
+      NFPRINTF(OUTPUT,"Generating the PSF model...");
+      npsf = psf_pshapelet(&shape, psf->size[0],psf->size[1], nvec,
+		psf->fwhm*vigstep*sqrt(nvec+1)/7.0);
+      ndata = nvpix+1;
+      break;
+      default:
+        error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
+			"psf_refine()");
     }
 /*
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "%d PSF pixels retained for super-resolution\n", npsf);
 */
-  nvpix = set->vigsize[0]*set->vigsize[1];
   poly = psf->poly;
   ncontext = set->ncontext;
   ncoeff = poly->ncoeff;
   nsample = set->nsample;
   nunknown = ncoeff*npsf;
-/* Prepare a PSF mask that will contain Dirac peaks only... */
-  QCALLOC(diracpsf, float, npix);
-/* ... and a vignet that will contain interpolating coefficients */
+/* Prepare a vignet that will contain the projected basis vector */
   QCALLOC(diracvig, float, nvpix);
 
   NFPRINTF(OUTPUT,"Processing samples...");
-/* Size of the compressed design matrix along the "data" axis */
-  ndata = (1+(int)(INTERPW*psf->pixstep))*(1+(int)(INTERPH*psf->pixstep)) + 1;
   matoffset =nunknown-ncoeff;		/* Offset between matrix coeffs */
 /* Set-up the (compressed) design matrix and data vector */
   QCALLOC(desmat, double, npsf*ndata);
@@ -682,6 +705,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
 /*-- Delta-x and Delta-y in PSF-pixel units */
     dx = -sample->dx*vigstep;
     dy = -sample->dy*vigstep;
+    norm = (double)sample->norm;
 
 /*-- Build the local PSF */
     for (i=0; i<ncontext; i++)
@@ -695,13 +719,6 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
       for (dval=*(basist++), basist2=basis, i=ncoeff; i--;)
         *(coeffmatt++) = dval**(basist2++);
 
-/*-- Map the PSF model at the current position */
-    vignet_resample(psf->loc, psf->size[0], psf->size[1],
-		vig, set->vigsize[0], set->vigsize[1], dx, dy, vigstep, 1.0);
-/*-- Subtract the PSF model */
-    norm = (double)sample->norm;
-    for (vigt=vig, vigt2=sample->vig, i=nvpix; i--; vigt++)
-      *vigt = (float)(*(vigt2++) - *vigt*norm);
 /*-- Precompute the 1/sigma-map for the current sample */
     for (sigvigt=sigvig, wvig=sample->vigweight, i=nvpix; i--;)
       *(sigvigt++) = sqrt(*(wvig++));
@@ -709,32 +726,72 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
 /*-- Go through each relevant PSF pixel */
     desmatt = desmat;
     desindext = desindex;
-    for (psfmaskt=psfmask, diracpsft=diracpsf, i=npix; i--; diracpsft++)
-      if (*(psfmaskt++))
-        {
-/*------ Put a Dirac peak at the current PSF pixel */
-        *diracpsft = (float)norm;
-        vignet_resample(diracpsf, psf->size[0], psf->size[1],
+    switch(prefs.psf_type)
+      {
+      case PSFBASIS_SINC:
+/*------ Map the PSF model at the current position */
+        vignet_resample(psf->loc, psf->size[0], psf->size[1],
+		vig, set->vigsize[0], set->vigsize[1], dx, dy, vigstep, 1.0);
+/*------ Subtract the PSF model */
+        for (vigt=vig, vigt2=sample->vig, i=nvpix; i--; vigt++)
+          *vigt = (float)(*(vigt2++) - *vigt*norm);
+        for (psfmaskt=psfmask, diracpsft=diracpsf, i=npix; i--; diracpsft++)
+          if (*(psfmaskt++))
+            {
+/*----------- Put a Dirac peak at the current PSF pixel */
+            *diracpsft = (float)norm;
+            vignet_resample(diracpsf, psf->size[0], psf->size[1],
 		diracvig, set->vigsize[0],set->vigsize[1], dx,dy, vigstep,1.0);
 
-/*------ Retrieve coefficient for each relevant data pixel */
-        for (diracvigt=diracvig, sigvigt=sigvig,
+/*---------- Retrieve coefficient for each relevant data pixel */
+            for (diracvigt=diracvig, sigvigt=sigvig,
 		desmatt2=desmatt, desindext2=desindext, j=jo=0; j++<nvpix;)
-          if (fabs(dval = *(diracvigt++) * *(sigvigt++)) > (1/BIG))
-            {
-            *(desmatt2++) = dval;
-            *(desindext2++) = (j-jo);
-            jo = j;
+              if (fabs(dval = *(diracvigt++) * *(sigvigt++)) > (1/BIG))
+                {
+                *(desmatt2++) = dval;
+                *(desindext2++) = (j-jo);
+                jo = j;
+                }
+
+            *desindext2 = 0;
+
+            desindext += ndata;
+            desmatt += ndata;
+
+/*---------- Set the current PSF pixel back to zero */
+            *diracpsft = 0.0;
             }
+        break;
+      case PSFBASIS_GAUSS_LAGUERRE:
+/*------ Simply copy the image data */
+        for (vigt=vig, vigt2=sample->vig, i=nvpix; i--;)
+          *(vigt++) = (float)*(vigt2++);
+        for (i=0; i<npsf; i++)
+          {
+          memset(diracvig, 0, nvpix*sizeof(float));
+/*-------- Shift the current basis vector to the current PSF position */
+          vignet_resample(&shape[i*npix], psf->size[0], psf->size[1],
+		diracvig, set->vigsize[0],set->vigsize[1], dx,dy, vigstep, 1.0);
+/*-------- Retrieve coefficient for each relevant data pixel */
+          for (diracvigt=diracvig, sigvigt=sigvig,
+		desmatt2=desmatt, desindext2=desindext, j=jo=0; j++<nvpix;)
+            if (fabs(dval = *(diracvigt++) * *(sigvigt++)) > (1/BIG))
+              {
+              *(desmatt2++) = norm*dval;
+              *(desindext2++) = (j-jo);
+              jo = j;
+              }
 
-        *desindext2 = 0;
+          *desindext2 = 0;
 
-        desindext += ndata;
-        desmatt += ndata;
-
-/*------ Set the current PSF pixel back to zero */
-        *diracpsft = 0.0;
-        }
+          desindext += ndata;
+          desmatt += ndata;
+          }
+      break;
+      default:
+        error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
+			"psf_refine()");
+      }
 
 /*-- Fill the b matrix with data points */
     for (vigt=vig, sigvigt=sigvig, bmatt=bmat, j=nvpix; j--;)
@@ -796,7 +853,6 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
   free(desmat);
   free(desindex);
   free(bmat);
-  free(diracpsf);
   free(diracvig);
   free(vig);
   free(sigvig);
@@ -808,17 +864,178 @@ void	psf_refine(psfstruct *psf, setstruct *set, int npsf)
 	betamat, nunknown);
 
   NFPRINTF(OUTPUT,"Updating the PSF...");
-  for (ppix=psf->comp,betamatt=betamat, psfmaskt=psfmask, i=npix; i--; ppix++)
-    if (*(psfmaskt++))
-      for (ppixt=ppix, c=ncoeff; c--; ppixt+=npix)
-        *ppixt += *(betamatt++);
+  switch(prefs.psf_type)
+    {
+    case PSFBASIS_SINC:
+      for (ppix=psf->comp,betamatt=betamat,psfmaskt=psfmask,i=npix; i--; ppix++)
+        if (*(psfmaskt++))
+          for (ppixt=ppix, c=ncoeff; c--; ppixt+=npix)
+            *ppixt += *(betamatt++);
+      free(psfmask);
+      free(diracpsf);
+      break;
+    case PSFBASIS_GAUSS_LAGUERRE:
+      memset(psf->comp, 0, npix*ncoeff*sizeof(float));
+      betamatt = betamat;
+      for (j=0; j<npsf; j++)
+        {
+        ppix = psf->comp;
+        for (c=ncoeff; c--;)
+          {
+          shapet = &shape[j*npix];
+          dval = *(betamatt++);
+          for (ppixt=ppix,i=npix; i--;)
+            *(ppixt++) += dval**(shapet++);
+          }
+        }
+      free(shape);
+      break;
+      default:
+        error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
+			"psf_refine()");
+    }
 
 /* Free all */
   free(alphamat);
   free(betamat);
-  free(psfmask);
 
   return;
+  }
+
+
+/********************************* psf_laguerre *****************************/
+/*
+Return Laguerre polynomial value.
+*/
+static double	psf_laguerre(double x, int p, int q)
+  {
+   double	dn,dq, lpm1,lpm2, l;
+   int		n;
+
+  dq = q - 1.0;
+  if (p==0)
+    return 1.0;
+  else if (p==1)
+    return (2.0 - x + dq);
+  else
+    {
+    l = 0.0;
+    lpm2 = 1.0;
+    lpm1 = 2.0 - x + dq;
+    dn = 2.0;
+    for (n=p-1; n--; dn+=1.0)
+      {
+      l = (2.0+(dq-x)/dn)*lpm1 - (1.0+dq/dn)*lpm2;
+      lpm2 = lpm1;
+      lpm1 = l;
+      }
+    }
+
+  return l;
+  }
+
+
+/******************************* psf_pshapelet *******************************/
+/*
+Compute Polar shapelet basis set.
+*/
+int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
+  {
+   double	*fr2,*fr2t,*fexpr2,*fexpr2t,*ftheta,*fthetat,
+		dm,fac, xc,yc, x,y, x1,y1, r2,rmax2, invbeta2, val,
+		ostep,ostep2,odx;
+   float	*shapet;
+   int		i,j, m,n,p, kmax,hnmm, ix,iy, idx,idy, facm,facp;
+
+  kmax = (nmax+1)*(nmax+2)/2;
+
+  invbeta2 = 1.0/(beta*beta);
+  ostep = 1.0/(GAUSS_LAG_OSAMP);
+  ostep2 = ostep*ostep;
+  odx = 0.5*(ostep - 1.0);
+  xc =(double)(w/2);
+  yc = (double)(h/2);
+  rmax2 = (xc<yc? xc: yc);
+  rmax2 *= rmax2*invbeta2;
+
+/* Precompute some slow functions */
+  QMALLOC(fr2, double, w*h*GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP);
+  QMALLOC(fexpr2, double, w*h*GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP);
+  QMALLOC(ftheta, double, w*h*GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP);
+  fr2t = fr2;
+  fexpr2t = fexpr2;
+  fthetat = ftheta;
+  y = odx - yc;
+  for (iy=h; iy--; y+=1.0)
+    {
+    x = odx - xc;
+    for (ix=w; ix--; x+=1.0)
+      {
+      y1 = y;
+      for (idy=GAUSS_LAG_OSAMP; idy--; y1+=ostep)
+        {
+        x1 = x;
+        for (idx=GAUSS_LAG_OSAMP; idx--; x1+=ostep)
+          {
+          *(fr2t++) = r2 = (x1*x1+y1*y1)*invbeta2;
+          *(fexpr2t++) = exp(-r2/2.0);
+          *(fthetat++) = atan2(y1,x1);
+          }
+        }
+      }
+    }
+
+  QCALLOC(*shape, float, w*h*kmax);
+  shapet = *shape;
+  for (n=0; n<=nmax; n++)
+    {
+    for (m=n%2; m<=n; m+=2)
+      {
+      dm = (double)m;
+/*---- Compute ((n-m)/2)! */
+      hnmm = (n-m)/2;
+      facp = facm = 1;
+      for (p=hnmm+1; --p;)
+        facm *= p;
+/*---- Compute ((n+m)/2)! */
+      for (p=(n+m)/2+1; --p;)
+        facp *= p; 
+      fac = sqrt((double)facm) / (PI*facp*pow(beta, dm+1.0));
+      if (!(hnmm%2))
+        fac = -fac;
+      fr2t = fr2;
+      fexpr2t = fexpr2;
+      fthetat = ftheta;
+      for (i=w*h; i--;)
+        {
+        val = 0.0;
+        for (j=GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP; j--; fr2t++)
+          val += fac*pow(*fr2t, dm/2.0)*psf_laguerre(*fr2t, hnmm, m)
+		**(fexpr2t++)*cos(dm**(fthetat++));
+        *(shapet++) = val*ostep2;
+        }
+      if (m!=0)
+        {
+        fr2t = fr2;
+        fexpr2t = fexpr2;
+        fthetat = ftheta;
+        for (i=w*h; i--;)
+          {
+          val = 0.0;
+          for (j=GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP; j--; fr2t++)
+            val += fac*pow(*fr2t, dm/2.0)*psf_laguerre(*fr2t, hnmm, m)
+		**(fexpr2t++)*sin(dm**(fthetat++));
+          *(shapet++) = val*ostep2;
+          }
+        }
+      }
+    }
+
+  free(fr2);
+  free(fexpr2);
+  free(ftheta);
+
+  return kmax;
   }
 
 
