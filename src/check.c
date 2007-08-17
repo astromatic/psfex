@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	13/08/2007
+*	Last modify:	17/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -83,6 +83,28 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
 
   switch(checktype)
     {
+    case PSF_BASIS:
+/*----  View basis vectors as small vignets */
+      nw = (int)sqrt((double)psf->nbasis);
+      nw = ((nw-1)/10+1)*10;
+      nh = (psf->nbasis-1)/nw + 1;
+      w = psf->size[0];
+      h = psf->dim>1? psf->size[1] : 1;
+      tab->naxisn[0] = nw*w;
+      tab->naxisn[1] = nh*h;
+      step = (nw-1)*w;
+      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+      QCALLOC(pix0, float, tab->tabsize);
+      tab->bodybuf = (char *)pix0; 
+      fpix = psf->basis;
+      for (n=0; n<psf->nbasis; n++)
+        {
+        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+        for (y=h; y--; pix += step)
+          for (x=w; x--;)
+            *(pix++) = *(fpix++);
+        }
+      break;
     case PSF_CHI:
 /*---- sqrt(chi2) map in PSF pixel-space */
       nw = 1;

@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	12/08/2007
+*	Last modify:	17/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -114,8 +114,7 @@ void	makeit(char **incatnames, int ncat)
     if (!set->nsample)
       warning("No appropriate source found!!","");
 
-    psfstep = (float)(prefs.psf_step? prefs.psf_step
-				: (set->fwhm/2.35)*(1.0-1.0/INTERPFAC));
+    psfstep = (float)(prefs.psf_step? prefs.psf_step : (set->fwhm/2.35)*0.5);
 
 /*-- Init the PSF */
     NFPRINTF(OUTPUT,"Initializing PSF modules...");
@@ -132,7 +131,7 @@ void	makeit(char **incatnames, int ncat)
 /*-- Make the basic PSF-model (1st pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
     psf_make(psf[ext], set);
-    psf_refine(psf[ext], set, prefs.nsuper);
+    psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
@@ -142,7 +141,7 @@ void	makeit(char **incatnames, int ncat)
 /*---- Make the basic PSF-model (2nd pass) */
       NFPRINTF(OUTPUT,"Modeling the PSF.");
       psf_make(psf[ext], set);
-      psf_refine(psf[ext], set, prefs.nsuper);
+      psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
       }
 
 /*-- Remove bad PSF candidates */
@@ -152,7 +151,7 @@ void	makeit(char **incatnames, int ncat)
     psf[ext]->samples_accepted = set->nsample;
 
 /*-- Refine the PSF-model */
-    psf_refine(psf[ext], set, prefs.nsuper);
+    psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
 
 /*-- Clip the PSF-model */
     psf_clip(psf[ext]);

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	16/08/2007
+*	Last modify:	17/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -35,6 +35,9 @@
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 #define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 
+/*----------------------------- Type definitions --------------------------*/
+typedef enum {PSFBASIS_SINC, PSFBASIS_GAUSS_LAGUERRE}
+        psftypenum;
 /*--------------------------- structure definitions -------------------------*/
 
 typedef struct code
@@ -76,6 +79,10 @@ typedef struct psf
   int		samples_accepted;/* Number of detections accepted */
   double	chi2;		/* chi2/d.o.f. */
   float		fwhm;		/* Initial guess of the FWHM */
+  int		*pixmask;	/* Pixel mask for local bases */
+  float		*basis;		/* Basis vectors */
+  int		nbasis;		/* Number of basis vectors */
+  int		ndata;		/* Size of the design matrix along data axis */
   moffatstruct	*moffat;	/* Array of Moffat fits to PSF */
   double	moffat_fwhm_min;
   double	moffat_fwhm;	/* Central Moffat FWHM */
@@ -114,10 +121,13 @@ typedef struct pc
 extern void	psf_build(psfstruct *psf, double *pos),
 		psf_end(psfstruct *psf),
 		psf_make(psfstruct *psf, setstruct *set),
+		psf_makebasis(psfstruct *psf, setstruct *set,
+			psftypenum psf_type,  int nvec),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
-		psf_refine(psfstruct *psf, setstruct *set, int npsf),
+		psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
+			int nvec),
 		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
 			char *filename, int ext, int next);
 

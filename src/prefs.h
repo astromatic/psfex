@@ -9,13 +9,17 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	16/08/2007
+*	Last modify:	17/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
 #ifndef	_CHECK_H_
 #include "check.h"
+#endif
+
+#ifndef _PSF_H_
+#include "psf.h"
 #endif
 
 #ifndef _PREFS_H_
@@ -45,8 +49,7 @@ typedef struct
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
   int		nsuper;				/* nb of supersampled pixels */
-  enum {PSFBASIS_SINC, PSFBASIS_GAUSS_LAGUERRE}
-		psf_type;			/* PSF vector basis set */
+  psftypenum	psf_type;			/* PSF vector basis set */
   int		autoselect_flag;		/* Auto. select FWHMs ? */
   int		recenter_flag;			/* Recenter PSF-candidates? */
   checkenum	check_type[MAXCHECK];		/* check-image types */

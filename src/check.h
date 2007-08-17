@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	17/08/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,8 +30,8 @@
 #define		MAXCHECK	16		/* max. # of CHECKimages */
 
 /*----------------------------- Type definitions --------------------------*/
-typedef enum {PSF_NONE, PSF_CHI, PSF_PROTO, PSF_RESIDUALS, PSF_RAWDATA,
-		PSF_SAMPLES, PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
+typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
+		PSF_RAWDATA, PSF_SAMPLES, PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
 		PSF_WEIGHTS, PSF_PCPROTO,
 		PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM}
 	checkenum;
