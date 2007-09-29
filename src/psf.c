@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	29/09/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -375,7 +375,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			*cvigx,*cvigxt, *cvigy,*cvigyt,
 			nm1, chi2, dx,dy, ddx,ddy, dval,dvalx,dvaly,dwval,
 			radmin2,radmax2, hcw,hch, yb, mx2,my2,mxy,
-			xc,yc,rmax2,x,y;
+			xc,yc,rmax2,x,y, mse, xi2, xyi;
    float		*vigresi, *vig, *vigw, *fresi,*fresit,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
 			norm, fval, vigstep, psf_extraccu2, wval;
@@ -429,7 +429,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 /* Set convergence boundaries */
   radmin2 = PSF_MINSHIFT*PSF_MINSHIFT;
   radmax2 = PSF_MAXSHIFT*PSF_MAXSHIFT;
-  okflag = 0;
+  okflag = nchi2 = 0;
+  mse = 0.0; 				/* To avoid gcc -Wall warnings */
 
 /* Compute the chi2 */
   for (sample=set->sample, n=nsample; n--; sample++)
@@ -464,12 +465,12 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 
 /*------ Build the a and b matrices */
         memset(amat, 0, 9*sizeof(double));
-        *bmat = bmat[1] = bmat[2] = mx2=my2=mxy = 0.0;
+        bmat[0] = bmat[1] = bmat[2] = mx2=my2=mxy = 0.0;
         for (cvigxt=cvigx,cvigyt=cvigy,cvigwt=cvigw,
 		cbasist=cbasis,cdatat=cdata, i=ncpix; i--;)
           {
           dval = (double)*(cbasist++);
-          *bmat += (dwval = dval*(double)*(cdatat++));
+          bmat[0] += (dwval = dval*(double)*(cdatat++));
           bmat[1] += dwval*(dvalx = *(cvigxt++) - dx);
           bmat[2] += dwval*(dvaly = *(cvigyt++) - dy);
           mx2 += dval*dvalx*dvalx;
@@ -512,8 +513,20 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     vignet_resample(psf->loc, psf->size[0], psf->size[1],
 	sample->vigresi, set->vigsize[0], set->vigsize[1],
 	-dx*vigstep, -dy*vigstep, vigstep, 1.0);
+/*-- Fit the flux */
+    xi2 = xyi = 0.0;
+    for (cvigwt=sample->vigweight,cbasist=sample->vigresi,cdatat=sample->vig,
+	i=npix; i--;)
+      {
+      dwval = *(cvigwt++);
+      dval = (double)*(cbasist++);
+      xi2 += dwval*dval*dval;
+      xyi += dwval*dval*(double)*(cdatat++);
+      }
+
+    norm = (xi2>0.0)? xyi/xi2 : sample->norm;
+
 /*-- Subtract the PSF model and compute Chi2 */
-    norm = sample->norm;
     chi2 = 0.0;
     dresit = dresi;
     psf_extraccu2 = psf_extraccu*psf_extraccu*norm*norm;
@@ -527,6 +540,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     vig = sample->vig;
     vigw = sample->vigweight;
     vigresi=sample->vigresi;
+    mse = 0.0;
     for (iy=set->vigsize[1]; iy--; y+=1.0)
       {
       x = -xc;
@@ -538,6 +552,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
           *vigresi = fval = (*vig-*vigresi*norm);
           if (x*x+y*y<rmax2)
             {
+            mse += fval*fval;
             nchi2++;
             chi2 += (double)(wval*fval*fval);
             *dresit += fval;
@@ -549,6 +564,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     }
 
 /* Normalize and convert to floats the Residual array */
+  mse = sqrt(mse/nsample/nchi2);
+/*printf("%g\n", mse);*/
   QMALLOC(fresi, float, npix); 
   nm1 = nsample > 1?  (double)(nsample - 1): 1.0;
   for (dresit=dresi,fresit=fresi, i=npix; i--;)
