@@ -583,6 +583,8 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- PSF model */
     write_xmlconfigparam(file, "PSF_Name", "",
 		"meta.id;meta.file","%s");
+    write_xmlconfigparam(file, "PSF_Type", "",
+		"meta.code","%s");
     write_xmlconfigparam(file, "PSF_Accuracy", "",
 		"obs.param;phot.flux.sb;arith.ratio","%.6g");
     write_xmlconfigparam(file, "PSF_NSuper", "pix",
@@ -605,6 +607,8 @@ int	write_xml_meta(FILE *file, char *error)
 		"stat.snr;stat.min","%.6g");
     write_xmlconfigparam(file, "PSF_MaxElong", "",
 		"src.ellipticity;stat.max","%.6g");
+    write_xmlconfigparam(file, "PSF_FlagMask", "",
+		"meta.code","%c");
     write_xmlconfigparam(file, "BadPixel_Filter", "",
 		"meta.code","%c");
     write_xmlconfigparam(file, "BadPixel_NMax", "",
@@ -617,10 +621,19 @@ int	write_xml_meta(FILE *file, char *error)
 		"meta.id;stat.fit.param", "%d");
     write_xmlconfigparam(file, "Context_Degrees", "",
 		"meta.id;stat.fit.param", "%d");
+    write_xmlconfigparam(file, "Context_NSnap", "",
+		"meta.id;stat.fit.param", "%d");
+
+/*-- Check Images --*/
     write_xmlconfigparam(file, "CheckImage_Type", "",
 		"meta.code", "%s");
     write_xmlconfigparam(file, "CheckImage_Name", "",
 		"meta.id;meta.file;meta.fits", "%s");
+
+/*-- Galaxy Principal Component --*/
+    write_xmlconfigparam(file, "PC_Include", "", "meta.code","%s");
+    write_xmlconfigparam(file, "PC_Name", "", "meta.id;meta.file","%s");
+    write_xmlconfigparam(file, "PC_NPC", "", "meta.number","%s");
 
 /*-- Miscellaneous */
     write_xmlconfigparam(file, "Verbose_Type", "", "meta.code","%s");
