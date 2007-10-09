@@ -473,6 +473,8 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\" value=\"%.6g\"/>\n",
 	symresiduals_max);
 
+  fprintf(file, "   <FIELD name=\"Extension\" datatype=\"int\""
+        " ucd=\"meta.number\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Loaded\" datatype=\"int\""
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted\" datatype=\"int\""
@@ -519,8 +521,8 @@ int	write_xml_meta(FILE *file, char *error)
     {
     psf = psf_xml[n];
     fprintf(file, "    <TR>\n"
-        "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n",
-	psf->samples_loaded,
+        "     <TD>%d</TD><TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n",
+	n+1,psf->samples_loaded,
 	psf->samples_accepted,
 	psf->fwhm,
         psf->pixstep,
@@ -608,7 +610,7 @@ int	write_xml_meta(FILE *file, char *error)
     write_xmlconfigparam(file, "PSF_MaxElong", "",
 		"src.ellipticity;stat.max","%.6g");
     write_xmlconfigparam(file, "PSF_FlagMask", "",
-		"meta.code","%c");
+		"meta.code","%d");
     write_xmlconfigparam(file, "BadPixel_Filter", "",
 		"meta.code","%c");
     write_xmlconfigparam(file, "BadPixel_NMax", "",
