@@ -7,6 +7,7 @@
         <!ENTITY chi "&#967;">
         <!ENTITY beta "&#946;">
         <!ENTITY copy "&#169;">
+        <!ENTITY br "&#xD;&#xA;">
 	]>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -224,12 +225,12 @@
       <TH BGCOLOR="#FFEECC">Extension</TH>
       <TH BGCOLOR="#FFEECC">N. star loaded</TH>
       <TH BGCOLOR="#FFEECC">N. star accepted</TH>
-      <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
-      <TH BGCOLOR="#FFEECC">Sampling</TH>
+      <TH BGCOLOR="#FFEECC">FWHM from Flux Radius &br; (<xsl:value-of select="FIELD[@name='FWHM_FromFluxRadius']/@unit"/>)</TH>
+      <TH BGCOLOR="#FFEECC">Sampling &br; (<xsl:value-of select="FIELD[@name='Sampling']/@unit"/>)</TH>
       <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup></TH>
-      <TH BGCOLOR="#FFEECC">FWHM min</TH>
-      <TH BGCOLOR="#FFEECC">FWHM mean</TH>
-      <TH BGCOLOR="#FFEECC">FWHM max</TH>
+      <TH BGCOLOR="#FFEECC">FWHM min &br; (<xsl:value-of select="FIELD[@name='FWHM_Min']/@unit"/>)</TH>
+      <TH BGCOLOR="#FFEECC">FWHM mean &br; (<xsl:value-of select="FIELD[@name='FWHM']/@unit"/>)</TH>
+      <TH BGCOLOR="#FFEECC">FWHM max &br; (<xsl:value-of select="FIELD[@name='FWHM_Max']/@unit"/>)</TH>
       <TH BGCOLOR="#FFEECC">Elongation min</TH>
       <TH BGCOLOR="#FFEECC">Elongation mean</TH>
       <TH BGCOLOR="#FFEECC">Elongation max</TH>
@@ -324,53 +325,53 @@
        <TH BGCOLOR="#FFEECC"> </TH>
        <TH BGCOLOR="#FFEECC">N. star loaded</TH>
        <TH BGCOLOR="#FFEECC">N. star accepted</TH>
-       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius</TH>
-       <TH BGCOLOR="#FFEECC">Sampling</TH>
+       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius &br; (<xsl:value-of select="PARAM[@name='FWHM_FromFluxRadius_Mean']/@unit"/>)</TH>
+       <TH BGCOLOR="#FFEECC">Sampling &br; (<xsl:value-of select="PARAM[@name='Sampling_Mean']/@unit"/>)</TH>
        <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup></TH>
-       <TH BGCOLOR="#FFEECC">FWHM</TH>
+       <TH BGCOLOR="#FFEECC">FWHM &br; (<xsl:value-of select="PARAM[@name='FWHM_Mean']/@unit"/>)</TH>
        <TH BGCOLOR="#FFEECC">Elongation</TH>
        <TH BGCOLOR="#FFEECC">Moffat &beta;</TH>
        <TH BGCOLOR="#FFEECC">Residuals</TH>
        <TH BGCOLOR="#FFEECC">Asymmetry</TH>
       </TR>
       <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC">min</td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Loaded_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Accepted_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_FromFluxRadius_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Sampling_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Chi2_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Elongation_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='MoffatBeta_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Residuals_Min']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Asymmetry_Min']/@value"/></el></td>
+       <td BGCOLOR="#FFEECC"><b>min</b></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Min']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Min']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Min']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Min']/@value,'#0.0000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Min']/@value,'#0.0000')"/></el></td>
       </tr>
       <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC">mean</td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Loaded_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Accepted_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_FromFluxRadius_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Sampling_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Chi2_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Elongation_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='MoffatBeta_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Residuals_Mean']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Asymmetry_Mean']/@value"/></el></td>
+       <td BGCOLOR="#FFEECC"><b>mean</b></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Mean']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Mean']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Mean']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Mean']/@value,'#0.0000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Mean']/@value,'#0.0000')"/></el></td>
       </tr>
       <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC">max</td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Loaded_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='NStars_Accepted_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_FromFluxRadius_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Sampling_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Chi2_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='FWHM_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Elongation_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='MoffatBeta_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Residuals_Max']/@value"/></el></td>
-       <td><el><xsl:value-of select="PARAM[@name='Asymmetry_Max']/@value"/></el></td>
+       <td BGCOLOR="#FFEECC"><b>max</b></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Max']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Max']/@value,'#0.00')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Max']/@value,'#0.000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Max']/@value,'#0.0000')"/></el></td>
+       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Max']/@value,'#0.0000')"/></el></td>
       </tr>
      </TABLE>
     </p>
