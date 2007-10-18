@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 2.2.1, [bertin@iap.fr])
+AC_INIT(psfex, 2.2.2, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -136,9 +136,9 @@ ACX_ATLAS($atlas_libdir,[use_atlas=yes],[use_atlas=no])
 ################## handle the ATLAS library(linear algebra) ##################
 if test "$use_atlas" = "yes"; then
   if test "$use_pthreads" = "yes"; then
-    LIBS="-llapack -lptcblas -lcblas -latlas $LIBS"
+    LIBS="$ATLAS_LIBPATH -llapack -lptcblas -lcblas -latlas $LIBS"
   else
-    LIBS="-llapack -lcblas -latlas $LIBS"
+    LIBS="$ATLAS_LIBPATH -llapack -lcblas -latlas $LIBS"
   fi
 else
   AC_MSG_ERROR([CBLAS/LAPack library not found! Exiting.])

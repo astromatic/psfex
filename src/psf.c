@@ -673,7 +673,7 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
 
     case PSFBASIS_GAUSS_LAGUERRE:
       psf->nbasis = psf_pshapelet(&psf->basis, psf->size[0],psf->size[1],
-		nvec, sqrt(nvec+1.0));
+		nvec, sqrt(nvec+1.0)*prefs.psf_beta);
       psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
       break;
     default:

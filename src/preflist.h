@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	07/10/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -68,11 +68,12 @@ pkeystruct key[] =
   {"PSF_MINSN", P_FLOAT, &prefs.minsn, 0,0, 1e-6,1e15},
   {"PSF_NAME", P_STRING, prefs.psf_name},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
-  {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 1,1024, 0.0,1.0e3},
+  {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.retisize, 1,1024, 0.0,0.0, {""},
      1,2, &prefs.nretisize},
   {"PSF_TYPE", P_KEY, &prefs.psf_type, 0,0, 0.0,0.0,
    {"SINC","GAUSS-LAGUERRE",""}},
+{"PSF_BETA", P_FLOAT, &prefs.psf_beta, 0,0, 0.0,1.0e3},
   {"PSF_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","LOG","FULL",""}},
@@ -95,6 +96,7 @@ char *default_prefs[] =
 " ",
 "PSF_NAME        default.psf     # Output PSF filename",
 "PSF_TYPE        SINC            # SINC or GAUSS-LAGUERRE",
+"*PSF_BETA        1.0             # Gauss-Laguerre beta parameter",
 "PSF_NSUPER      16              # Super-resolution number parameter",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
