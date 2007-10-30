@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	29/09/2007
+*	Last modify:	30/10/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -876,6 +876,9 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
   free(vig);
   free(sigvig);
 
+  for (i=0; i<nunknown; i++)
+    alphamat[i+nunknown*i]+=10000.0;
+
   NFPRINTF(OUTPUT,"Solving the system...");
 
   clapack_dpotrf(CblasRowMajor, CblasUpper, nunknown, alphamat, nunknown);
@@ -893,8 +896,8 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
       {
       vec = &psf->basis[j*npix];
       dval = *(betamatt++);
-      for (ppixt=ppix,i=npix; i--;)
-        *(ppixt++) += dval**(vec++);
+      for (i=npix; i--;)
+        *(ppix++) += dval**(vec++);
       }
     }
 
