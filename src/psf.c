@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	30/10/2007
+*	Last modify:	07/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -700,7 +700,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
 			*bmat,*bmatt, *basis,*basist, *basist2,
 			*sigvig,*sigvigt, *alphamat,*alphamatt,
 			*betamat,*betamatt, *coeffmat,*coeffmatt,
-			dx,dy, dval, norm;
+			dx,dy, dval, norm, tikfac;
    float		*vig,*vigt,*vigt2, *wvig,
 			*vecvig,*vecvigt, *ppix,*ppixt, *vec,
 			vigstep;
@@ -876,8 +876,11 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
   free(vig);
   free(sigvig);
 
+/* Basic Tikhonov regularisation */
+  tikfac= 0.001;
+  tikfac = 1.0/(tikfac*tikfac);
   for (i=0; i<nunknown; i++)
-    alphamat[i+nunknown*i]+=10000.0;
+    alphamat[i+nunknown*i] += tikfac;
 
   NFPRINTF(OUTPUT,"Solving the system...");
 
