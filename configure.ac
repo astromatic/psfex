@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 2.2.3, [bertin@iap.fr])
+AC_INIT(psfex, 2.3.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -92,21 +92,27 @@ AC_FUNC_FSEEKO
 # Set the data directory to a true absolute path
 datadir2=$(URBI_RESOLVE_DIR([$datadir]))
 
-# Provide a special option for ATLAS
+# Provide special options for ATLAS
 AC_ARG_WITH(atlas,
 	[AC_HELP_STRING([--with-atlas=<ATLAS library path>],
 	[Provide an alternative path to the ATLAS library])],
-    atlas_libdir=$withval,
-    atlas_libdir=""
-    )
+	atlas_libdir=$withval,
+	atlas_libdir=""
+	)
+AC_ARG_WITH(atlas-incdir,
+	[AC_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
+	[Provide an alternative path to the ATLAS include directory])],
+	atlas_incdir=$withval,
+	atlas_incdir=""
+	)
 
 # Provide a special option for the default XSLT URL
 AC_ARG_WITH(xsl_url,
-        [AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
-        [Provide an alternative default URL of the XSLT filter])],
-    [xsl_url=$withval],
-    [xsl_url="file://$datadir2/$PACKAGE_NAME/$PACKAGE_NAME.xsl"]
-    )
+	[AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
+	[Provide an alternative default URL of the XSLT filter])],
+	[xsl_url=$withval],
+	[xsl_url="file://$datadir2/$PACKAGE_NAME/$PACKAGE_NAME.xsl"]
+	)
 
 AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
 
@@ -131,18 +137,14 @@ AC_ARG_ENABLE(static,
         use_static="no"
 	AC_MSG_RESULT([no]))
 
-ACX_ATLAS($atlas_libdir,[use_atlas=yes],[use_atlas=no])
-
 ################## handle the ATLAS library(linear algebra) ##################
+ACX_ATLAS($atlas_libdir,$atlas_incdir,no, [use_atlas=yes],[use_atlas=no])
 if test "$use_atlas" = "yes"; then
-  if test "$use_pthreads" = "yes"; then
-    LIBS="$ATLAS_LIBPATH -llapack -lptcblas -lcblas -latlas $LIBS"
-  else
-    LIBS="$ATLAS_LIBPATH -llapack -lcblas -latlas $LIBS"
-  fi
+  LIBS="$ATLAS_LIB $LIBS"
 else
-  AC_MSG_ERROR([CBLAS/LAPack library not found! Exiting.])
+  AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
 fi
+
 
 # Special optimization options for the INTEL C compiler
 if test $use_icc = "yes" -a $CC = "icc"; then

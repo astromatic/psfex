@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	07/11/2007
+*	Last modify:	11/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -331,6 +331,73 @@ void	psf_end(psfstruct *psf)
   }
 
 
+/********************************* psf_make **********************************/
+/*
+Make the PSF.
+*/
+void	psf_make(psfstruct *psf, setstruct *set)
+  {
+   polystruct	*poly;
+   samplestruct	*sample;
+   double	*pstack,*wstack, *basis, *pix,*wpix, *coeff, *pos, *post;
+   float	*comp;
+   int		i,c,n, ncoeff,npix,nsample;
+
+  poly = psf->poly;
+
+/* First copy the offset and scaling information from the set structure */
+  for (i=0; i<poly->ndim; i++)
+    {
+    psf->contextoffset[i] = set->contextoffset[i];
+    psf->contextscale[i] = set->contextscale[i];
+    }
+
+  nsample = set->nsample;
+  if (!nsample)
+    return;
+
+  ncoeff = poly->ncoeff;
+  npix = psf->size[0]*psf->size[1];
+  QMALLOC(pstack, double, nsample);
+  QMALLOC(wstack, double, nsample);
+  QMALLOC(pos, double, poly->ndim?(nsample*poly->ndim):1);
+  QMALLOC(basis, double, poly->ncoeff*nsample);
+
+  for (sample=set->sample, post=pos, n=nsample; n--; sample++)
+    {
+    update_retina(set, sample, psf->pixstep);
+    for (i=0; i<poly->ndim; i++)
+      *(post++) = (sample->context[i]-set->contextoffset[i])
+		/set->contextscale[i];
+    }
+
+/* Make a polynomial fit to each pixel */
+  for (i=0; i<npix; i++)
+    {
+/*-- Stack ith pixel from each PSF candidate */
+    for (sample=set->sample, pix=pstack,wpix=wstack, n=nsample; n--; sample++)
+      {
+      *(pix++) = (double)*(sample->retina+i);
+      *(wpix++) = (double)*(sample->retiweight+i);
+      }
+
+/*-- Polynomial fitting */
+    poly_fit(poly, i?NULL:pos, pstack, wstack, nsample, basis);
+
+/*-- Store as a PSF component */
+    for (coeff=poly->coeff, comp=psf->comp+i,  c=ncoeff; c--; comp+=npix)
+      *comp = *(coeff++);
+    }
+
+  free(pstack);
+  free(wstack);
+  free(basis);
+  free(pos);
+
+  return;
+  }
+
+
 /******************************* psf_build **********************************/
 /*
 Build the local PSF (function of "coordinates").
@@ -591,105 +658,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
   }
 
 
-/******************************* psf_makebasis *******************************/
-/*
-Generate basis vectors for representing the PSF.
-*/
-void	psf_makebasis(psfstruct *psf, setstruct *set,
-			psftypenum psf_type, int nvec)
-  {
-  double	xc,yc, x,y, rmax2;
-  float		*psforder,*psfordert,*ppix,*basis,
-		psfthresh;
-  int		*psfmask,
-		i, ix,iy, ixmin,iymin,ixmax,iymax,irad, npsf,npix;
-
-
-  npix = psf->size[0]*psf->size[1];
-
-  switch(psf_type)
-    {
-    case PSFBASIS_SINC:
-/*---- The number of elements is set to the square of the input number */
-      npsf = nvec*nvec;
-      if (npsf>npix)
-        npsf=npix;
-/*---- First Select the brightest pixels */
-      NFPRINTF(OUTPUT,"Selecting pixels...");
-      psforder = (float *)NULL;		/* To avoid gcc -Wall warnings */
-      QMEMCPY(psf->comp, psforder, float, npix);
-      for (psfordert=psforder, i=npix; i--; psfordert++)
-        *psfordert = fabs(*psfordert);
-      hmedian(psforder, npix);
-      psfthresh = psforder[npix-npsf];
-      free(psforder);
-
-/*---- Mark pixels which have to be reexamined */
-      QCALLOC(psf->pixmask, int, npix);
-      psfmask = psf->pixmask;
-      npsf = 0;
-      irad = (int)((set->vigsize[1]-1)/(2*psf->pixstep));
-      iymin = psf->size[1]/2 - irad;
-      iymax = psf->size[1]/2 + irad;
-      irad = (int)((set->vigsize[0]-1)/(2*psf->pixstep));
-      ixmin = psf->size[0]/2 - irad;
-      ixmax = psf->size[0]/2 + irad;
-      ppix=psf->comp;
-      xc = (double)(psf->size[0]/2);
-      yc = (double)(psf->size[1]/2);
-      y = -yc;
-      rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
-				: (double)(psf->size[1]/2))+0.5;
-      rmax2 *= rmax2;
-      for (iy=psf->size[1]; iy--; y+=1.0)
-        {
-        i = iy*psf->size[0];
-        x = -xc;
-        if (iy>=iymin && iy<=iymax)
-          for (ix=psf->size[0]; ix--; i++, x+=1.0)
-            if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax
-		&& x*x+y*y<rmax2)
-              {
-              npsf++;
-              psfmask[i] = 1;
-              }
-        }
-      psf->nbasis = npsf;
-/*---- Prepare a PSF mask that will contain Dirac peaks only... */
-      QCALLOC(psf->basis, float, npsf*npix);
-      basis = psf->basis;
-      psfmask = psf->pixmask;
-      for (i=npix; i--; basis++)
-        if (*(psfmask++))
-          {
-          *basis = 1.0;
-          basis += npix;
-          }
-
-/*-- Size of the compressed design matrix along the "data" axis */
-      psf->ndata = (1+(int)(INTERPW*psf->pixstep))
-		*(1+(int)(INTERPH*psf->pixstep))+1;
-      break;
-
-    case PSFBASIS_GAUSS_LAGUERRE:
-      psf->nbasis = psf_pshapelet(&psf->basis, psf->size[0],psf->size[1],
-		nvec, sqrt(nvec+1.0)*prefs.psf_beta);
-      psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
-      break;
-    default:
-      error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
-			"psf_makebasis()");
-    }
-
-  return;
-  }
-
-
 /******************************* psf_refine **********************************/
 /*
 Refine PSF by resolving "aliased" pixels.
 */
-void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
+void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			int nvec)
   {
    polystruct		*poly;
@@ -710,7 +683,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
 			ncontext, nunknown, matoffset, dindex;
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
-  if (!nvec || !set->nsample)
+  if (!nvec || !set->nsample || basis_type==BASIS_NONE)
     return;
 
   npix = psf->size[0]*psf->size[1];
@@ -720,7 +693,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
   if (!psf->basis)
     {
     NFPRINTF(OUTPUT,"Generating the PSF model...");
-    psf_makebasis(psf, set, psf_type, nvec);
+    psf_makebasis(psf, set, basis_type, nvec);
     }
   npsf = psf->nbasis;
   ndata = psf->ndata;
@@ -877,10 +850,13 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
   free(sigvig);
 
 /* Basic Tikhonov regularisation */
-  tikfac= 0.001;
-  tikfac = 1.0/(tikfac*tikfac);
-  for (i=0; i<nunknown; i++)
-    alphamat[i+nunknown*i] += tikfac;
+  if (psf->pixmask)
+    {
+    tikfac= 0.008;
+    tikfac = 1.0/(tikfac*tikfac);
+    for (i=0; i<nunknown; i++)
+      alphamat[i+nunknown*i] += tikfac;
+    }
 
   NFPRINTF(OUTPUT,"Solving the system...");
 
@@ -907,6 +883,106 @@ void	psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
 /* Free all */
   free(alphamat);
   free(betamat);
+
+  return;
+  }
+
+
+/******************************* psf_makebasis *******************************/
+/*
+Generate basis vectors for representing the PSF.
+*/
+void	psf_makebasis(psfstruct *psf, setstruct *set,
+			basistypenum basis_type, int nvec)
+  {
+  double	xc,yc, x,y, rmax2;
+  float		*psforder,*psfordert,*ppix,*basis,
+		psfthresh;
+  int		*psfmask,
+		i, ix,iy, ixmin,iymin,ixmax,iymax,irad, npsf,npix;
+
+
+  npix = psf->size[0]*psf->size[1];
+
+  switch(basis_type)
+    {
+    case BASIS_NONE:
+      break;
+    case BASIS_PIXEL:
+/*---- The number of elements is set to the square of the input number */
+      npsf = nvec*nvec;
+      if (npsf>npix)
+        npsf=npix;
+/*---- First Select the brightest pixels */
+      NFPRINTF(OUTPUT,"Selecting pixels...");
+      psforder = (float *)NULL;		/* To avoid gcc -Wall warnings */
+      QMEMCPY(psf->comp, psforder, float, npix);
+      for (psfordert=psforder, i=npix; i--; psfordert++)
+        *psfordert = fabs(*psfordert);
+      hmedian(psforder, npix);
+      psfthresh = psforder[npix-npsf];
+      free(psforder);
+
+/*---- Mark pixels which have to be reexamined */
+      QCALLOC(psf->pixmask, int, npix);
+      psfmask = psf->pixmask;
+      npsf = 0;
+      irad = (int)((set->vigsize[1]-1)/(2*psf->pixstep));
+      iymin = psf->size[1]/2 - irad;
+      iymax = psf->size[1]/2 + irad;
+      irad = (int)((set->vigsize[0]-1)/(2*psf->pixstep));
+      ixmin = psf->size[0]/2 - irad;
+      ixmax = psf->size[0]/2 + irad;
+      ppix=psf->comp;
+      xc = (double)(psf->size[0]/2);
+      yc = (double)(psf->size[1]/2);
+      y = -yc;
+      rmax2 = (psf->size[0]<psf->size[1]? (double)(psf->size[0]/2)
+				: (double)(psf->size[1]/2))+0.5;
+      rmax2 *= rmax2;
+      for (iy=psf->size[1]; iy--; y+=1.0)
+        {
+        i = iy*psf->size[0];
+        x = -xc;
+        if (iy>=iymin && iy<=iymax)
+          for (ix=psf->size[0]; ix--; i++, x+=1.0)
+            if (fabs(ppix[i])>=psfthresh && ix>=ixmin && ix<=ixmax
+		&& x*x+y*y<rmax2)
+              {
+              npsf++;
+              psfmask[i] = 1;
+              }
+        }
+      psf->nbasis = npsf;
+/*---- Prepare a PSF mask that will contain Dirac peaks only... */
+      QCALLOC(psf->basis, float, npsf*npix);
+      basis = psf->basis;
+      psfmask = psf->pixmask;
+      for (i=npix; i--; basis++)
+        if (*(psfmask++))
+          {
+          *basis = 1.0;
+          basis += npix;
+          }
+
+/*-- Size of the compressed design matrix along the "data" axis */
+      psf->ndata = (1+(int)(INTERPW*psf->pixstep))
+		*(1+(int)(INTERPH*psf->pixstep))+1;
+      break;
+
+    case BASIS_GAUSS_LAGUERRE:
+      psf->nbasis = psf_pshapelet(&psf->basis, psf->size[0],psf->size[1],
+		nvec, sqrt(nvec+1.0)*prefs.basis_scale);
+      psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
+      break;
+    case BASIS_FILE:
+      psf->nbasis = psf_readbasis(psf, prefs.basis_name, 0);
+      psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
+      break;
+    default:
+      error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
+			"psf_makebasis()");
+    }
 
   return;
   }
@@ -1051,70 +1127,20 @@ int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
   }
 
 
-/********************************* psf_make **********************************/
-/*
-Make the PSF.
-*/
-void	psf_make(psfstruct *psf, setstruct *set)
+/****** psf_readbasis *********************************************************
+PROTO   int psf_readbasis(psfstruct *psf, char *filename, int ext)
+PURPOSE Read a set of basis functions for the PSF from a 3D FITS-file.
+INPUT   Pointer to the PSF structure,
+	FITS filename,
+	extension number.
+OUTPUT  psfstruct pointer.
+NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
+AUTHOR  E. Bertin (IAP)
+VERSION 01/03/2007
+ ***/
+int	psf_readbasis(psfstruct *psf, char *filename, int ext)
   {
-   polystruct	*poly;
-   samplestruct	*sample;
-   double	*pstack,*wstack, *basis, *pix,*wpix, *coeff, *pos, *post;
-   float	*comp;
-   int		i,c,n, ncoeff,npix,nsample;
-
-  poly = psf->poly;
-
-/* First copy the offset and scaling information from the set structure */
-  for (i=0; i<poly->ndim; i++)
-    {
-    psf->contextoffset[i] = set->contextoffset[i];
-    psf->contextscale[i] = set->contextscale[i];
-    }
-
-  nsample = set->nsample;
-  if (!nsample)
-    return;
-
-  ncoeff = poly->ncoeff;
-  npix = psf->size[0]*psf->size[1];
-  QMALLOC(pstack, double, nsample);
-  QMALLOC(wstack, double, nsample);
-  QMALLOC(pos, double, poly->ndim?(nsample*poly->ndim):1);
-  QMALLOC(basis, double, poly->ncoeff*nsample);
-
-  for (sample=set->sample, post=pos, n=nsample; n--; sample++)
-    {
-    update_retina(set, sample, psf->pixstep);
-    for (i=0; i<poly->ndim; i++)
-      *(post++) = (sample->context[i]-set->contextoffset[i])
-		/set->contextscale[i];
-    }
-
-/* Make a polynomial fit to each pixel */
-  for (i=0; i<npix; i++)
-    {
-/*-- Stack ith pixel from each PSF candidate */
-    for (sample=set->sample, pix=pstack,wpix=wstack, n=nsample; n--; sample++)
-      {
-      *(pix++) = (double)*(sample->retina+i);
-      *(wpix++) = (double)*(sample->retiweight+i);
-      }
-
-/*-- Polynomial fitting */
-    poly_fit(poly, i?NULL:pos, pstack, wstack, nsample, basis);
-
-/*-- Store as a PSF component */
-    for (coeff=poly->coeff, comp=psf->comp+i,  c=ncoeff; c--; comp+=npix)
-      *comp = *(coeff++);
-    }
-
-  free(pstack);
-  free(wstack);
-  free(basis);
-  free(pos);
-
-  return;
+  return 0;
   }
 
 

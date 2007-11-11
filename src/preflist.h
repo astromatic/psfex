@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	07/10/2007
+*	Last modify:	11/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,6 +40,11 @@ pkeystruct key[] =
  {
   {"BADPIXEL_FILTER", P_BOOL, &prefs.badpix_flag},
   {"BADPIXEL_NMAX", P_INT, &prefs.badpix_nmax, 0,100000000},
+  {"BASIS_NAME", P_STRING, prefs.basis_name},
+  {"BASIS_NUMBER", P_INT, &prefs.basis_number, 0,1000000000},
+  {"BASIS_SCALE", P_FLOAT, &prefs.basis_scale, 0,0, 0.0,1.0e3},
+  {"BASIS_TYPE", P_KEY, &prefs.basis_type, 0,0, 0.0,0.0,
+   {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", ""}},
   {"CHECKIMAGE_NAME", P_STRINGLIST, prefs.check_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
@@ -60,7 +65,6 @@ pkeystruct key[] =
   {"PC_NPC",  P_INT, &prefs.pc_npc, 0,1000000},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_AUTOSELECT", P_BOOL, &prefs.autoselect_flag},
-  {"PSF_NSUPER", P_INT, &prefs.nsuper,0,1000000000},
   {"PSF_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
   {"PSF_FWHMRANGE", P_FLOATLIST, prefs.fwhmrange, 0,0, 0.0,1e3, {""},
      2,2, &prefs.nfwhmrange},
@@ -71,9 +75,6 @@ pkeystruct key[] =
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.retisize, 1,1024, 0.0,0.0, {""},
      1,2, &prefs.nretisize},
-  {"PSF_TYPE", P_KEY, &prefs.psf_type, 0,0, 0.0,0.0,
-   {"SINC","GAUSS-LAGUERRE",""}},
-{"PSF_BETA", P_FLOAT, &prefs.psf_beta, 0,0, 0.0,1.0e3},
   {"PSF_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","LOG","FULL",""}},
@@ -95,9 +96,10 @@ char *default_prefs[] =
 "#-------------------------------- PSF model ----------------------------------",
 " ",
 "PSF_NAME        default.psf     # Output PSF filename",
-"PSF_TYPE        SINC            # SINC or GAUSS-LAGUERRE",
-"*PSF_BETA        1.0             # Gauss-Laguerre beta parameter",
-"PSF_NSUPER      16              # Super-resolution number parameter",
+"BASIS_TYPE      PIXEL           # NONE, PIXEL, GAUSS-LAGUERRE or FILE",
+"BASIS_NUMBER    16              # Basis number or parameter",
+"*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
+"*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",

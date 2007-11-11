@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	11/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,14 +30,14 @@
 #define	PSF_FREEDFACTOR	1.0	/* Margin against overfitting */
 #define	PSF_NMASKDIM	3	/* Number of dimensions for PSF data */
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
-#define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
-#define PSF_NITER	40	/* Maximum number of iterations in fit */
+#define	PSF_MINSHIFT	1e-5	/* Min shift from previous guess (pixels)*/
+#define PSF_NITER	400	/* Maximum number of iterations in fit */
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 #define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 
 /*----------------------------- Type definitions --------------------------*/
-typedef enum {PSFBASIS_SINC, PSFBASIS_GAUSS_LAGUERRE}
-        psftypenum;
+typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE}
+        basistypenum;
 /*--------------------------- structure definitions -------------------------*/
 
 typedef struct code
@@ -122,17 +122,18 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_end(psfstruct *psf),
 		psf_make(psfstruct *psf, setstruct *set),
 		psf_makebasis(psfstruct *psf, setstruct *set,
-			psftypenum psf_type,  int nvec),
+			basistypenum basis_type,  int nvec),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
-		psf_refine(psfstruct *psf, setstruct *set, psftypenum psf_type,
-			int nvec),
+		psf_refine(psfstruct *psf, setstruct *set,
+			basistypenum basis_type, int nvec),
 		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
 			char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
-			double beta);
+			double beta),
+		psf_readbasis(psfstruct *psf, char *filename, int ext);
 
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);

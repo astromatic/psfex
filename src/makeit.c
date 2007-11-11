@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	11/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -131,7 +131,7 @@ void	makeit(char **incatnames, int ncat)
 /*-- Make the basic PSF-model (1st pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
     psf_make(psf[ext], set);
-    psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
+    psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
 
 /*-- Remove bad PSF candidates */
     if (set->nsample>1)
@@ -141,7 +141,7 @@ void	makeit(char **incatnames, int ncat)
 /*---- Make the basic PSF-model (2nd pass) */
       NFPRINTF(OUTPUT,"Modeling the PSF.");
       psf_make(psf[ext], set);
-      psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
+      psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
       }
 
 /*-- Remove bad PSF candidates */
@@ -151,7 +151,7 @@ void	makeit(char **incatnames, int ncat)
     psf[ext]->samples_accepted = set->nsample;
 
 /*-- Refine the PSF-model */
-    psf_refine(psf[ext], set, prefs.psf_type, prefs.nsuper);
+    psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
 
 /*-- Clip the PSF-model */
     psf_clip(psf[ext]);

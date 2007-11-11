@@ -3,7 +3,7 @@
 /* BLAS header filename. */
 #undef ATLAS_BLAS_H
 
-/* LAPACK header filename. */
+/* CLAPACK header filename. */
 #undef ATLAS_LAPACK_H
 
 /* Archive creation date */
@@ -20,6 +20,9 @@
 
 /* Define to 1 if you have the <atlas/clapack.h> header file. */
 #undef HAVE_ATLAS_CLAPACK_H
+
+/* Define if you have the parallel ATLAS libraries. */
+#undef HAVE_ATLAS_MP
 
 /* Define to 1 if you have the <cblas.h> header file. */
 #undef HAVE_CBLAS_H
@@ -53,6 +56,9 @@
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
+
+/* Define to 1 if you have the `ptcblas' library (-lptcblas). */
+#undef HAVE_LIBPTCBLAS
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H

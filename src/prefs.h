@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	07/10/2007
+*	Last modify:	11/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -48,9 +48,12 @@ typedef struct
   int		flag_mask;			/* Rejection mask on SEx FLAGS*/
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
-  int		nsuper;				/* nb of supersampled pixels */
-  psftypenum	psf_type;			/* PSF vector basis set */
-  double	psf_beta;			/* Gauss-Laguerre beta param */
+/* Vector basis */
+  basistypenum	basis_type;			/* PSF vector basis set */
+  int		basis_number;			/* nb of supersampled pixels */
+  char		basis_name[MAXCHAR];		/* PSF vector basis filename */
+  double	basis_scale;			/* Gauss-Laguerre beta param */
+/* Re-centering */
   int		autoselect_flag;		/* Auto. select FWHMs ? */
   int		recenter_flag;			/* Recenter PSF-candidates? */
   checkenum	check_type[MAXCHECK];		/* check-image types */
