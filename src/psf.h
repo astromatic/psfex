@@ -30,8 +30,8 @@
 #define	PSF_FREEDFACTOR	1.0	/* Margin against overfitting */
 #define	PSF_NMASKDIM	3	/* Number of dimensions for PSF data */
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
-#define	PSF_MINSHIFT	1e-5	/* Min shift from previous guess (pixels)*/
-#define PSF_NITER	400	/* Maximum number of iterations in fit */
+#define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
+#define PSF_NITER	40	/* Maximum number of iterations in fit */
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 #define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 
