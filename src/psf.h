@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	11/11/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,15 +39,6 @@
 typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE}
         basistypenum;
 /*--------------------------- structure definitions -------------------------*/
-
-typedef struct code
-  {
-  float		*pc;
-  float		**param;
-  int		*parammod;
-  int		ncode;
-  int		nparam;
-  }     codestruct;
 
 typedef struct moffat
   {
@@ -102,23 +93,9 @@ typedef struct psf
   }	psfstruct;
 
 
-typedef struct pc
-  {
-  char		name[MAXCHAR];	/* PC filename */
-  int		npc;		/* Number of Principal Components */
-  int		dim;		/* Dimensionality of the tabulated data */
-  int		*size;		/* PC  dimensions */
-  int		npix;		/* Total number of involved PC pixels */
-  float		*comp; 		/* Complete pix. data (principal components) */
-  double	*mx2,*my2,*mxy;	/* 2nd order moments for each component */
-  double	*flux;		/* Flux of each component */
-  double	*bt;		/* B/T for each component */
-  codestruct	*code;
-  }	pcstruct;
-
-
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_build(psfstruct *psf, double *pos),
+		psf_clip(psfstruct *psf),
 		psf_end(psfstruct *psf),
 		psf_make(psfstruct *psf, setstruct *set),
 		psf_makebasis(psfstruct *psf, setstruct *set,
@@ -128,8 +105,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec),
-		psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc,
-			char *filename, int ext, int next);
+		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 			double beta),
@@ -143,14 +119,6 @@ extern psfstruct	*psf_init(char **names, int *group, int ndim,
 				int wpsf, int hpsf, float psfstep,int nsample),
 			*psf_load(char *filename);
 
-
-extern void	matinv(double *mat, int nmat),
-		pc_end(pcstruct *pc),
-		psf_clip(psfstruct *psf);
-
-extern pcstruct	*pc_convolve(pcstruct *pc, psfstruct *psf),
-		*pc_load(char *filename),
-		*pc_orthogon(pcstruct *pc2, pcstruct *pc, float pixstep);
 
 #endif
 

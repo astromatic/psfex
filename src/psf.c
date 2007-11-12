@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	11/11/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,13 +36,19 @@
 
 static double	psf_laguerre(double x, int p, int q);
 
-/********************************* psf_clean *********************************/
-/*
-Filter PSF candidates.
-*/
-#define	EPS	(1e-4)  /* a small number */
+/****** psf_clean *************************************************************
+PROTO	double	psf_clean(psfstruct *psf, setstruct *set)
+PURPOSE	Filter out PSF candidates
+INPUT	Pointer to the PSF,
+	Pointer to the sample set.
+OUTPUT	Reduced chi2.
+NOTES	-
+AUTHOR	E. Bertin (IAP)
+VERSION	12/11/2007
+ ***/
 double	psf_clean(psfstruct *psf, setstruct *set)
   {
+#define	EPS	(1e-4)  /* a small number */
    samplestruct	*sample;
    double	chi2,chimean,chivar,chisig,chisig1,chival, locut,hicut;
    float	*chi, *chit,*chit2,
@@ -112,13 +118,20 @@ double	psf_clean(psfstruct *psf, setstruct *set)
     n++;
 
   return chi2;
+#undef EPS
   }
 
 
-/********************************* psf_chi2 *********************************/
-/*
-Return the chi2 of the PSF fitting.
-*/
+/****** psf_chi2 **************************************************************
+PROTO	double	psf_chi2(psfstruct *psf, setstruct *set)
+PURPOSE	Return the reduced chi2 of PSF-fitting.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set.
+OUTPUT	Reduced chi2.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	12/11/2007
+ ***/
 double	psf_chi2(psfstruct *psf, setstruct *set)
   {
    samplestruct	*sample;
@@ -141,10 +154,15 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
   }
 
 
-/********************************* psf_clip *********************************/
-/*
-Apply soft-clipping to the PSF model using circular boundaries.
-*/
+/****** psf_clip **************************************************************
+PROTO	void	psf_clip(psfstruct *psf)
+PURPOSE	Apply soft-clipping to the PSF model using circular boundaries.
+INPUT	Pointer to the PSF.
+OUTPUT	-.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	12/11/2007
+ ***/
 void	psf_clip(psfstruct *psf)
   {
    double	xc,yc, x,y, r2,rmin2,rmax2,dr2;
@@ -187,12 +205,12 @@ void	psf_clip(psfstruct *psf)
   }
 
 
-/****** psf_init *************************************************************
-PROTO   psfstruct *psf_init(int *dim, int ndim)
-PURPOSE Allocate and initialize a PSF structure.
-INPUT   1D array of degrees of the polynom,
-        array of char pointers to the context names,
-        number of dimensions.
+/****** psf_init **************************************************************
+PROTO	psfstruct *psf_init(int *dim, int ndim)
+PURPOSE	Allocate and initialize a PSF structure.
+INPUT	1D array of degrees of the polynom,
+	Array of char pointers to the context names,
+	Number of dimensions.
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
@@ -300,7 +318,7 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
   }
 
 
-/****** psf_end **************************************************************
+/****** psf_end ***************************************************************
 PROTO   void psf_end(psfstruct *psf)
 PURPOSE Free a PSF structure and everything it contains.
 INPUT   psfstruct pointer.
@@ -331,10 +349,16 @@ void	psf_end(psfstruct *psf)
   }
 
 
-/********************************* psf_make **********************************/
-/*
-Make the PSF.
-*/
+/****** psf_make **************************************************************
+PROTO	void	psf_make(psfstruct *psf, setstruct *set)
+PURPOSE	Make the PSF.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 void	psf_make(psfstruct *psf, setstruct *set)
   {
    polystruct	*poly;
@@ -398,10 +422,16 @@ void	psf_make(psfstruct *psf, setstruct *set)
   }
 
 
-/******************************* psf_build **********************************/
-/*
-Build the local PSF (function of "coordinates").
-*/
+/****** psf_build *************************************************************
+PROTO	void	psf_build(psfstruct *psf, double *pos)
+PURPOSE	Build the local PSF (function of "coordinates").
+INPUT	Pointer to the PSF,
+	Pointer to the (context) coordinates.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 void	psf_build(psfstruct *psf, double *pos)
   {
    double	*basis;
@@ -429,10 +459,19 @@ void	psf_build(psfstruct *psf, double *pos)
   }
 
 
-/****************************** psf_makeresi *********************************/
-/*
-Compute PSF residuals (chi2).
-*/
+/****** psf_makeresi **********************************************************
+PROTO	void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
+		float psf_extraccu)
+PURPOSE	Compute PSF residuals.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set,
+	Re-centering flag (0=no),
+	PSF accuracy parameter.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		float psf_extraccu)
   {
@@ -658,10 +697,19 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
   }
 
 
-/******************************* psf_refine **********************************/
-/*
-Refine PSF by resolving "aliased" pixels.
-*/
+/****** psf_refine ************************************************************
+PROTO	void	psf_refine(psfstruct *psf, setstruct *set,
+			basistypenum basis_type, int nvec)
+PURPOSE	Refine PSF by solving a system to recover "aliased" components.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set,
+	Basis type,
+	Basis number.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			int nvec)
   {
@@ -888,10 +936,19 @@ void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
   }
 
 
-/******************************* psf_makebasis *******************************/
-/*
-Generate basis vectors for representing the PSF.
-*/
+/****** psf_makebasis *********************************************************
+PROTO	void	psf_makebasis(psfstruct *psf, setstruct *set,
+			basistypenum basis_type, int nvec)
+PURPOSE	Generate basis vectors for representing the PSF.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set,
+	Basis type,
+	Basis number.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 void	psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec)
   {
@@ -988,10 +1045,17 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
   }
 
 
-/********************************* psf_laguerre *****************************/
-/*
-Return Laguerre polynomial value.
-*/
+/****** psf_laguerre **********************************************************
+PROTO	double	psf_laguerre(double x, int p, int q)
+PURPOSE	Return Laguerre polynomial value.
+INPUT	x,
+	p,
+	q.
+OUTPUT  Value of the Laguerre polynomial.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
 static double	psf_laguerre(double x, int p, int q)
   {
    double	dn,dq, lpm1,lpm2, l;
@@ -1020,17 +1084,26 @@ static double	psf_laguerre(double x, int p, int q)
   }
 
 
-/******************************* psf_pshapelet *******************************/
-/*
-Compute Polar shapelet basis set.
-*/
-int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
+/****** psf_pshapelet *********************************************************
+PROTO	int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
+PURPOSE	Compute Polar shapelet basis set.
+INPUT	Pointer to the array of image vectors (which will be allocated),
+	Image vector width,
+	Image vector height,
+	Shapelet n_max,
+	beta parameter.
+OUTPUT  Total number of image vectors generated.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
+int psf_pshapelet(float **basis, int w, int h, int nmax, double beta)
   {
    char		str[128];
    double	*fr2,*fr2t,*fexpr2,*fexpr2t,*ftheta,*fthetat,
 		dm,fac, xc,yc, x,y, x1,y1, r2,rmax2, invbeta2, val,
 		ostep,ostep2,odx;
-   float	*shapet;
+   float	*basist;
    int		i,j,k, m,n,p, kmax,hnmm, ix,iy, idx,idy;
 
   kmax = (nmax+1)*(nmax+2)/2;
@@ -1071,8 +1144,8 @@ int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
       }
     }
 
-  QCALLOC(*shape, float, w*h*kmax);
-  shapet = *shape;
+  QCALLOC(*basis, float, w*h*kmax);
+  basist = *basis;
   k=1;
   for (n=0; n<=nmax; n++)
     {
@@ -1099,7 +1172,7 @@ int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
         for (j=GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP; j--; fr2t++)
           val += fac*pow(*fr2t, dm/2.0)*psf_laguerre(*fr2t, hnmm, m)
 		**(fexpr2t++)*cos(dm**(fthetat++));
-        *(shapet++) = val*ostep2;
+        *(basist++) = val*ostep2;
         }
       if (m!=0)
         {
@@ -1112,7 +1185,7 @@ int psf_pshapelet(float **shape, int w, int h, int nmax, double beta)
           for (j=GAUSS_LAG_OSAMP*GAUSS_LAG_OSAMP; j--; fr2t++)
             val += fac*pow(*fr2t, dm/2.0)*psf_laguerre(*fr2t, hnmm, m)
 		**(fexpr2t++)*sin(dm**(fthetat++));
-          *(shapet++) = val*ostep2;
+          *(basist++) = val*ostep2;
           }
         k++;
         }
@@ -1132,31 +1205,81 @@ PROTO   int psf_readbasis(psfstruct *psf, char *filename, int ext)
 PURPOSE Read a set of basis functions for the PSF from a 3D FITS-file.
 INPUT   Pointer to the PSF structure,
 	FITS filename,
-	extension number.
-OUTPUT  psfstruct pointer.
+	Extension number.
+OUTPUT  Number of basis vectors read.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 01/03/2007
+VERSION 12/11/2007
  ***/
 int	psf_readbasis(psfstruct *psf, char *filename, int ext)
   {
-  return 0;
+   catstruct	*cat;
+   tabstruct	*tab, *firstab;
+   PIXTYPE	*pixin;
+   int		n, next, extp1, ntabp1, npixin,npixout,ncomp;
+
+/*-- Read input FITS file */
+  if (!(cat = read_cat(filename)))
+    error(EXIT_FAILURE, "*Error*: No such catalog: ", filename);
+/* Go to the right extension */
+  tab = cat->tab;
+  ntabp1 = cat->ntab+1;
+  firstab = NULL;
+  extp1 = ext+1;
+  for (next=0; ntabp1-- && next<extp1; tab = tab->nexttab)
+    if (tab->naxis>=2)
+      {
+      if (!next)
+        firstab = tab;
+      next++;
+      }
+  if (!ntabp1)
+    {
+    if (!next)
+      error(EXIT_FAILURE, "No image data in ", filename);
+    if (next>extp1)
+      warning("Not enough extensions, using only 1st datacube of ",
+		filename);
+    }
+
+  tab = tab->prevtab;
+  npixin = tab->naxisn[0]*tab->naxisn[1];
+  npixout = psf->size[0]*psf->size[1];
+  QMALLOC(pixin, PIXTYPE, npixin);
+  ncomp = tab->tabsize/tab->bytepix/npixin;
+  QMALLOC(psf->basis, float, ncomp*npixout);
+  for (n=0; n<ncomp; n++)
+    {
+    read_body(tab, pixin, npixin);
+    vignet_copy(pixin, tab->naxisn[0], tab->naxisn[1],
+		&psf->basis[n*npixout], psf->size[0], psf->size[1], 0, 0,
+		VIGNET_CPY);
+    }
+  free(pixin);
+
+  return ncomp;
   }
 
 
-/********************************* psf_save **********************************/
-/*
-Save the PSF data as a FITS file.
-*/
-void	psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc, char *filename,
-		int ext, int next)
+/****** psf_save **************************************************************
+PROTO   void	psf_save(psfstruct *psf, char *filename, int ext, int next)
+PURPOSE Save the PSF data as a FITS file.
+INPUT   Pointer to the PSF structure,
+	Filename,
+	Extension number,
+	Number of extensions.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 12/11/2007
+ ***/
+void	psf_save(psfstruct *psf, char *filename, int ext, int next)
   {
    static catstruct	*cat;
    tabstruct	*tab;
    keystruct	*key;
-   codestruct	*code;
    char		*head, str[80], str2[80];
-   int		i, npc, temp;
+   int		i, temp;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
   if (!ext)
@@ -1238,157 +1361,6 @@ void	psf_save(psfstruct *psf, pcstruct *pcc, pcstruct *pc, char *filename,
 /* But don't touch my arrays!! */
   blank_keys(tab);
   free_tab(tab);
-
-/* Save the convolved PC components if available */
-  if (pc)
-    {
-    tab = new_tab("PC_DATA");
-    head = tab->headbuf;
-/*-- Add and write important scalars as FITS keywords */
-    addkeywordto_head(tab, "PCNAXIS", "Dimensionality of the PC data");
-    fitswrite(head, "PCNAXIS", &pcc->dim, H_INT, T_LONG);
-    for (i=0; i<pcc->dim; i++)
-      {
-      sprintf(str, "PCAXIS%1d", i+1);
-      addkeywordto_head(tab, str, "Number of element along this axis");
-      fitswrite(head, str, &pcc->size[i], H_INT, T_LONG);
-      }
-
-/*-- Create and fill the arrays */
-    key = new_key("PC_CONVMASK");
-    key->naxis = pcc->dim;
-    QMALLOC(key->naxisn, int, key->naxis);
-    for (i=0; i<pcc->dim; i++)
-      key->naxisn[i] = pcc->size[i];
-    strcat(key->comment, "Convolved data vector, pixel-by-pixel");
-    key->htype = H_FLOAT;
-    key->ttype = T_FLOAT;
-    key->nbytes = pcc->npix*t_size[T_FLOAT];
-    key->nobj = 1;
-    key->ptr = pcc->comp;
-    add_key(key, tab, 0);
-
-    npc = pc->size[pc->dim-1];
-    key = new_key("PC_MASK");
-    key->naxis = pc->dim;
-    QMALLOC(key->naxisn, int, key->naxis);
-    for (i=0; i<pc->dim; i++)
-      key->naxisn[i] = pc->size[i];
-    strcat(key->comment, "Original data vector, pixel-by-pixel");
-    key->htype = H_FLOAT;
-    key->ttype = T_FLOAT;
-    key->nbytes = pc->npix*t_size[T_FLOAT];
-    key->nobj = 1;
-    key->ptr = pc->comp;
-    add_key(key, tab, 0);
-
-    key = new_key("PC_MX2");
-    key->naxis = 1;
-    QMALLOC(key->naxisn, int, key->naxis);
-    *key->naxisn = npc;
-    strcat(key->comment, "Variance along x for each component");
-    key->htype = H_EXPO;
-    key->ttype = T_DOUBLE;
-    key->nbytes = npc*t_size[T_DOUBLE];
-    key->nobj = 1;
-    key->ptr = pc->mx2;
-    add_key(key, tab, 0);
-
-    key = new_key("PC_MY2");
-    key->naxis = 1;
-    QMALLOC(key->naxisn, int, key->naxis);
-    *key->naxisn = npc;
-    strcat(key->comment, "Variance along y for each component");
-    key->htype = H_EXPO;
-    key->ttype = T_DOUBLE;
-    key->nbytes = npc*t_size[T_DOUBLE];
-    key->nobj = 1;
-    key->ptr = pc->my2;
-    add_key(key, tab, 0);
-
-    key = new_key("PC_MXY");
-    key->naxis = 1;
-    QMALLOC(key->naxisn, int, key->naxis);
-    *key->naxisn = npc;
-    strcat(key->comment, "Covariance for each component");
-    key->htype = H_EXPO;
-    key->ttype = T_DOUBLE;
-    key->nbytes = npc*t_size[T_DOUBLE];
-    key->nobj = 1;
-    key->ptr = pc->mxy;
-    add_key(key, tab, 0);
-
-    key = new_key("PC_FLUX");
-    key->naxis = 1;
-    QMALLOC(key->naxisn, int, key->naxis);
-    *key->naxisn = npc;
-    strcat(key->comment, "Flux in each component");
-    key->htype = H_EXPO;
-    key->ttype = T_DOUBLE;
-    key->nbytes = npc*t_size[T_DOUBLE];
-    key->nobj = 1;
-    key->ptr = pc->flux;
-    add_key(key, tab, 0);
-
-    key = new_key("PC_BRATIO");
-    key->naxis = 1;
-    QMALLOC(key->naxisn, int, key->naxis);
-    *key->naxisn = npc;
-    strcat(key->comment, "B/T for each component");
-    key->htype = H_EXPO;
-    key->ttype = T_DOUBLE;
-    key->nbytes = npc*t_size[T_DOUBLE];
-    key->nobj = 1;
-    key->ptr = pc->bt;
-    add_key(key, tab, 0);
-
-    if (pcc->code)
-      {
-      code = pcc->code;
-      addkeywordto_head(tab, "NCODE", "Total number of Codebook vectors");
-      fitswrite(head, "NCODE", &code->ncode, H_INT, T_LONG);
-      addkeywordto_head(tab, "NCODEPAR", "Total number of Codebook vectors");
-      fitswrite(head, "NCODEPAR", &code->nparam, H_INT, T_LONG);
-      key = new_key("CODE_PC");
-      key->naxis = 2;
-      QMALLOC(key->naxisn, int, key->naxis);
-      key->naxisn[0] = npc;
-      key->naxisn[1] = code->ncode;
-      strcat(key->comment, "Codebook vectors");
-      key->htype = H_EXPO;
-      key->ttype = T_FLOAT;
-      key->nbytes = key->naxisn[0]*key->naxisn[1]*t_size[key->ttype];
-      key->nobj = 1;
-      key->ptr = code->pc;
-      add_key(key, tab, 0);
-      for (i=0; i<code->nparam; i++)
-        {
-        sprintf(str, "CODE_P%d", i+1);
-        key = new_key(str);
-        key->naxis = 2;
-        QMALLOC(key->naxisn, int, key->naxis);
-        key->naxisn[0] = 1;
-        key->naxisn[1] = code->ncode;
-        sprintf(str, "Codebook parameter #%d", i+1);
-        strcat(key->comment, str);
-        key->htype = H_EXPO;
-        key->ttype = T_FLOAT;
-        key->nbytes = key->naxisn[0]*key->naxisn[1]*t_size[key->ttype];
-        key->nobj = 1;
-        key->ptr = code->param[i];
-        add_key(key, tab, 0);
-        sprintf(str, "CODE_M%d", i+1);
-        sprintf(str2, "Step modulus for Codebook parameter #%d", i+1);
-        addkeywordto_head(tab, str, str2);
-        fitswrite(head, str, &code->parammod[i], H_INT, T_LONG);
-        }
-      }
-/*-- Save tab */
-    save_tab(cat, tab);
-/*-- But don't touch my arrays!! */
-    blank_keys(tab);
-    free_tab(tab);
-    }
 
   if (ext==next-1)
     free_cat(&cat , 1);

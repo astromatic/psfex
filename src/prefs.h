@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	11/11/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -56,10 +56,12 @@ typedef struct
 /* Re-centering */
   int		autoselect_flag;		/* Auto. select FWHMs ? */
   int		recenter_flag;			/* Recenter PSF-candidates? */
+/* Check-images */
   checkenum	check_type[MAXCHECK];		/* check-image types */
   int		ncheck_type;			/* nb of params */
   char		*(check_name[MAXCHECK]);	/* check-image names */
   int		ncheck_name;			/* nb of params */
+  int		check_cubeflag;			/* check-images as datacubes?*/
   char		*(context_name[MAXCONTEXT]);	/* Names of context-keys */
   int		ncontext_name;			/* nb of params */
   int		context_group[MAXCONTEXT];	/* Context group */
@@ -69,9 +71,6 @@ typedef struct
   int		ngroup_deg;			/* nb of params */
   int		badpix_flag;			/* Filter bad pixels? */
   int		badpix_nmax;			/* Max number of bad pixels */
-  int		pc_flag;			/* Include PCs? */
-  char		pc_name[MAXCHAR];		/* PC filename */
-  int		pc_npc;				/* Max. number of PCs */
 /* Multithreading */
   int		nthreads;			/* Number of active threads */
 /* Misc */

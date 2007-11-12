@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,15 +32,13 @@
 /*----------------------------- Type definitions --------------------------*/
 typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
 		PSF_RAWDATA, PSF_SAMPLES, PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
-		PSF_WEIGHTS, PSF_PCPROTO,
-		PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM}
+		PSF_WEIGHTS, PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM}
 	checkenum;
 
 /*---------------------------------- protos --------------------------------*/
-extern void		psf_writecheck(psfstruct *psf, pcstruct *pc,
-					setstruct *set,
+extern void		psf_writecheck(psfstruct *psf, setstruct *set,
 					char *filename, checkenum checktype,
-				int ext, int next);
+				int ext, int next, int cubeflag);
 
 #endif
 

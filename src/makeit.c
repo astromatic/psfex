@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	11/11/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,6 @@ void	makeit(char **incatnames, int ncat)
   {
    setstruct		*set;
    psfstruct		**psf;
-   pcstruct		*pc, *pcc, *pco;
    catstruct		*cat;
    tabstruct		*tab;
    static char		str[MAXCHAR];
@@ -175,21 +174,10 @@ void	makeit(char **incatnames, int ncat)
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
 	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
 
-/*-- Load the PCs */
-    if (prefs.pc_flag && set->nsample)
-      {
-      NFPRINTF(OUTPUT,"Including principal components...");
-      pc = pc_load(prefs.pc_name);
-      pcc = pc_convolve(pc, psf[ext]);
-      pco = pc_orthogon(pc, pcc, psf[ext]->pixstep);
-      }
-    else
-      pc = pcc = pco = NULL;
-
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
 
-    psf_save(psf[ext], pco, pc, prefs.psf_name, ext, next);
+    psf_save(psf[ext], prefs.psf_name, ext, next);
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
@@ -197,8 +185,8 @@ void	makeit(char **incatnames, int ncat)
         {
         sprintf(str, "Saving CHECK-image #%d...", i+1);
         NFPRINTF(OUTPUT, str);
-        psf_writecheck(psf[ext], pco, set, prefs.check_name[i],
-		prefs.check_type[i], ext, next);
+        psf_writecheck(psf[ext], set, prefs.check_name[i],
+		prefs.check_type[i], ext, next, prefs.check_cubeflag);
         }
 
 /*-- Update XML */
@@ -207,13 +195,6 @@ void	makeit(char **incatnames, int ncat)
 
 /*-- Free memory */
     end_set(set);
-
-    if (pc)
-      {
-      pc_end(pc);
-      pc_end(pcc);
-      pc_end(pco);
-      }
     }
 /* Processing end date and time */
   thetime2 = time(NULL);

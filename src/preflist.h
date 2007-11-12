@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	11/11/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -45,11 +45,12 @@ pkeystruct key[] =
   {"BASIS_SCALE", P_FLOAT, &prefs.basis_scale, 0,0, 0.0,1.0e3},
   {"BASIS_TYPE", P_KEY, &prefs.basis_type, 0,0, 0.0,0.0,
    {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", ""}},
+  {"CHECKIMAGE_CUBE", P_BOOL, &prefs.check_cubeflag},
   {"CHECKIMAGE_NAME", P_STRINGLIST, prefs.check_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
    {"NONE", "BASIS", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
-	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS", "PC_CONVOLVED",
+	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS",
 	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CONTEXT_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
@@ -60,9 +61,6 @@ pkeystruct key[] =
   {"GROUP_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
-  {"PC_INCLUDE", P_BOOL, &prefs.pc_flag},
-  {"PC_NAME", P_STRING, prefs.pc_name},
-  {"PC_NPC",  P_INT, &prefs.pc_npc, 0,1000000},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_AUTOSELECT", P_BOOL, &prefs.autoselect_flag},
   {"PSF_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
@@ -84,7 +82,7 @@ pkeystruct key[] =
   {""}
  };
 
-char		keylist[sizeof(key)/sizeof(pkeystruct)][16];
+char		keylist[sizeof(key)/sizeof(pkeystruct)][32];
 const char	notokstr[] = {" \t=,;\n\r\""};
 
 char *default_prefs[] =
@@ -129,12 +127,7 @@ char *default_prefs[] =
 "                                # Check-image types",
 "CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
 "                                # Check-image filenames",
-"* ",
-"*#---------------------- Galaxy Principal Components --------------------------",
-"* ",
-"*PC_INCLUDE      N               # Process galaxy Principal Components (Y/N) ?",
-"*PC_NAME         default.pc      # File to store galaxy Principal Components",
-"*PC_NPC          0               # Number of principal components",
+"*CHECKIMAGE_CUBE N               # Save check-images as datacubes (Y/N) ?",
 " ",
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",

@@ -3,7 +3,7 @@
 SUBDIRS			= fits levmar
 bin_PROGRAMS		= psfex
 psfex_SOURCES		= check.c diagnostic.c fft.c main.c makeit.c misc.c \
-			  pc.c poly.c prefs.c psf.c sample.c vignet.c xml.c \
+			  poly.c prefs.c psf.c sample.c vignet.c xml.c \
 			  check.h define.h diagnostic.h fft.h globals.h key.h \
 			  poly.h prefs.h preflist.h psf.h sample.h types.h \
 			  vignet.h xml.h

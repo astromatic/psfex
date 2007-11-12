@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	17/08/2007
+*	Last modify:	12/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,8 +40,8 @@
 /*
 Write a FITS image for check.
 */
-void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
-		char *filename, checkenum checktype, int ext, int next)
+void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
+		checkenum checktype, int ext, int next, int cubeflag)
   {
    static catstruct	*ccat[MAXCHECK];
    catstruct		*cat;
@@ -53,7 +53,7 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,x,y, w,h,n, npc,nt,nr, nw,nh, step, ival1, ival2;
+   int			i,x,y, w,h,n, npc,nt,nr, nw,nh, step, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
   if (!ext)
@@ -85,24 +85,43 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
     {
     case PSF_BASIS:
 /*----  View basis vectors as small vignets */
-      nw = (int)sqrt((double)psf->nbasis);
-      nw = ((nw-1)/10+1)*10;
-      nh = (psf->nbasis-1)/nw + 1;
-      w = psf->size[0];
-      h = psf->dim>1? psf->size[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      fpix = psf->basis;
-      for (n=0; n<psf->nbasis; n++)
+      if (cubeflag)
         {
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
-            *(pix++) = *(fpix++);
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = psf->size[0];
+        tab->naxisn[1] = psf->size[1];
+        tab->naxisn[2] = psf->nbasis;
+        npix = psf->nbasis*psf->size[0]*psf->size[1];
+        tab->tabsize = tab->bytepix*npix;
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        fpix = psf->basis;
+        for (i=npix; i--;)
+          *(pix++) = *(fpix++);
+        }
+      else
+        {
+        nw = (int)sqrt((double)psf->nbasis);
+        nw = ((nw-1)/10+1)*10;
+        nh = (psf->nbasis-1)/nw + 1;
+        w = psf->size[0];
+        h = psf->dim>1? psf->size[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        fpix = psf->basis;
+        for (n=0; n<psf->nbasis; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
         }
       break;
     case PSF_CHI:
@@ -329,31 +348,6 @@ void	psf_writecheck(psfstruct *psf, pcstruct *pc, setstruct *set,
         }
       break;
 
-    case PSF_PCPROTO:
-/*---- convolved PC data for all components are arranged as small vignets */
-      if (pc)
-        {
-        npc = pc->size[2]*pc->size[3];
-        nw = pc->size[2];
-        nh = pc->size[3];
-        w = pc->size[0];
-        h = pc->size[1];
-        step = (nw-1)*w;
-        tab->naxisn[0] = nw*w;
-        tab->naxisn[1] = nh*h;
-        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-        QCALLOC(pix0, float, tab->tabsize);
-        tab->bodybuf = (char *)pix0; 
-        fpix = pc->comp;
-        for (n=0; n<npc; n++)
-          {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          for (y=h; y--; pix += step)
-            for (x=w; x--;)
-              *(pix++) = *(fpix++);
-          }
-        }
-      break;
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
       npc = prefs.ncontext_group;
