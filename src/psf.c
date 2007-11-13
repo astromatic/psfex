@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	13/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -1209,7 +1209,7 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  Number of basis vectors read.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 13/11/2007
  ***/
 int	psf_readbasis(psfstruct *psf, char *filename, int ext)
   {
@@ -1248,6 +1248,7 @@ int	psf_readbasis(psfstruct *psf, char *filename, int ext)
   QMALLOC(pixin, PIXTYPE, npixin);
   ncomp = tab->tabsize/tab->bytepix/npixin;
   QMALLOC(psf->basis, float, ncomp*npixout);
+  QFSEEK(tab->cat->file, tab->bodypos, SEEK_SET, tab->cat->filename);
   for (n=0; n<ncomp; n++)
     {
     read_body(tab, pixin, npixin);
@@ -1256,6 +1257,7 @@ int	psf_readbasis(psfstruct *psf, char *filename, int ext)
 		VIGNET_CPY);
     }
   free(pixin);
+  free_cat(&cat, 1);
 
   return ncomp;
   }

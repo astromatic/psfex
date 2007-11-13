@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	13/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -74,6 +74,8 @@ typedef struct psf
   float		*basis;		/* Basis vectors */
   int		nbasis;		/* Number of basis vectors */
   int		ndata;		/* Size of the design matrix along data axis */
+  int		nsnap;		/* Total number of snapshots */
+  int		nmed;		/* Median position amongst snapshots */
   moffatstruct	*moffat;	/* Array of Moffat fits to PSF */
   double	moffat_fwhm_min;
   double	moffat_fwhm;	/* Central Moffat FWHM */

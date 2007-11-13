@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	27/04/2007
+*	Last modify:	13/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -173,7 +173,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/04/2007
+VERSION	13/11/2007
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -585,57 +585,58 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- PSF model */
     write_xmlconfigparam(file, "PSF_Name", "",
 		"meta.id;meta.file","%s");
-    write_xmlconfigparam(file, "PSF_Type", "",
+    write_xmlconfigparam(file, "Basis_Type", "",
 		"meta.code","%s");
-    write_xmlconfigparam(file, "PSF_Accuracy", "",
-		"obs.param;phot.flux.sb;arith.ratio","%.6g");
-    write_xmlconfigparam(file, "PSF_NSuper", "pix",
-		"meta.number;instr.pixel","%d");
+    write_xmlconfigparam(file, "Basis_Number", "",
+		"meta.number","%d");
+    write_xmlconfigparam(file, "Basis_Name", "",
+		"meta.id;meta.file","%s");
+    write_xmlconfigparam(file, "Basis_Scale", "",
+		"arith.factor","%.6g");
     write_xmlconfigparam(file, "PSF_Sampling", "pix",
 		"arith.factor;instr.pixel","%.6g");
+    write_xmlconfigparam(file, "PSF_Accuracy", "",
+		"obs.param;phot.flux.sb;arith.ratio","%.6g");
     write_xmlconfigparam(file, "PSF_Size", "pix",
 		"meta.number;instr.pixel","%d");
     write_xmlconfigparam(file, "PSF_Recenter", "",
 		"meta.code","%c");
+    write_xmlconfigparam(file, "Combine_Type", "",
+		"meta.code", "%s");
+
+/*-- PSF dependencies */
+    write_xmlconfigparam(file, "PSFVar_Keys", "",
+		"meta.id;src", "%s");
+    write_xmlconfigparam(file, "PSFVar_Groups", "",
+		"meta.id;stat.fit.param", "%d");
+    write_xmlconfigparam(file, "PSFVar_Degrees", "",
+		"meta.id;stat.fit.param", "%d");
+    write_xmlconfigparam(file, "PSFVar_NSnap", "",
+		"meta.id;stat.fit.param", "%d");
 
 /*-- Sample selection */
-    write_xmlconfigparam(file, "PSF_AutoSelect", "",
+    write_xmlconfigparam(file, "Sample_AutoSelect", "",
 		"meta.code","%c");
-    write_xmlconfigparam(file, "PSF_FWHMRange", "pix",
+    write_xmlconfigparam(file, "Sample_FWHMRange", "pix",
 		"phys.size.diameter;instr.det.psf","%.6g");
-    write_xmlconfigparam(file, "PSF_Variability", "",
+    write_xmlconfigparam(file, "Sample_Variability", "",
 		"instr.det.psf;arith.ratio","%.6g");
-    write_xmlconfigparam(file, "PSF_MinSN", "",
+    write_xmlconfigparam(file, "Sample_MinSN", "",
 		"stat.snr;stat.min","%.6g");
-    write_xmlconfigparam(file, "PSF_MaxElong", "",
+    write_xmlconfigparam(file, "Sample_MaxElong", "",
 		"src.ellipticity;stat.max","%.6g");
-    write_xmlconfigparam(file, "PSF_FlagMask", "",
+    write_xmlconfigparam(file, "Sample_FlagMask", "",
 		"meta.code","%d");
     write_xmlconfigparam(file, "BadPixel_Filter", "",
 		"meta.code","%c");
     write_xmlconfigparam(file, "BadPixel_NMax", "",
 		"meta.number;instr.pixel;stat.max","%d");
 
-/*-- PSF dependencies */
-    write_xmlconfigparam(file, "Context_Keys", "",
-		"meta.id;src", "%s");
-    write_xmlconfigparam(file, "Context_Groups", "",
-		"meta.id;stat.fit.param", "%d");
-    write_xmlconfigparam(file, "Context_Degrees", "",
-		"meta.id;stat.fit.param", "%d");
-    write_xmlconfigparam(file, "Context_NSnap", "",
-		"meta.id;stat.fit.param", "%d");
-
 /*-- Check Images --*/
     write_xmlconfigparam(file, "CheckImage_Type", "",
 		"meta.code", "%s");
     write_xmlconfigparam(file, "CheckImage_Name", "",
 		"meta.id;meta.file;meta.fits", "%s");
-
-/*-- Galaxy Principal Component --*/
-    write_xmlconfigparam(file, "PC_Include", "", "meta.code","%s");
-    write_xmlconfigparam(file, "PC_Name", "", "meta.id;meta.file","%s");
-    write_xmlconfigparam(file, "PC_NPC", "", "meta.number","%s");
 
 /*-- Miscellaneous */
     write_xmlconfigparam(file, "Verbose_Type", "", "meta.code","%s");

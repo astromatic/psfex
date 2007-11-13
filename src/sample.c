@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	13/08/2007
+*	Last modify:	13/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,9 +41,9 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
    catstruct		*cat;
    tabstruct		*tab;
    keystruct		*fkey, *(key[4]);
-   static char		keynames[4][16]={"FLUX_RADIUS", "FLUX_MAX", "FLAGS",
+   char			keynames[4][16]={"FLUX_RADIUS", "FLUX_MAX", "FLAGS",
 					"ELONGATION"};
-   static char		str[MAXCHAR];
+   char			str[MAXCHAR];
    char			*head, *(pkeynames[4]);
    float		*fwhm,*fwhmt,*fwhmt2, *hl, *fmax, *elong,
 			backnoise, df,dfmin,fmin, minsn, maxelong, fwhmmin,
@@ -51,6 +51,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
    short		*flags;
    int			i,j,n, nobj,nobjmax, imin, nw, ldflag, ext2;
 
+  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
   maxelong = (float)prefs.maxelong;
   fwhmmin = prefs.fwhmrange[0];
@@ -205,6 +206,10 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
     set = read_samples(set, filename[i], fwhmmin/2.0, fwhmmax/2.0, ext, next);
 
   set->fwhm = fmin;
+  sprintf(str, "%d samples loaded.", set->nsample);
+  NFPRINTF(OUTPUT, str);
+  if (!set->nsample)
+    warning("No appropriate source found!!","");
 
   return set;
   }

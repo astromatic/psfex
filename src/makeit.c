@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	13/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,6 +36,7 @@
 #include	"vignet.h"
 #include	"xml.h"
 
+psfstruct	*make_psf(setstruct *set, float psfstep);
 time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
@@ -44,14 +45,15 @@ time_t		thetime, thetime2;
 void	makeit(char **incatnames, int ncat)
 
   {
-   setstruct		*set;
    psfstruct		**psf;
+   setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
-   static char		str[MAXCHAR];
    struct tm		*tm;
-   float		psfstep;
-   int			i, ntab, ext, next, nmed;
+   static char		str[MAXCHAR];
+   float		*psfsteps,
+			psfstep;
+   int			c,i, ntab, ext, next, nmed;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -92,79 +94,23 @@ void	makeit(char **incatnames, int ncat)
     }
   free_cat(&cat, 1);
   if (prefs.xml_flag)
-    init_xml(next);
+    init_xml(next);  
 
-  QIPRINTF(OUTPUT,
+  if (prefs.combine_type == PSF_MERGE)
+    {
+/*-- Create an array of PSFs (one PSF for each extension) */
+    QMALLOC(psf, psfstruct *, next);
+    QIPRINTF(OUTPUT,
         " extension accepted/total sampling chi2/dof FWHM(pix) elong."
 	" residuals asymmetry");
-
-/* Create an array of PSFs (one PSF for each extension) */
-  QMALLOC(psf, psfstruct *, next);
-
-  for (ext = 0 ; ext<next; ext++)
-    {
-/*-- Load all the samples */
-    NFPRINTF(OUTPUT,"Loading samples...");
-    set = load_samples(incatnames, ncat, ext, next);
-
-    sprintf(str, "%d samples loaded.", set->nsample);
-    NFPRINTF(OUTPUT, str);
-
-    if (!set->nsample)
-      warning("No appropriate source found!!","");
-
-    psfstep = (float)(prefs.psf_step? prefs.psf_step : (set->fwhm/2.35)*0.5);
-
-/*-- Init the PSF */
-    NFPRINTF(OUTPUT,"Initializing PSF modules...");
-    psf[ext] = psf_init(prefs.context_name, prefs.context_group,
-		prefs.ncontext_group,
-		prefs.group_deg, prefs.ngroup_deg,
-		set->retisize[0], set->retisize[1],
-		psfstep,
-		set->nsample);
-
-    psf[ext]->samples_loaded = set->nsample;
-    psf[ext]->fwhm = set->fwhm;
-
-/*-- Make the basic PSF-model (1st pass) */
-    NFPRINTF(OUTPUT,"Modeling the PSF.");
-    psf_make(psf[ext], set);
-    psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
-
-/*-- Remove bad PSF candidates */
-    if (set->nsample>1)
+    for (ext = 0 ; ext<next; ext++)
       {
-      psf_clean(psf[ext], set);
-
-/*---- Make the basic PSF-model (2nd pass) */
-      NFPRINTF(OUTPUT,"Modeling the PSF.");
-      psf_make(psf[ext], set);
-      psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
-      }
-
-/*-- Remove bad PSF candidates */
-    if (set->nsample>1)
-      psf_clean(psf[ext], set);
-
-    psf[ext]->samples_accepted = set->nsample;
-
-/*-- Refine the PSF-model */
-    psf_refine(psf[ext], set, prefs.basis_type, prefs.basis_number);
-
-/*-- Clip the PSF-model */
-    psf_clip(psf[ext]);
-
-/*-- Just check the Chi2 */
-    psf[ext]->chi2 = set->nsample? psf_chi2(psf[ext], set) : 0.0;
-    NFPRINTF(OUTPUT, "");
-
-/*-- Make a diagnostic of the PSF */
-    psf_diagnostic(psf[ext]);
-    nmed = 0;
-    for (i=0; i<psf[ext]->poly->ndim; i++)
-      nmed += nmed*prefs.context_nsnap + (prefs.context_nsnap-1)/2;
-    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
+/*---- Load all the samples */
+      set = load_samples(incatnames, ncat, ext, next);
+      psfstep = (float)(prefs.psf_step? prefs.psf_step : (set->fwhm/2.35)*0.5);
+      psf[ext] = make_psf(set, psfstep);
+      nmed = psf[ext]->nmed;
+      QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
 	ext+1, next,
 	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
@@ -173,29 +119,47 @@ void	makeit(char **incatnames, int ncat)
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
 	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
-
-/*-- Save result */
-    NFPRINTF(OUTPUT,"Saving the PSF description...");
-
-    psf_save(psf[ext], prefs.psf_name, ext, next);
-
-/*-- Save "Check-images" */
-    for (i=0; i<prefs.ncheck_type; i++)
-      if (prefs.check_type[i])
-        {
-        sprintf(str, "Saving CHECK-image #%d...", i+1);
-        NFPRINTF(OUTPUT, str);
-        psf_writecheck(psf[ext], set, prefs.check_name[i],
+/*---- Save result */
+      NFPRINTF(OUTPUT,"Saving the PSF description...");
+      psf_save(psf[ext], prefs.psf_name, ext, next);
+/*---- Save "Check-images" */
+      for (i=0; i<prefs.ncheck_type; i++)
+        if (prefs.check_type[i])
+          {
+          sprintf(str, "Saving CHECK-image #%d...", i+1);
+          NFPRINTF(OUTPUT, str);
+          psf_writecheck(psf[ext], set, prefs.check_name[i],
 		prefs.check_type[i], ext, next, prefs.check_cubeflag);
-        }
-
-/*-- Update XML */
-    if (prefs.xml_flag)
-      update_xml(psf[ext], ncat);
-
-/*-- Free memory */
-    end_set(set);
+          }
+/*---- Update XML */
+      if (prefs.xml_flag)
+        update_xml(psf[ext], ncat);
+/*---- Free memory */
+      end_set(set);
+      }
     }
+  else
+    {
+/* A first run through all samples only to derive a common pixel step */
+    QMALLOC(psfsteps, float, next);
+    for (ext = 0 ; ext<next; ext++)
+      {
+      set = load_samples(incatnames, ncat, ext, next);
+      psfsteps[ext] = (float)(prefs.psf_step?
+				prefs.psf_step : (set->fwhm/2.35)*0.5);
+      }
+    QMALLOC(psf, psfstruct *, ncat);
+    for (ext = 0 ; ext<next; ext++)
+      {
+      for (c=0; c<ncat; c++)
+        {
+        set = load_samples(&incatnames[c], 1, ext, next);
+        psf[c] = make_psf(set, psfsteps[ext]);
+        }
+      }
+    free(psfsteps);
+    }
+
 /* Processing end date and time */
   thetime2 = time(NULL);
   tm = localtime(&thetime2);
@@ -219,6 +183,70 @@ void	makeit(char **incatnames, int ncat)
   free(psf);
 
   return;
+  }
+
+
+/****** make_psf *************************************************************
+PROTO	psfstruct	*make_psf(setstruct *set, float psfstep)
+PURPOSE	Make PSFs from a set of FITS binary catalogs.
+INPUT	Pointer to a sample set,
+	PSF sampling step.
+OUTPUT  Pointer to the PSF structure.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 13/11/2007
+ ***/
+psfstruct	*make_psf(setstruct *set, float psfstep)
+  {
+   psfstruct		*psf;
+
+  NFPRINTF(OUTPUT,"Initializing PSF modules...");
+  psf = psf_init(prefs.context_name, prefs.context_group,
+		prefs.ncontext_group,
+		prefs.group_deg, prefs.ngroup_deg,
+		set->retisize[0], set->retisize[1],
+		psfstep,
+		set->nsample);
+
+  psf->samples_loaded = set->nsample;
+  psf->fwhm = set->fwhm;
+
+/* Make the basic PSF-model (1st pass) */
+  NFPRINTF(OUTPUT,"Modeling the PSF.");
+  psf_make(psf, set);
+  psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+
+/* Remove bad PSF candidates */
+  if (set->nsample>1)
+    {
+    psf_clean(psf, set);
+
+/*-- Make the basic PSF-model (2nd pass) */
+    NFPRINTF(OUTPUT,"Modeling the PSF.");
+    psf_make(psf, set);
+    psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+    }
+
+/* Remove bad PSF candidates */
+  if (set->nsample>1)
+    psf_clean(psf, set);
+
+  psf->samples_accepted = set->nsample;
+
+/* Refine the PSF-model */
+  psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+
+/* Clip the PSF-model */
+  psf_clip(psf);
+
+/*-- Just check the Chi2 */
+  psf->chi2 = set->nsample? psf_chi2(psf, set) : 0.0;
+  NFPRINTF(OUTPUT, "");
+
+/* Make a diagnostic of the PSF */
+  psf_diagnostic(psf);
+
+  return psf;
   }
 
 

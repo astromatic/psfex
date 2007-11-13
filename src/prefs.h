@@ -40,6 +40,8 @@ typedef struct
   char		prefs_name[MAXCHAR];		/* prefs filename */
   char		psf_name[MAXCHAR];		/* PSF filename */
   int		retisize[2], nretisize;		/* Retina size */
+  enum {PSF_MERGE, PSF_PCA}	combine_type;	/* Model combination type */
+/* Point-source sample */
   double	minsn;				/* Minimum S/N for patterns */
   double	maxelong;			/* Maximum A/B for patterns */
   double	maxvar;				/* Maximum FWHM variability */
@@ -48,6 +50,8 @@ typedef struct
   int		flag_mask;			/* Rejection mask on SEx FLAGS*/
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
+  int		badpix_flag;			/* Filter bad pixels? */
+  int		badpix_nmax;			/* Max number of bad pixels */
 /* Vector basis */
   basistypenum	basis_type;			/* PSF vector basis set */
   int		basis_number;			/* nb of supersampled pixels */
@@ -62,6 +66,7 @@ typedef struct
   char		*(check_name[MAXCHECK]);	/* check-image names */
   int		ncheck_name;			/* nb of params */
   int		check_cubeflag;			/* check-images as datacubes?*/
+/* PSF variability */
   char		*(context_name[MAXCONTEXT]);	/* Names of context-keys */
   int		ncontext_name;			/* nb of params */
   int		context_group[MAXCONTEXT];	/* Context group */
@@ -69,8 +74,6 @@ typedef struct
   int		context_nsnap;			/* nb of snapshots / context */
   int		group_deg[MAXCONTEXT];		/* Degree for each group */
   int		ngroup_deg;			/* nb of params */
-  int		badpix_flag;			/* Filter bad pixels? */
-  int		badpix_nmax;			/* Max number of bad pixels */
 /* Multithreading */
   int		nthreads;			/* Number of active threads */
 /* Misc */
