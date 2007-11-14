@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	14/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,13 +30,14 @@
 #include	"fits/fitscat.h"
 #include	"check.h"
 #include	"diagnostic.h"
+#include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
 #include	"sample.h"
-#include	"vignet.h"
 #include	"xml.h"
 
-psfstruct	*make_psf(setstruct *set, float psfstep);
+psfstruct	*make_psf(setstruct *set, float psfstep,
+			float *basis, int nbasis, int diagflag);
 time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
@@ -45,15 +46,15 @@ time_t		thetime, thetime2;
 void	makeit(char **incatnames, int ncat)
 
   {
-   psfstruct		**psf;
+   psfstruct		**psf, **cpsf;
    setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
    struct tm		*tm;
    static char		str[MAXCHAR];
-   float		*psfsteps,
+   float		*psfsteps, *basis,
 			psfstep;
-   int			c,i, ntab, ext, next, nmed;
+   int			c,i, ntab, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -96,21 +97,58 @@ void	makeit(char **incatnames, int ncat)
   if (prefs.xml_flag)
     init_xml(next);  
 
-  if (prefs.combine_type == PSF_MERGE)
+  if (prefs.combine_type == PSF_PCA)
     {
-/*-- Create an array of PSFs (one PSF for each extension) */
-    QMALLOC(psf, psfstruct *, next);
-    QIPRINTF(OUTPUT,
+/* A first run through all samples only to derive a common pixel step */
+    QMALLOC(psfsteps, float, next);
+    for (ext=0 ; ext<next; ext++)
+      {
+      set = load_samples(incatnames, ncat, ext, next);
+      psfsteps[ext] = (float)(prefs.psf_step?
+				prefs.psf_step : (set->fwhm/2.35)*0.5);
+      }
+    }
+  else
+    psfsteps = NULL;
+
+/* Create an array of PSFs (one PSF for each extension) */
+  QMALLOC(psf, psfstruct *, next);
+  QIPRINTF(OUTPUT,
         " extension accepted/total sampling chi2/dof FWHM(pix) elong."
 	" residuals asymmetry");
-    for (ext = 0 ; ext<next; ext++)
+  for (ext=0 ; ext<next; ext++)
+    {
+    if (prefs.combine_type == PSF_PCA)
+/*---- Derive a new PCA basis for each extension */
       {
-/*---- Load all the samples */
-      set = load_samples(incatnames, ncat, ext, next);
-      psfstep = (float)(prefs.psf_step? prefs.psf_step : (set->fwhm/2.35)*0.5);
-      psf[ext] = make_psf(set, psfstep);
-      nmed = psf[ext]->nmed;
-      QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
+      QMALLOC(cpsf, psfstruct *, ncat);
+      for (c=0; c<ncat; c++)
+        {
+        set = load_samples(&incatnames[c], 1, ext, next);
+        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        NFPRINTF(OUTPUT, str);
+        cpsf[c] = make_psf(set, psfsteps[ext], NULL, 0, 0);
+        end_set(set);
+        }
+      nbasis = prefs.pca_number;
+      basis = pca_make(cpsf, ncat, nbasis);
+      for (c=0 ; c<ncat; c++)
+        psf_end(cpsf[c]);
+      free(cpsf);
+      }
+    else
+      {
+      nbasis = 0;
+      basis = NULL;
+      }
+
+/*-- Load all the samples */
+    set = load_samples(incatnames, ncat, ext, next);
+    psfstep = (prefs.combine_type == PSF_PCA? psfsteps[ext]
+	: (float)(prefs.psf_step? prefs.psf_step : (set->fwhm/2.35)*0.5));
+    psf[ext] = make_psf(set, psfstep, basis, nbasis, 1);
+    nmed = psf[ext]->nmed;
+    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
 	ext+1, next,
 	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
@@ -119,46 +157,26 @@ void	makeit(char **incatnames, int ncat)
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
 	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
-/*---- Save result */
-      NFPRINTF(OUTPUT,"Saving the PSF description...");
-      psf_save(psf[ext], prefs.psf_name, ext, next);
-/*---- Save "Check-images" */
-      for (i=0; i<prefs.ncheck_type; i++)
-        if (prefs.check_type[i])
-          {
-          sprintf(str, "Saving CHECK-image #%d...", i+1);
-          NFPRINTF(OUTPUT, str);
-          psf_writecheck(psf[ext], set, prefs.check_name[i],
-		prefs.check_type[i], ext, next, prefs.check_cubeflag);
-          }
-/*---- Update XML */
-      if (prefs.xml_flag)
-        update_xml(psf[ext], ncat);
-/*---- Free memory */
-      end_set(set);
-      }
-    }
-  else
-    {
-/* A first run through all samples only to derive a common pixel step */
-    QMALLOC(psfsteps, float, next);
-    for (ext = 0 ; ext<next; ext++)
-      {
-      set = load_samples(incatnames, ncat, ext, next);
-      psfsteps[ext] = (float)(prefs.psf_step?
-				prefs.psf_step : (set->fwhm/2.35)*0.5);
-      }
-    QMALLOC(psf, psfstruct *, ncat);
-    for (ext = 0 ; ext<next; ext++)
-      {
-      for (c=0; c<ncat; c++)
+/*-- Save result */
+    NFPRINTF(OUTPUT,"Saving the PSF description...");
+    psf_save(psf[ext], prefs.psf_name, ext, next);
+/*-- Save "Check-images" */
+    for (i=0; i<prefs.ncheck_type; i++)
+      if (prefs.check_type[i])
         {
-        set = load_samples(&incatnames[c], 1, ext, next);
-        psf[c] = make_psf(set, psfsteps[ext]);
+        sprintf(str, "Saving CHECK-image #%d...", i+1);
+        NFPRINTF(OUTPUT, str);
+        psf_writecheck(psf[ext], set, prefs.check_name[i],
+		prefs.check_type[i], ext, next, prefs.check_cubeflag);
         }
-      }
-    free(psfsteps);
+/*-- Update XML */
+    if (prefs.xml_flag)
+      update_xml(psf[ext], ncat);
+/*-- Free memory */
+    end_set(set);
     }
+
+  free(psfsteps);
 
 /* Processing end date and time */
   thetime2 = time(NULL);
@@ -187,16 +205,21 @@ void	makeit(char **incatnames, int ncat)
 
 
 /****** make_psf *************************************************************
-PROTO	psfstruct	*make_psf(setstruct *set, float psfstep)
+PROTO	psfstruct	*make_psf(setstruct *set, float psfstep,
+				float *basis, int nbasis, int diagflag)
 PURPOSE	Make PSFs from a set of FITS binary catalogs.
 INPUT	Pointer to a sample set,
-	PSF sampling step.
+	PSF sampling step,
+	Pointer to basis image vectors,
+	Number of basis vectors,
+	Diagnostic flag.
 OUTPUT  Pointer to the PSF structure.
-NOTES   -.
+NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 13/11/2007
+VERSION 14/11/2007
  ***/
-psfstruct	*make_psf(setstruct *set, float psfstep)
+psfstruct	*make_psf(setstruct *set, float psfstep,
+			float *basis, int nbasis, int diagflag)
   {
    psfstruct		*psf;
 
@@ -210,6 +233,12 @@ psfstruct	*make_psf(setstruct *set, float psfstep)
 
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;
+  
+  if (basis && nbasis)
+    {
+    QMEMCPY(basis, psf->basis, float, nbasis*psf->size[0]*psf->size[1]);
+    psf->nbasis = nbasis;
+    }
 
 /* Make the basic PSF-model (1st pass) */
   NFPRINTF(OUTPUT,"Modeling the PSF.");
@@ -241,10 +270,10 @@ psfstruct	*make_psf(setstruct *set, float psfstep)
 
 /*-- Just check the Chi2 */
   psf->chi2 = set->nsample? psf_chi2(psf, set) : 0.0;
-  NFPRINTF(OUTPUT, "");
 
 /* Make a diagnostic of the PSF */
-  psf_diagnostic(psf);
+  if (diagflag)
+    psf_diagnostic(psf);
 
   return psf;
   }

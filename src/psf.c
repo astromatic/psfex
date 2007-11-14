@@ -708,7 +708,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 14/11/2007
  ***/
 void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			int nvec)
@@ -723,7 +723,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			*betamat,*betamatt, *coeffmat,*coeffmatt,
 			dx,dy, dval, norm, tikfac;
    float		*vig,*vigt,*vigt2, *wvig,
-			*vecvig,*vecvigt, *ppix,*ppixt, *vec,
+			*vecvig,*vecvigt, *ppix, *vec,
 			vigstep;
    int			*desindex,*desindext,*desindext2,
 			*desindex0,*desindex02;
@@ -731,7 +731,7 @@ void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			ncontext, nunknown, matoffset, dindex;
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
-  if (!nvec || !set->nsample || basis_type==BASIS_NONE)
+  if (!nvec || !set->nsample || (basis_type==BASIS_NONE && !psf->basis))
     return;
 
   npix = psf->size[0]*psf->size[1];
@@ -743,8 +743,9 @@ void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
     NFPRINTF(OUTPUT,"Generating the PSF model...");
     psf_makebasis(psf, set, basis_type, nvec);
     }
+
   npsf = psf->nbasis;
-  ndata = psf->ndata;
+  ndata = psf->ndata? psf->ndata : set->vigsize[0]*set->vigsize[1]+1;
   poly = psf->poly;
   ncontext = set->ncontext;
   ncoeff = poly->ncoeff;
@@ -947,7 +948,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 14/11/2007
  ***/
 void	psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec)
@@ -958,6 +959,10 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
   int		*psfmask,
 		i, ix,iy, ixmin,iymin,ixmax,iymax,irad, npsf,npix;
 
+
+/* Do not proceed further if a PSF basis has already been created */
+  if (psf->basis)
+    return;
 
   npix = psf->size[0]*psf->size[1];
 
@@ -1030,11 +1035,9 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
     case BASIS_GAUSS_LAGUERRE:
       psf->nbasis = psf_pshapelet(&psf->basis, psf->size[0],psf->size[1],
 		nvec, sqrt(nvec+1.0)*prefs.basis_scale);
-      psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
       break;
     case BASIS_FILE:
       psf->nbasis = psf_readbasis(psf, prefs.basis_name, 0);
-      psf->ndata = set->vigsize[0]*set->vigsize[1]+1;
       break;
     default:
       error(EXIT_FAILURE, "*Internal Error*: unknown PSF vector basis in ",
@@ -1280,7 +1283,7 @@ void	psf_save(psfstruct *psf, char *filename, int ext, int next)
    static catstruct	*cat;
    tabstruct	*tab;
    keystruct	*key;
-   char		*head, str[80], str2[80];
+   char		*head, str[80];
    int		i, temp;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */

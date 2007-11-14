@@ -53,8 +53,8 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_psfex_OBJECTS = check.$(OBJEXT) diagnostic.$(OBJEXT) fft.$(OBJEXT) \
-	main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) poly.$(OBJEXT) \
-	prefs.$(OBJEXT) psf.$(OBJEXT) sample.$(OBJEXT) \
+	main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) pca.$(OBJEXT) \
+	poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) sample.$(OBJEXT) \
 	vignet.$(OBJEXT) xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a \
@@ -190,10 +190,10 @@ target_alias = @target_alias@
 # Copyright (C) 2002-2007 Emmanuel Bertin.
 SUBDIRS = fits levmar
 psfex_SOURCES = check.c diagnostic.c fft.c main.c makeit.c misc.c \
-			  poly.c prefs.c psf.c sample.c vignet.c xml.c \
+			  pca.c poly.c prefs.c psf.c sample.c vignet.c xml.c \
 			  check.h define.h diagnostic.h fft.h globals.h key.h \
-			  poly.h prefs.h preflist.h psf.h sample.h types.h \
-			  vignet.h xml.h
+			  pca.h poly.h prefs.h preflist.h psf.h sample.h \
+			  types.h vignet.h xml.h
 
 psfex_LDADD = $(top_builddir)/src/fits/libfits.a \
 			  $(top_builddir)/src/levmar/liblevmar.a
@@ -276,6 +276,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/makeit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pca.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poly.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/psf.Po@am__quote@

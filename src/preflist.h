@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	14/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,7 +41,7 @@ pkeystruct key[] =
   {"BADPIXEL_FILTER", P_BOOL, &prefs.badpix_flag},
   {"BADPIXEL_NMAX", P_INT, &prefs.badpix_nmax, 0,100000000},
   {"BASIS_NAME", P_STRING, prefs.basis_name},
-  {"BASIS_NUMBER", P_INT, &prefs.basis_number, 0,1000000000},
+  {"BASIS_NUMBER", P_INT, &prefs.basis_number, 0,10000},
   {"BASIS_SCALE", P_FLOAT, &prefs.basis_scale, 0,0, 0.0,1.0e3},
   {"BASIS_TYPE", P_KEY, &prefs.basis_type, 0,0, 0.0,0.0,
    {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", ""}},
@@ -55,6 +55,7 @@ pkeystruct key[] =
    0, MAXCHECK, &prefs.ncheck_type},
   {"COMBINE_TYPE", P_KEY, &prefs.combine_type, 0,0, 0.0,0.0,
 	{"MERGE", "PCA", ""}},
+  {"PCA_NUMBER", P_INT, &prefs.pca_number, 0,1000},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"PSFVAR_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
@@ -105,6 +106,7 @@ char *default_prefs[] =
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",
 "*COMBINE_TYPE    MERGE          # how to combine catalogs: MERGE or PCA",
+"*PCA_NUMBER      8              # Number of Principal Components",
 " ",
 "#----------------------------- PSF variability -----------------------------",
 " ",
