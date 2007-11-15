@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	15/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,10 +36,22 @@
 #include	"vignet.h"
 
 
-/******************************* psf_writecheck ******************************/
-/*
-Write a FITS image for check.
-*/
+/****** psf_writecheck ********************************************************
+PROTO	void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
+		checkenum checktype, int ext, int next, int cubeflag)
+PURPOSE	Write a FITS image for check.
+INPUT	Pointer to the PSF,
+	Pointer to the sample set,
+	Check-image filename,
+	Check-image type,
+	Extension number,
+	Number of extensions,
+	Datacube flag.
+OUTPUT  -.
+NOTES   Check-image is written as a datacube if cubeflag!=0.
+AUTHOR  E. Bertin (IAP)
+VERSION 15/11/2007
+ ***/
 void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 		checkenum checktype, int ext, int next, int cubeflag)
   {
@@ -92,7 +104,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         tab->naxisn[0] = psf->size[0];
         tab->naxisn[1] = psf->size[1];
         tab->naxisn[2] = psf->nbasis;
-        npix = psf->nbasis*psf->size[0]*psf->size[1];
+        npix = tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2];
         tab->tabsize = tab->bytepix*npix;
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
@@ -143,102 +155,190 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 
     case PSF_PROTO:
 /*---- PSF data for all components are arranged as small vignets */
-      npc = psf->size[2];
-      nw = npc<10? npc:10;
-      nh = (npc-1)/nw + 1;
-      w = psf->size[0];
-      h = psf->size[1];
-      step = (nw-1)*w;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-/*---- Normalize the components in the image corners: pos=(0.5,0.5,..) */
-      for (dpost=dpos, i=psf->poly->ndim; i--;)
-        *(dpost++) = 0.5;
-      poly_func(psf->poly, dpos);
-      dpost = psf->poly->basis;
-      fpix = psf->comp;
-      for (n=0; n<npc; n++)
+      if (cubeflag)
         {
-        val = *(dpost++);
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
-            *(pix++) = *(fpix++)*val;
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = psf->size[0];
+        tab->naxisn[1] = psf->size[1];
+        tab->naxisn[2] = psf->size[2];
+        npix = tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2];
+        tab->tabsize = tab->bytepix*npix;
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        fpix = psf->comp;
+        for (i=npix; i--;)
+          *(pix++) = *(fpix++);
+        }
+      else
+        {
+        npc = psf->size[2];
+        nw = npc<10? npc:10;
+        nh = (npc-1)/nw + 1;
+        w = psf->size[0];
+        h = psf->size[1];
+        step = (nw-1)*w;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+/*------ Normalize the components in the image corners: pos=(0.5,0.5,..) */
+        for (dpost=dpos, i=psf->poly->ndim; i--;)
+          *(dpost++) = 0.5;
+        poly_func(psf->poly, dpos);
+        dpost = psf->poly->basis;
+        fpix = psf->comp;
+        for (n=0; n<npc; n++)
+          {
+          val = *(dpost++);
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++)*val;
+          }
         }
       break;
 
     case PSF_RESIDUALS:
 /*---- Residual vectors for all samples are arranged as small vignets */
-      nw = (int)sqrt((double)set->nsample);
-      nw = ((nw-1)/10+1)*10;
-      nh = (set->nsample-1)/nw + 1;
-      w = set->vigsize[0];
-      h = set->vigdim>1? set->vigsize[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      sample = set->sample;
-      for (n=0; n<set->nsample; n++)
+      if (cubeflag)
         {
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = (sample++)->vigresi;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = set->vigsize[0];
+        tab->naxisn[1] = set->vigsize[1];
+        tab->naxisn[2] = set->nsample;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          fpix = (sample++)->vigresi;
+          for (i=npix; i--;)
             *(pix++) = *(fpix++);
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)set->nsample);
+        nw = ((nw-1)/10+1)*10;
+        nh = (set->nsample-1)/nw + 1;
+        w = set->vigsize[0];
+        h = set->vigdim>1? set->vigsize[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = (sample++)->vigresi;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
         }
       break;
 
     case PSF_RAWDATA:
 /*----  View original samples as small vignets */
-      nw = (int)sqrt((double)set->nsample);
-      nw = ((nw-1)/10+1)*10;
-      nh = (set->nsample-1)/nw + 1;
-      w = set->vigsize[0];
-      h = set->vigdim>1? set->vigsize[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      sample = set->sample;
-      for (n=0; n<set->nsample; n++)
+      if (cubeflag)
         {
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = (sample++)->vig;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = set->vigsize[0];
+        tab->naxisn[1] = set->vigsize[1];
+        tab->naxisn[2] = set->nsample;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          fpix = (sample++)->vig;
+          for (i=npix; i--;)
             *(pix++) = *(fpix++);
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)set->nsample);
+        nw = ((nw-1)/10+1)*10;
+        nh = (set->nsample-1)/nw + 1;
+        w = set->vigsize[0];
+        h = set->vigdim>1? set->vigsize[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = (sample++)->vig;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
         }
       break;
 
     case PSF_SAMPLES:
 /*----  View all training samples as small vignets */
-      nw = (int)sqrt((double)set->nsample);
-      nw = ((nw-1)/10+1)*10;
-      nh = (set->nsample-1)/nw + 1;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      sample = set->sample;
-      for (n=0; n<set->nsample; n++)
+      if (cubeflag)
         {
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = (sample++)->retina;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = set->retisize[0];
+        tab->naxisn[1] = set->retisize[1];
+        tab->naxisn[2] = set->nsample;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          fpix = (sample++)->retina;
+          for (i=npix; i--;)
             *(pix++) = *(fpix++);
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)set->nsample);
+        nw = ((nw-1)/10+1)*10;
+        nh = (set->nsample-1)/nw + 1;
+        w = set->retisize[0];
+        h = set->retidim>1? set->retisize[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = (sample++)->retina;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
         }
       break;
 
@@ -326,25 +426,48 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 
     case PSF_WEIGHTS:
 /*----  View all training sample weights as small vignets */
-      nw = (int)sqrt((double)set->nsample);
-      nw = ((nw-1)/10+1)*10;
-      nh = (set->nsample-1)/nw + 1;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      sample = set->sample;
-      for (n=0; n<set->nsample; n++)
+      if (cubeflag)
         {
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = (sample++)->retiweight;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = set->retisize[0];
+        tab->naxisn[1] = set->retisize[1];
+        tab->naxisn[2] = set->nsample;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          fpix = (sample++)->retiweight;
+          for (i=npix; i--;)
             *(pix++) = *(fpix++);
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)set->nsample);
+        nw = ((nw-1)/10+1)*10;
+        nh = (set->nsample-1)/nw + 1;
+        w = set->retisize[0];
+        h = set->retidim>1? set->retisize[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = (sample++)->retiweight;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
         }
       break;
 
@@ -445,23 +568,37 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
   fitsread(set->head, "NAXIS2  ", &ival2, H_INT, T_LONG);
   if (fitsread(set->head, "CTYPE1  ", str, H_STRING, T_STRING)==RETURN_OK)
     {
-    addkeywordto_head(tab,"CTYPE1  ","WCS coordinates of the reference pixel");
+    addkeywordto_head(tab,"CTYPE1  ","WCS axis type");
     fitswrite(tab->headbuf, "CTYPE1  ", str,  H_STRING, T_STRING);
-    }
-  if (fitsread(set->head, "CTYPE2  ", str, H_STRING, T_STRING)==RETURN_OK)
-    {
-    addkeywordto_head(tab,"CTYPE2  ","WCS coordinates of the reference pixel");
-    fitswrite(tab->headbuf, "CTYPE2  ", str,  H_STRING, T_STRING);
+    if (fitsread(set->head, "CTYPE2  ", str, H_STRING, T_STRING)==RETURN_OK)
+      {
+      addkeywordto_head(tab,"CTYPE2  ","WCS axis type");
+      fitswrite(tab->headbuf, "CTYPE2  ", str,  H_STRING, T_STRING);
+      }
+    if (cubeflag)
+      {
+      addkeywordto_head(tab,"CTYPE3  ","WCS axis type");
+      fitswrite(tab->headbuf, "CTYPE3  ", " ",  H_STRING, T_STRING);
+      }
     }
   if (fitsread(set->head, "CRVAL1  ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
     {
-    addkeywordto_head(tab,"CRVAL1  ","WCS coordinates of the reference pixel");
+    addkeywordto_head(tab, "CRVAL1  ",
+	"WCS coordinates of the reference pixel");
     fitswrite(tab->headbuf, "CRVAL1  ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CRVAL2  ", &dval2, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    addkeywordto_head(tab,"CRVAL2  ","WCS coordinates of the reference pixel");
-    fitswrite(tab->headbuf, "CRVAL2  ", &dval2,  H_EXPO, T_DOUBLE);
+    if (fitsread(set->head, "CRVAL2  ", &dval2, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      addkeywordto_head(tab, "CRVAL2  ",
+	"WCS coordinates of the reference pixel");
+      fitswrite(tab->headbuf, "CRVAL2  ", &dval2,  H_EXPO, T_DOUBLE);
+      }
+    if (cubeflag)
+      {
+      dval1 = 1.0;
+      addkeywordto_head(tab,"CRVAL3  ",
+	"WCS coordinates of the reference pixel");
+      fitswrite(tab->headbuf, "CRVAL3  ", &dval1,  H_EXPO, T_DOUBLE);
+      }
     }
   scalefac = ((dval1=ival1/(double)tab->naxisn[0])
 	< (dval2=ival2/(double)tab->naxisn[1])) ? dval1 : dval2;
@@ -470,36 +607,60 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
     dval1 *= scalefac;
     addkeywordto_head(tab, "CD1_1   ", "WCS transformation matrix");
     fitswrite(tab->headbuf, "CD1_1   ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CD1_2   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    dval1 *= scalefac;
-    addkeywordto_head(tab, "CD1_2   ", "WCS transformation matrix");
-    fitswrite(tab->headbuf, "CD1_2   ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CD2_1   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    dval1 *= scalefac;
-    addkeywordto_head(tab, "CD2_1   ", "WCS transformation matrix");
-    fitswrite(tab->headbuf, "CD2_1   ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CD2_2   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    dval1 *= scalefac;
-    addkeywordto_head(tab, "CD2_2   ", "WCS transformation matrix");
-    fitswrite(tab->headbuf, "CD2_2   ", &dval1,  H_EXPO, T_DOUBLE);
+    if (fitsread(set->head, "CD1_2   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      dval1 *= scalefac;
+      addkeywordto_head(tab, "CD1_2   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD1_2   ", &dval1,  H_EXPO, T_DOUBLE);
+      }
+    if (fitsread(set->head, "CD2_1   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      dval1 *= scalefac;
+      addkeywordto_head(tab, "CD2_1   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD2_1   ", &dval1,  H_EXPO, T_DOUBLE);
+      }
+    if (fitsread(set->head, "CD2_2   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      dval1 *= scalefac;
+      addkeywordto_head(tab, "CD2_2   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD2_2   ", &dval1,  H_EXPO, T_DOUBLE);
+      }
+    if (cubeflag)
+      {
+      dval1 = 0.0;
+      addkeywordto_head(tab, "CD1_3   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD1_3   ", &dval1,  H_EXPO, T_DOUBLE);
+      dval1 = 0.0;
+      addkeywordto_head(tab, "CD2_3   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD2_3   ", &dval1,  H_EXPO, T_DOUBLE);
+      dval1 = 0.0;
+      addkeywordto_head(tab, "CD3_1   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD3_1   ", &dval1,  H_EXPO, T_DOUBLE);
+      dval1 = 0.0;
+      addkeywordto_head(tab, "CD3_2   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD3_2   ", &dval1,  H_EXPO, T_DOUBLE);
+      dval1 = 1.0;
+      addkeywordto_head(tab, "CD3_3   ", "WCS transformation matrix");
+      fitswrite(tab->headbuf, "CD3_3   ", &dval1,  H_EXPO, T_DOUBLE);
+      }
     }
   if (fitsread(set->head, "CDELT1  ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
     {
     dval1 *= scalefac;
     addkeywordto_head(tab, "CDELT1  ", "WCS pixel scale");
     fitswrite(tab->headbuf, "CDELT1  ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CDELT2  ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    dval1 *= scalefac;
-    addkeywordto_head(tab, "CDELT2  ", "WCS pixel scale");
-    fitswrite(tab->headbuf, "CDELT2  ", &dval1,  H_EXPO, T_DOUBLE);
+    if (fitsread(set->head, "CDELT2  ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      dval1 *= scalefac;
+      addkeywordto_head(tab, "CDELT2  ", "WCS pixel scale");
+      fitswrite(tab->headbuf, "CDELT2  ", &dval1,  H_EXPO, T_DOUBLE);
+      }
+    if (cubeflag)
+      {
+      dval1 = 1.0;
+      addkeywordto_head(tab,"CDELT3  ","WCS pixel scale");
+      fitswrite(tab->headbuf, "CDELT3  ", &dval1,  H_EXPO, T_DOUBLE);
+      }
     }
   if (fitsread(set->head, "CRPIX1  ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
     {
@@ -507,13 +668,20 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 	"pixel coordinates of the reference pixel");
     dval1 = (dval1 - (ival1+1)/2)/scalefac + (tab->naxisn[0]+1)/2.0;
     fitswrite(tab->headbuf, "CRPIX1  ", &dval1,  H_EXPO, T_DOUBLE);
-    }
-  if (fitsread(set->head, "CRPIX2  ", &dval2, H_EXPO, T_DOUBLE)==RETURN_OK)
-    {
-    addkeywordto_head(tab, "CRPIX2  ",
+    if (fitsread(set->head, "CRPIX2  ", &dval2, H_EXPO, T_DOUBLE)==RETURN_OK)
+      {
+      addkeywordto_head(tab, "CRPIX2  ",
 	"pixel coordinates of the reference pixel");
-    dval2 = (dval2 - (ival2+1)/2)/scalefac + (tab->naxisn[1]+1)/2.0;
-    fitswrite(tab->headbuf, "CRPIX2  ", &dval2,  H_EXPO, T_DOUBLE);
+      dval2 = (dval2 - (ival2+1)/2)/scalefac + (tab->naxisn[1]+1)/2.0;
+      fitswrite(tab->headbuf, "CRPIX2  ", &dval2,  H_EXPO, T_DOUBLE);
+      }
+    if (cubeflag)
+      {
+      dval1 = 1.0;
+      addkeywordto_head(tab,"CRPIX3  ",
+	"pixel coordinates of the reference pixel");
+      fitswrite(tab->headbuf, "CRPIX3  ", &dval1,  H_EXPO, T_DOUBLE);
+      }
     }
 
   if (next == 1)

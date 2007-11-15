@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	14/11/2007
+*	Last modify:	15/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -53,9 +53,9 @@ pkeystruct key[] =
 	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS",
 	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
    0, MAXCHECK, &prefs.ncheck_type},
-  {"COMBINE_TYPE", P_KEY, &prefs.combine_type, 0,0, 0.0,0.0,
-	{"MERGE", "PCA", ""}},
-  {"PCA_NUMBER", P_INT, &prefs.pca_number, 0,1000},
+  {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
+	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
+  {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"PSFVAR_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
@@ -101,12 +101,12 @@ char *default_prefs[] =
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
+"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_MULTI or PCA_SINGLE",
+"*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",
-"*COMBINE_TYPE    MERGE          # how to combine catalogs: MERGE or PCA",
-"*PCA_NUMBER      8              # Number of Principal Components",
 " ",
 "#----------------------------- PSF variability -----------------------------",
 " ",

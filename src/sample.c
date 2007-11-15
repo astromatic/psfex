@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	15/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -133,7 +133,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
       for (n=tab->naxisn[1]; n--; hl++, fmax++, flags++, elong++)
 	{
         if (*fmax/backnoise>minsn
-		&& *flags<4
+		&& !(*flags&prefs.flag_mask)
 		&& *elong<maxelong
 		&& (fval=2.0**hl)>=fwhmmin
 		&& fval<fwhmmax)
@@ -263,10 +263,16 @@ setstruct *read_samples(setstruct *set, char *filename,
     QMALLOC(cmin, double, set->ncontext);
     QMALLOC(cmax, double, set->ncontext);
     for (i=0; i<set->ncontext; i++)
-      {
-      cmin[i] = ncat>1? set->contextoffset[i] - set->contextscale[i]/2.0 : BIG;
-      cmax[i] = ncat>1? cmin[i] + set->contextscale[i] : -BIG;
-      }
+      if (ncat>1 && set->nsample)
+        {
+        cmin[i] = set->contextoffset[i] - set->contextscale[i]/2.0;
+        cmax[i] = cmin[i] + set->contextscale[i];
+        }
+      else
+        {
+        cmin[i] = BIG;
+        cmax[i] = -BIG;
+        }
     }
 
 /*-- Read input catalog */

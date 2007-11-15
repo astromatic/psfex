@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	14/11/2007
+*	Last modify:	15/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,8 +40,9 @@ typedef struct
   char		prefs_name[MAXCHAR];		/* prefs filename */
   char		psf_name[MAXCHAR];		/* PSF filename */
   int		retisize[2], nretisize;		/* Retina size */
-  enum {PSF_MERGE, PSF_PCA}	combine_type;	/* Model combination type */
-  int		pca_number;			/* Number of PCs */
+  enum {NEWBASIS_NONE, NEWBASIS_PCAMULTI, NEWBASIS_PCASINGLE}
+		newbasis_type;			/* Type of new basis */
+  int		newbasis_number;		/* Number of PCs */
 /* Point-source sample */
   double	minsn;				/* Minimum S/N for patterns */
   double	maxelong;			/* Maximum A/B for patterns */

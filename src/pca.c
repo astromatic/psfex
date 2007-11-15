@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	14/11/2007
+*	Last modify:	15/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -38,7 +38,7 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 14/11/2007
+VERSION 15/11/2007
  ***/
 float *pca_make(psfstruct **psfs, int ncat, int npc)
   {
@@ -74,7 +74,7 @@ float *pca_make(psfstruct **psfs, int ncat, int npc)
       pix1 = pix = psf->loc;
 /*---- Set-up the covariance/correlation matrix */
       covmatt = covmat;
-      sprintf(str, "Setting-up the PCA covariance matrix (%3.0f%%)...",
+      sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		100.0*((float)n/nt+c)/ncat);
       NFPRINTF(OUTPUT, str);
       for (j=npix; j--;)
