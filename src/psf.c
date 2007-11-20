@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	20/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -698,20 +698,16 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 
 
 /****** psf_refine ************************************************************
-PROTO	void	psf_refine(psfstruct *psf, setstruct *set,
-			basistypenum basis_type, int nvec)
+PROTO	void	psf_refine(psfstruct *psf, setstruct *set)
 PURPOSE	Refine PSF by solving a system to recover "aliased" components.
 INPUT	Pointer to the PSF,
-	Pointer to the sample set,
-	Basis type,
-	Basis number.
+	Pointer to the sample set.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/11/2007
+VERSION 20/11/2007
  ***/
-void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
-			int nvec)
+void	psf_refine(psfstruct *psf, setstruct *set)
   {
    polystruct		*poly;
    samplestruct		*sample;
@@ -731,18 +727,12 @@ void	psf_refine(psfstruct *psf, setstruct *set, basistypenum basis_type,
 			ncontext, nunknown, matoffset, dindex;
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
-  if (!nvec || !set->nsample || (basis_type==BASIS_NONE && !psf->basis))
+  if (!set->nsample || !psf->basis)
     return;
 
   npix = psf->size[0]*psf->size[1];
   nvpix = set->vigsize[0]*set->vigsize[1];
   vigstep = 1/psf->pixstep;
-
-  if (!psf->basis)
-    {
-    NFPRINTF(OUTPUT,"Generating the PSF model...");
-    psf_makebasis(psf, set, basis_type, nvec);
-    }
 
   npsf = psf->nbasis;
   ndata = psf->ndata? psf->ndata : set->vigsize[0]*set->vigsize[1]+1;
@@ -948,7 +938,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/11/2007
+VERSION 20/11/2007
  ***/
 void	psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec)
@@ -958,11 +948,6 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
 		psfthresh;
   int		*psfmask,
 		i, ix,iy, ixmin,iymin,ixmax,iymax,irad, npsf,npix;
-
-
-/* Do not proceed further if a PSF basis has already been created */
-  if (psf->basis)
-    return;
 
   npix = psf->size[0]*psf->size[1];
 

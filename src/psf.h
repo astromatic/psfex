@@ -105,8 +105,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
-		psf_refine(psfstruct *psf, setstruct *set,
-			basistypenum basis_type, int nvec),
+		psf_refine(psfstruct *psf, setstruct *set),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,

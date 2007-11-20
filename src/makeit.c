@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	15/11/2007
+*	Last modify:	20/11/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -252,7 +252,7 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/11/2007
+VERSION 20/11/2007
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, int diagflag)
@@ -270,16 +270,20 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;
   
+/* Make the basic PSF-model (1st pass) */
+  NFPRINTF(OUTPUT,"Modeling the PSF.");
+  psf_make(psf, set);
   if (basis && nbasis)
     {
     QMEMCPY(basis, psf->basis, float, nbasis*psf->size[0]*psf->size[1]);
     psf->nbasis = nbasis;
     }
-
-/* Make the basic PSF-model (1st pass) */
-  NFPRINTF(OUTPUT,"Modeling the PSF.");
-  psf_make(psf, set);
-  psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+  else
+    {
+    NFPRINTF(OUTPUT,"Generating the PSF model...");
+    psf_makebasis(psf, set, prefs.basis_type, prefs.basis_number);
+    }
+  psf_refine(psf, set);
 
 /* Remove bad PSF candidates */
   if (set->nsample>1)
@@ -289,7 +293,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 /*-- Make the basic PSF-model (2nd pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF.");
     psf_make(psf, set);
-    psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+    psf_refine(psf, set);
     }
 
 /* Remove bad PSF candidates */
@@ -299,7 +303,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   psf->samples_accepted = set->nsample;
 
 /* Refine the PSF-model */
-  psf_refine(psf, set, prefs.basis_type, prefs.basis_number);
+  psf_refine(psf, set);
 
 /* Clip the PSF-model */
   psf_clip(psf);
