@@ -3,27 +3,44 @@
 
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Part of:	PSFEx
+*	Part of:	SkyMaker
 *
-*	Author:		E.BERTIN, Institut d'Astrophysique de Paris.
+*	Author:		E.BERTIN (IAP)
 *
-*	Contents:	Include for psf.c.
+*	Contents:	Include for fft.c.
 *
-*	Last modify:	25/08/98
+*	Last modify:	22/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
+#ifndef _FITSCAT_H_
+#include "fits/fitscat.h"
+#endif
+
 /*---------------------------- Internal constants ---------------------------*/
+
+/*------------------------------- Other Macros ------------------------------*/
+#define	QFFTWMALLOC(ptr, typ, nel) \
+		{if (!(ptr = (typ *)fftwf_malloc((size_t)(nel)*sizeof(typ)))) \
+		  error(EXIT_FAILURE, "Not enough memory for ", \
+			#ptr " (" #nel " elements) !");;}
+#define	QFFTWCALLOC(ptr, typ, nel) \
+		{ \
+		if (!(ptr = (typ *)fftwf_malloc((size_t)(nel)*sizeof(typ)))) \
+		  error(EXIT_FAILURE, "Not enough memory for ", \
+			#ptr " (" #nel " elements) !"); \
+		 memset(ptr, 0, (size_t)(nel)*sizeof(typ)); \
+		}
+#define	QFFTWFREE(ptr)	fftwf_free(ptr)
 
 /*--------------------------- structure definitions -------------------------*/
 
 /*---------------------------------- protos --------------------------------*/
-extern void	fourn(float *, unsigned int *, int, int),
-		frt2d(float *, float *, int, int, int);
+extern void	fft_conv(float *data1, float *fdata2, int width, int height),
+		fft_ctf(float *data, int width, int height, int sign),
+		fft_end(int nthreads),
+		fft_init(int nthreads),
+		fft_shift(float *data, int width, int height);
 
-extern float	*fastconv(float *, float *, float *, int, int);
-
-extern int	autoconv(float *, int, int, float *, int, int,
-			float *, int, int);
-
+extern float	*fft_rtf(float *data, int width, int height);

@@ -40,7 +40,7 @@ subdir = src/levmar
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acx_atlas.m4 \
-	$(top_srcdir)/acx_prog_cc_optim.m4 \
+	$(top_srcdir)/acx_fftw.m4 $(top_srcdir)/acx_prog_cc_optim.m4 \
 	$(top_srcdir)/acx_urbi_resolve_dir.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -66,8 +66,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(liblevmar_a_SOURCES)
-DIST_SOURCES = $(liblevmar_a_SOURCES)
+SOURCES = $(liblevmar_a_SOURCES) $(EXTRA_liblevmar_a_SOURCES)
+DIST_SOURCES = $(liblevmar_a_SOURCES) $(EXTRA_liblevmar_a_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -106,6 +106,8 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+FFTW_ERROR = @FFTW_ERROR@
+FFTW_LIBS = @FFTW_LIBS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -183,9 +185,9 @@ noinst_LIBRARIES = liblevmar.a
 liblevmar_a_SOURCES = Axb.c lmbc.c lm.c lmlec.c misc.c \
 			  lm.h misc.h
 
-EXTRA_DIST = Axb_core.c lmbc_core.c lmdemo.c lm_core.c \
+EXTRA_liblevmar_a_SOURCES = Axb_core.c lmbc_core.c lm_core.c \
 			  lmlec_core.c misc_core.c \
-			  LICENSE README README.txt
+EXTRA_DIST		= LICENSE README README.txt lmdemo.c
 
 all: all-am
 
@@ -235,10 +237,16 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Axb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Axb_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lm_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmbc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmbc_core.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmdemo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmlec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmlec_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc_core.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

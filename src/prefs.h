@@ -1,5 +1,5 @@
 /*
- 				types.h
+ 				prefs.h
 
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	15/11/2007
+*	Last modify:	22/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -76,6 +76,14 @@ typedef struct
   int		context_nsnap;			/* nb of snapshots / context */
   int		group_deg[MAXCONTEXT];		/* Degree for each group */
   int		ngroup_deg;			/* nb of params */
+/* Homogenisation kernel vector basis */
+  enum	{HOMOBASIS_NONE, HOMOBASIS_GAUSSLAGUERRE}
+		homobasis_type;			/* Homo. kernel basis set */
+  int		homobasis_number;		/* nb of supersampled pixels */
+  char		homokernel_name[MAXCHAR];	/* Homo. kernel filename */
+  double	homobasis_scale;		/* Gauss-Laguerre beta param */
+  double	homopsf_params[2];		/* Idealised Moffat PSF params*/
+  int		nhomopsf_params;		/* nb of params */
 /* Multithreading */
   int		nthreads;			/* Number of active threads */
 /* Misc */

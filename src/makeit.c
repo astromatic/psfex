@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	20/11/2007
+*	Last modify:	22/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,6 +30,7 @@
 #include	"fits/fitscat.h"
 #include	"check.h"
 #include	"diagnostic.h"
+#include	"homo.h"
 #include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
@@ -196,6 +197,12 @@ void	makeit(char **incatnames, int ncat)
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
     psf_save(psf[ext], prefs.psf_name, ext, next);
+
+/* Create a homogenisation kernel */
+    if (prefs.homobasis_type != HOMOBASIS_NONE)
+      psf_homo(psf[ext], prefs.homokernel_name, prefs.homopsf_params,
+		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
+
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
       if (prefs.check_type[i])

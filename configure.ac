@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 2.3.1, [bertin@iap.fr])
+AC_INIT(psfex, 2.4.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -21,6 +21,7 @@ AC_SUBST(DATE3, "$date3")
 
 # Include macros
 sinclude(acx_atlas.m4)
+sinclude(acx_fftw.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_urbi_resolve_dir.m4)
 
@@ -106,6 +107,20 @@ AC_ARG_WITH(atlas-incdir,
 	atlas_incdir=""
 	)
 
+# Provide special options for FFTW
+AC_ARG_WITH(fftw,
+	[AC_HELP_STRING([--with-fftw=<FFTW library path>],
+	[Provide an alternative path to the FFTW library])],
+	fftw_libdir=$withval,
+	fftw_libdir=""
+	)
+AC_ARG_WITH(fftw-incdir,
+	[AC_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
+	[Provide an alternative path to the FFTW include directory])],
+	fftw_incdir=$withval,
+	fftw_incdir=""
+	)
+
 # Provide a special option for the default XSLT URL
 AC_ARG_WITH(xsl_url,
 	[AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
@@ -143,6 +158,14 @@ if test "$use_atlas" = "yes"; then
   LIBS="$ATLAS_LIB $LIBS"
 else
   AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
+fi
+
+################ handle the FFTW library (Fourier transforms) ################
+ACX_FFTW($fftw_libdir,$fftw_incdir,no,yes,[use_fftw=yes],[use_fftw=no])
+if test "$use_fftw" = "yes"; then
+  LIBS="$FFTW_LIBS $LIBS"
+else
+  AC_MSG_ERROR([$FFTW_ERROR Exiting.])
 fi
 
 

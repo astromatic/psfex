@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	15/11/2007
+*	Last modify:	22/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -53,9 +53,17 @@ pkeystruct key[] =
 	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS",
 	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
    0, MAXCHECK, &prefs.ncheck_type},
+  {"HOMOBASIS_NUMBER", P_INT, &prefs.homobasis_number, 0,10000},
+  {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
+  {"HOMOBASIS_TYPE", P_KEY, &prefs.homobasis_type, 0,0, 0.0,0.0,
+   {"NONE", "GAUSS-LAGUERRE", ""}},
+  {"HOMOKERNEL_NAME", P_STRING, prefs.homokernel_name},
+  {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
+     2,2, &prefs.nhomopsf_params},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
 	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
+  {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"PSFVAR_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
@@ -63,7 +71,6 @@ pkeystruct key[] =
   {"PSFVAR_GROUPS", P_INTLIST, prefs.context_group, 1,MAXCONTEXT,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,16},
-  {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_NAME", P_STRING, prefs.psf_name},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
@@ -123,9 +130,17 @@ char *default_prefs[] =
 "SAMPLE_MINSN       20           # Minimum S/N for a source to be used",
 "SAMPLE_MAXELONG    2.0          # Maximum A/B for a source to be used",
 "*SAMPLE_FLAGMASK    0x00fe       # Rejection mask on SExtractor FLAGS",
-"*BADPIXEL_FILTER N               # Filter bad-pixels in samples (Y/N) ?",
-"*BADPIXEL_NMAX   0               # Maximum number of bad pixels allowed",
+"*BADPIXEL_FILTER    N            # Filter bad-pixels in samples (Y/N) ?",
+"*BADPIXEL_NMAX      0            # Maximum number of bad pixels allowed",
 " ",
+"*#----------------------- PSF homogeneisation kernel --------------------------",
+"*",
+"*HOMOBASIS_TYPE     NONE         # NONE or GAUSS-LAGUERRE",
+"*HOMOBASIS_NUMBER   10           # Kernel basis number or parameter",
+"*HOMOBASIS_SCALE    1.0          # GAUSS-LAGUERRE beta parameter",
+"*HOMOPSF_PARAMS     2.0, 3.0     # Moffat parameters of the idealised PSF",
+"*HOMOKERNEL_NAME    default.homo # Output PSF homogenisation kernel filename",
+"*",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
 "CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",

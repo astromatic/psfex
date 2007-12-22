@@ -41,7 +41,7 @@ subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acx_atlas.m4 \
-	$(top_srcdir)/acx_prog_cc_optim.m4 \
+	$(top_srcdir)/acx_fftw.m4 $(top_srcdir)/acx_prog_cc_optim.m4 \
 	$(top_srcdir)/acx_urbi_resolve_dir.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -53,9 +53,9 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_psfex_OBJECTS = check.$(OBJEXT) diagnostic.$(OBJEXT) fft.$(OBJEXT) \
-	main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) pca.$(OBJEXT) \
-	poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) sample.$(OBJEXT) \
-	vignet.$(OBJEXT) xml.$(OBJEXT)
+	homo.$(OBJEXT) main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) \
+	pca.$(OBJEXT) poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
+	sample.$(OBJEXT) vignet.$(OBJEXT) xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a \
 	$(top_builddir)/src/levmar/liblevmar.a
@@ -117,6 +117,8 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
+FFTW_ERROR = @FFTW_ERROR@
+FFTW_LIBS = @FFTW_LIBS@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
@@ -189,10 +191,11 @@ target_alias = @target_alias@
 # Program Makefile for PSFEx
 # Copyright (C) 2002-2007 Emmanuel Bertin.
 SUBDIRS = fits levmar
-psfex_SOURCES = check.c diagnostic.c fft.c main.c makeit.c misc.c \
-			  pca.c poly.c prefs.c psf.c sample.c vignet.c xml.c \
-			  check.h define.h diagnostic.h fft.h globals.h key.h \
-			  pca.h poly.h prefs.h preflist.h psf.h sample.h \
+psfex_SOURCES = check.c diagnostic.c fft.c homo.c main.c makeit.c \
+			  misc.c pca.c poly.c prefs.c psf.c sample.c vignet.c \
+			  xml.c \
+			  check.h define.h diagnostic.h fft.h globals.h homo.h \
+			  key.h pca.h poly.h prefs.h preflist.h psf.h sample.h \
 			  types.h vignet.h xml.h
 
 psfex_LDADD = $(top_builddir)/src/fits/libfits.a \
@@ -273,6 +276,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/diagnostic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fft.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/homo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/makeit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
