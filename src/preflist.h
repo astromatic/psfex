@@ -139,7 +139,7 @@ char *default_prefs[] =
 "*HOMOBASIS_NUMBER   10           # Kernel basis number or parameter",
 "*HOMOBASIS_SCALE    1.0          # GAUSS-LAGUERRE beta parameter",
 "*HOMOPSF_PARAMS     2.0, 3.0     # Moffat parameters of the idealised PSF",
-"*HOMOKERNEL_NAME    default.homo # Output PSF homogenisation kernel filename",
+"*HOMOKERNEL_NAME    homo.fits    # Output PSF homogenisation kernel filename",
 "*",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

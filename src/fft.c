@@ -9,7 +9,7 @@
 *
 *       Contents:       Routines dealing with FFT.
 *
-*       Last modify:    22/12/2007
+*       Last modify:    26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -274,17 +274,18 @@ INPUT	ptr to the image,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	22/12/2007
+VERSION	26/12/2007
  ***/
 void	fft_shift(float *data, int width, int height)
   {
-   float	*datat,
-		pix;
-   int		xc,yc, x,y,x2,y2, off;
+   float	*temp, *tempt;
+   int		i, xc,yc, x,y,x2,y2, npix;
 
+  npix = width*height;
+  QMALLOC(temp, float, width*height);
+  tempt = temp;
   xc = width/2;
   yc = height/2;
-  datat = data;
   for (y=0; y<height; y++)
     {
     y2 = y-yc;
@@ -296,12 +297,15 @@ void	fft_shift(float *data, int width, int height)
       x2 = x-xc;
       if (x2<0)
         x2 += width;
-      off = x2+y2;
-      pix = *(data+off);
-      *(data+off) = *datat;
-      *(datat++) = pix;
+      *(tempt++) = data[x2+y2];
       }
     }
+
+  tempt = temp;
+  for (i=npix; i--;)
+    *(data++) = *(tempt++);
+
+  free(temp);
 
   return;
   }

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -92,6 +92,9 @@ typedef struct psf
   double	moffat_symresiduals_min;
   double	moffat_symresiduals;/* Symmetry residuals */
   double	moffat_symresiduals_max;
+  float		*homo_kernel;		/* PSF homogenization kernel */
+  double	homopsf_params[2];	/* Idealised Moffat PSF params*/
+  int		homobasis_number;	/* nb of supersampled pixels */
   }	psfstruct;
 
 

@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for homo.c.
 *
-*	Last modify:	22/12/2007
+*	Last modify:	26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -26,6 +26,7 @@
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 			int homobasis_number, double homobasis_scale,
-			int ext, int next);
+			int ext, int next),
+		psf_savehomo(psfstruct *psf, char *filename, int ext, int next);
 #endif
 

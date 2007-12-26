@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF homogenisation stuff.
 *
-*	Last modify:	22/12/2007
+*	Last modify:	26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,7 +27,6 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
-#include	"levmar/lm.h"
 #include	"diagnostic.h"
 #include	"fft.h"
 #include	"homo.h"
@@ -35,6 +34,7 @@
 #include	"poly.h"
 #include	"psf.h"
 #include	"vignet.h"
+#include	ATLAS_LAPACK_H
 
 
 /****** psf_homo *******************************************************
@@ -46,19 +46,24 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/12/2007
+VERSION 26/12/2007
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
 		int ext, int next)
   {
    moffatstruct		*moffat;
-   double		dpos[POLY_MAXDIM];
-   float		*basis, *bigpsf, *fbigpsf, *bigconv, *cube;
+   double		dpos[POLY_MAXDIM],
+			*amat, *bmat;
+   float		*basis,*basisc,*basis1,*basis2, *bigpsf, *fbigpsf,
+			*bigconv, *mofpix,*mofpixt,
+			*kernel,*kernelt,
+			a,b;
    int			bigsize[2],
-			b,i, nbasis, npix,nbigpix;
+			i,j,p, nbasis, npix,nbigpix;
 
   npix = psf->size[0]*psf->size[1];
+  NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
 
 /* Generate real PSF image at center with extra padding for convolution */
   for (i=0; i<psf->poly->ndim; i++)
@@ -72,38 +77,178 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 	bigpsf, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
   fft_shift(bigpsf, bigsize[0], bigsize[1]);
   fbigpsf = fft_rtf(bigpsf, bigsize[0], bigsize[1]);
-  free(bigpsf);
 
 /* Create kernel basis */
   nbasis = psf_pshapelet(&basis, psf->size[0],psf->size[1],
 	homobasis_number, sqrt(homobasis_number+1.0)*homobasis_scale);
+  basisc = NULL;		/* to avoid gcc -Wall warnings */
+  QMEMCPY(basis, basisc, float, nbasis*npix);
 
 /* Convolve kernel basis vectors with real PSF */
   QMALLOC(bigconv, float, nbigpix);
   fft_init(prefs.nthreads);
-  for (b=0; b<nbasis; b++)
+  for (i=0; i<nbasis; i++)
     {
-    vignet_copy(&basis[b*npix], psf->size[0],psf->size[1],
+    vignet_copy(&basis[i*npix], psf->size[0],psf->size[1],
 	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
     fft_conv(bigconv, fbigpsf, bigsize[0], bigsize[1]);
     vignet_copy(bigconv, bigsize[0],bigsize[1],
-	&basis[b*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
+	&basisc[i*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
     }
   fft_end(prefs.nthreads);
+  free(bigconv);
   free(fbigpsf);
+  free(bigpsf);
 
 /* Create idealized PSF */
   QCALLOC(moffat, moffatstruct, 1);
+  moffat->xc[0] = (double)(psf->size[0]/2);
+  moffat->xc[1] = (double)(psf->size[1]/2);
   moffat->amplitude = 1.0;
   moffat->fwhm_min = moffat->fwhm_max = homopsf_params[0];
   moffat->theta = 0.0;
   moffat->beta = homopsf_params[1];
   psf_moffat(psf, moffat);
-
-  free(basis);
+  mofpix = psf->loc;
   free(moffat);
+
+/* Compute the normal equation matrix */
+  QCALLOC(amat, double, nbasis*nbasis);
+  QCALLOC(bmat, double, nbasis);
+  for (j=0;j<nbasis; j++)
+    for (i=0; i<nbasis; i++)
+      {
+      basis1 = basisc + j*npix;
+      basis2 = basisc + i*npix;
+      a = 0.0;
+      for (p=npix; p--;)
+        a += *(basis1++)**(basis2++);
+      amat[j*nbasis+i] = a;
+      }
+  for (j=0; j<nbasis; j++)
+    {
+    basis1 = basisc + j*npix;
+    mofpixt = mofpix;
+    b = 0.0;
+    for (p=npix; p--;)
+      b += *(basis1++)**(mofpixt++);
+    bmat[j] = b;
+    }
+  free(basisc);
+
+  clapack_dpotrf(CblasRowMajor, CblasUpper, nbasis, amat, nbasis);
+  clapack_dpotrs(CblasRowMajor, CblasUpper, nbasis, 1, amat, nbasis,
+	bmat, nbasis);
+
+  QCALLOC(kernel, float, npix);
+  for (j=0; j<nbasis; j++)
+    {
+    basis1 = basis + j*npix;
+    b = bmat[j];
+    kernelt = kernel;
+    for (p=npix; p--;)
+      *(kernelt++) += b**(basis1++);
+    }
+  free(amat);
+  free(bmat);
+  free(basis);
+
+/* Save homogenization kernel */
+  psf->homo_kernel = kernel;
+  psf->homopsf_params[0] = homopsf_params[0];
+  psf->homopsf_params[1] = homopsf_params[1];
+  psf->homobasis_number = homobasis_number;
+  psf_savehomo(psf, filename, ext, next);
 
   return;
   }
 
+
+/****** psf_savehomo **********************************************************
+PROTO   void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
+PURPOSE Save the PSF homogenization kernel data as a FITS file.
+INPUT   Pointer to the PSF structure,
+	Filename,
+	Extension number,
+	Number of extensions.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 26/12/2007
+ ***/
+void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
+  {
+   static catstruct	*cat;
+   tabstruct		*tab;
+   char			str[88];
+   int			i, temp;
+
+/* Create the new cat (well it is not a "cat", but simply a FITS table */
+  if (!ext)
+    {
+    cat = new_cat(1);
+    init_cat(cat);
+    strcpy(cat->filename, filename);
+    if (open_cat(cat, WRITE_ONLY) != RETURN_OK)
+      error(EXIT_FAILURE, "*Error*: cannot open for writing ", filename);
+    if (next>1)
+      save_tab(cat, cat->tab);
+    }
+  tab = new_tab("HOMO_DATA");
+  addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
+  fitswrite(tab->headbuf, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
+  for (i=0; i<psf->poly->ndim; i++)
+    {
+    sprintf(str, "POLGRP%1d", i+1);
+    addkeywordto_head(tab, str, "Polynom group for this context parameter");
+    temp = psf->poly->group[i]+1;
+    fitswrite(tab->headbuf, str, &temp, H_INT, T_LONG);
+    sprintf(str, "POLNAME%1d", i+1);
+    addkeywordto_head(tab, str, "Name of this context parameter");
+    fitswrite(tab->headbuf, str, psf->contextname[i], H_STRING, T_STRING);
+    sprintf(str, "POLZERO%1d", i+1);
+    addkeywordto_head(tab, str, "Offset value for this context parameter");
+    fitswrite(tab->headbuf, str, &psf->contextoffset[i], H_EXPO, T_DOUBLE);
+    sprintf(str, "POLSCAL%1d", i+1);
+    addkeywordto_head(tab, str, "Scale value for this context parameter");
+    fitswrite(tab->headbuf, str, &psf->contextscale[i], H_EXPO, T_DOUBLE);
+    }
+
+  addkeywordto_head(tab, "POLNGRP", "Number of context groups");
+  fitswrite(tab->headbuf, "POLNGRP", &psf->poly->ngroup, H_INT, T_LONG);
+  for (i=0; i<psf->poly->ngroup; i++)
+    {
+    sprintf(str, "POLDEG%1d", i+1);
+    addkeywordto_head(tab, str, "Polynom degree for this context group");
+    fitswrite(tab->headbuf, str, &psf->poly->degree[i], H_INT, T_LONG);
+    }
+
+/* Add and write important scalars as FITS keywords */
+  /* -- FM -- : write fwhm too */
+  addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
+  fitswrite(tab->headbuf, "PSF_FWHM", &psf->homopsf_params[0],
+	H_FLOAT,T_DOUBLE);
+  addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
+  fitswrite(tab->headbuf, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
+  tab->bitpix = BP_FLOAT;
+  tab->bytepix = t_size[T_FLOAT];
+  tab->naxis = 2;
+  tab->naxisn[0] = psf->size[0];
+  tab->naxisn[1] = psf->size[1];
+  tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+  tab->bodybuf = (char *)psf->homo_kernel; 
+  if (next == 1)
+    prim_head(tab);
+  fitswrite(tab->headbuf, "XTENSION", "IMAGE   ", H_STRING, T_STRING);
+
+  save_tab(cat, tab);
+/* But don't touch my arrays!! */
+  tab->bodybuf = NULL;
+  free_tab(tab);
+
+  if (ext==next-1)
+    free_cat(&cat , 1);
+
+  return;
+  }
 

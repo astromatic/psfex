@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	20/11/2007
+*	Last modify:	26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -325,7 +325,7 @@ INPUT   psfstruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 17/08/2007
+VERSION 26/12/2007
  ***/
 void	psf_end(psfstruct *psf)
   {
@@ -343,6 +343,7 @@ void	psf_end(psfstruct *psf)
   free(psf->resi);
   free(psf->size);
   free(psf->moffat);
+  free(psf->homo_kernel);
   free(psf);
 
   return;

@@ -9,7 +9,7 @@
 *
 *	Contents:	low-level functions for writing LDAC FITS catalogs.
 *
-*	Last modify:	17/07/2006
+*	Last modify:	26/12/2007
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -75,7 +75,7 @@ INPUT	pointer to the catalog structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP & Leiden observatory)
-VERSION	09/09/2003
+VERSION	26/12/2007
  ***/
 void	save_tab(catstruct *cat, tabstruct *tab)
 
@@ -90,8 +90,6 @@ void	save_tab(catstruct *cat, tabstruct *tab)
    char		*buf, *inbuf, *outbuf, *fptr,*ptr;
    int		esize;
 
-/*  Make the table parameters reflect its content*/
-  update_tab(tab);
 /*  The header itself*/
   tabflag = save_head(cat, tab)==RETURN_OK?1:0;
 /*  Allocate memory for the output buffer */
