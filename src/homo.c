@@ -57,7 +57,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 			*amat, *bmat;
    float		*basis,*basisc,*basis1,*basis2, *bigpsf, *fbigpsf,
 			*bigconv, *mofpix,*mofpixt,
-			*kernel,*kernelt,
+			*kernorm,*kernel,*kernelt,
 			a,b;
    int			bigsize[2],
 			i,j,p, nbasis, npix,nbigpix;
@@ -96,8 +96,6 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 	&basisc[i*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
     }
   fft_end(prefs.nthreads);
-  free(bigconv);
-  free(fbigpsf);
   free(bigpsf);
 
 /* Create idealized PSF */
@@ -149,9 +147,35 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
     for (p=npix; p--;)
       *(kernelt++) += b**(basis1++);
     }
+
   free(amat);
   free(bmat);
   free(basis);
+
+/* Normalize kernel (with respect to continuum) */
+/*
+  vignet_copy(kernel, psf->size[0],psf->size[1],
+	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+  fft_conv(bigconv, fbigpsf, bigsize[0], bigsize[1]);
+  QMALLOC(kernorm, float, npix);
+  vignet_copy(bigconv, bigsize[0],bigsize[1],
+	kernorm, psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
+*/
+  a = 0.0;
+  kernelt = kernel;
+  for (p=npix; p--;)
+    a += *(kernelt++);
+  if (a>0.0)
+    {
+    a = 1.0/a;
+    kernelt = kernel;
+    for (p=npix; p--;)
+      *(kernelt++) *= a;
+    }
+
+  free(fbigpsf);
+  free(bigconv);
+//  free(kernorm);
 
 /* Save homogenization kernel */
   psf->homo_kernel = kernel;

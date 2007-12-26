@@ -189,7 +189,7 @@ INPUT	ptr to the image,
 OUTPUT	Pointer to the compressed, memory-allocated Fourier transform.
 NOTES	Input data may end up corrupted.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/03/2007
+VERSION	26/12/2007
  ***/
 float	*fft_rtf(float *data, int width, int height)
   {
@@ -206,7 +206,7 @@ float	*fft_rtf(float *data, int width, int height)
 #endif
   QFFTWMALLOC(fdata, float, npix2);
   plan = fftwf_plan_dft_r2c_2d(width, height, data,
-        (fftwf_complex *)fdata, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
+        (fftwf_complex *)fdata, FFTW_ESTIMATE);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
 #endif
