@@ -9,10 +9,171 @@
 *
 *       Contents:       log of changes made to the PSFEx source
 *
-*       Last modify:    01/08/2007
+*       Last modify:    10/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+------------------------------------------------------------------------
+r681 | bertin | 2007-12-26 18:26:06 +0100 (Wed, 26 Dec 2007) | 2 lines
+
+Normalized homogenization kernel.
+
+------------------------------------------------------------------------
+r680 | bertin | 2007-12-26 17:31:57 +0100 (Wed, 26 Dec 2007) | 2 lines
+
+Completed homogenization stuff (for constant PSFs).
+
+------------------------------------------------------------------------
+r679 | bertin | 2007-12-22 21:18:28 +0100 (Sat, 22 Dec 2007) | 3 lines
+
+Added homogenization stuff (not yet functional).
+Pushed version number to 2.4.0.
+
+------------------------------------------------------------------------
+r671 | bertin | 2007-11-20 17:21:41 +0100 (Tue, 20 Nov 2007) | 2 lines
+
+Simplified PCA and PSF refinement calls.
+
+------------------------------------------------------------------------
+r666 | bertin | 2007-11-15 18:43:03 +0100 (Thu, 15 Nov 2007) | 9 lines
+
+Changed name of config parameters once again: COMBINE_TYPE has become NEWBASIS_TYPE (can be one of NONE,PCA_SINGLE or PCA_MULTI), and PCA_NUMBER has become NEWBASIS_NUMBER.
+Added and tested the new PCA_SINGLE procedure.
+Fixed a small bug (discovered with Valgrind) with PSF variation mapping on empty CCDs.
+Added extra display info during program run.
+Completed CHECKIMAGE_CUBE Y implementations in psf_writecheck().
+Added proper WCS info for 3rd axis in check-images with CHECKIMAGE_CUBE Y option.
+Fixed a small inconsistency of flag filtering during the two-stage read-out of input samples.
+Pushed version number to 2.3.1.
+
+------------------------------------------------------------------------
+r664 | bertin | 2007-11-14 20:04:16 +0100 (Wed, 14 Nov 2007) | 2 lines
+
+Added missing PCA module.
+
+------------------------------------------------------------------------
+r663 | bertin | 2007-11-14 19:58:51 +0100 (Wed, 14 Nov 2007) | 2 lines
+
+Implemented and tested PCA construction.
+
+------------------------------------------------------------------------
+r659 | bertin | 2007-11-13 19:20:04 +0100 (Tue, 13 Nov 2007) | 5 lines
+
+Fixed and tested loading of external image basis vectors. 
+Changed several configuration parameter keywords (PSF->SAMPLE, CONTEXT->PSFVAR) to more appropriate designations.
+Updated XML output (but not the XSL yet).
+Added COMBINE_TYPE config keyword (not yet in operation).
+
+------------------------------------------------------------------------
+r658 | bertin | 2007-11-12 22:51:32 +0100 (Mon, 12 Nov 2007) | 6 lines
+
+Added CHECKIMAGE_CUBE boolean config parameter to save check-images as datacubes (only BASIS types currently).
+Added reading of basis vectors but not yet functional.
+Removed remaining references to galaxy PCs in code (but still present on repository).
+Pushed keyword string max supported length to 32.
+Added function comments to psf.c.
+
+------------------------------------------------------------------------
+r657 | bertin | 2007-11-11 21:19:16 +0100 (Sun, 11 Nov 2007) | 2 lines
+
+Removed temporary tweak on iterative source centering parameters.
+
+------------------------------------------------------------------------
+r656 | bertin | 2007-11-11 21:12:23 +0100 (Sun, 11 Nov 2007) | 5 lines
+
+Updated ATLAS autoconfig.
+Changed PSF_TYPE to BASIS_TYPE, PSF_NSUPER to BASIS_NUMBER, PSF_BETA to BASIS_SCALE to add support for external basis vectors (BASIS_TYPE FILE).
+Added BASIS_NAME for external basis vector filename.
+Version number pushed to 2.3.0
+
+------------------------------------------------------------------------
+r652 | bertin | 2007-11-07 16:21:09 +0100 (Wed, 07 Nov 2007) | 4 lines
+
+Tuned regularisation factor in super-resolution.
+Removed .svn files from source archive.
+Version number pushed to 2.2.3.
+
+------------------------------------------------------------------------
+r650 | bertin | 2007-10-30 20:05:03 +0100 (Tue, 30 Oct 2007) | 3 lines
+
+Fixed issue with super-resolution and variable PSFs.
+Added simple, naive regularisation for extreme cases.
+
+------------------------------------------------------------------------
+r648 | bertin | 2007-10-18 19:27:03 +0200 (Thu, 18 Oct 2007) | 2 lines
+
+Changed --with-atlas_libpath configure option to --with-atlas.
+
+------------------------------------------------------------------------
+r647 | bertin | 2007-10-18 18:53:33 +0200 (Thu, 18 Oct 2007) | 3 lines
+
+Added Beta configuration parameter.
+Improved flexibility of ATLAS configuration.
+
+------------------------------------------------------------------------
+r643 | marmo | 2007-10-10 01:19:43 +0200 (Wed, 10 Oct 2007) | 1 line
+
+still improving XSLT translation
+------------------------------------------------------------------------
+r641 | marmo | 2007-10-09 19:08:26 +0200 (Tue, 09 Oct 2007) | 1 line
+
+Wrong format in XML Configuration File writing fixed. Added XSLT filter for average , min and max model properties on all extensions.
+------------------------------------------------------------------------
+r640 | marmo | 2007-10-04 23:02:18 +0200 (Thu, 04 Oct 2007) | 1 line
+
+Improving XSLT aesthetics. Missing configuration parameters added in XML output.
+------------------------------------------------------------------------
+r630 | bertin | 2007-09-29 21:00:42 +0200 (Sat, 29 Sep 2007) | 3 lines
+
+Added computation of MSE (no output yet).
+Added renormalisation of the PSF model when computing residuals.
+
+------------------------------------------------------------------------
+r601 | bertin | 2007-08-17 21:49:03 +0200 (Fri, 17 Aug 2007) | 6 lines
+
+Reorganized completely psf_refine() to accomodate arbitrary basis vectors.
+Fixed overflows and normalization in Gauss-Laguerre polynomials.
+Added CHECKIMAGE_TYPE BASIS for visualizing basis vectors.
+Reduced by 25% the adaptive sampling step.
+Version number pushed to 2.2.1
+
+------------------------------------------------------------------------
+r600 | bertin | 2007-08-16 20:18:23 +0200 (Thu, 16 Aug 2007) | 5 lines
+
+Added support for Gauss-Laguerre vector bases(aka polar shapelets).
+Added PSF_TYPE configuration keyword.
+Changed meaning of PSF_NSUPER.
+Pushed version number to 2.2.0.
+
+------------------------------------------------------------------------
+r595 | bertin | 2007-08-14 19:49:21 +0200 (Tue, 14 Aug 2007) | 2 lines
+
+Removed forgotten square and weighting in RESIDUALS check-image.
+
+------------------------------------------------------------------------
+r594 | bertin | 2007-08-14 19:33:48 +0200 (Tue, 14 Aug 2007) | 2 lines
+
+Added circular PSF soft-clipping feature.
+
+------------------------------------------------------------------------
+r590 | bertin | 2007-08-13 21:39:06 +0200 (Mon, 13 Aug 2007) | 6 lines
+
+Complete upgrade of the point-source selection and rejection processes.
+PSF refinement now done at each rejection step.
+Chi2's are now computed within a disk with diameter the size of PSF image.
+Added PSF_FLAGMASK advanced configuration parameter.
+Version number pushed to 2.1.0.
+
+------------------------------------------------------------------------
+r574 | marmo | 2007-08-05 14:11:22 +0200 (Sun, 05 Aug 2007) | 1 line
+
+compacting Configuration file displaying.
+------------------------------------------------------------------------
+r570 | bertin | 2007-08-01 20:19:10 +0200 (Wed, 01 Aug 2007) | 3 lines
+
+Added missing .m4 files in Makefile.
+Added config examples.
 
 ------------------------------------------------------------------------
 r560 | bertin | 2007-07-19 17:14:20 +0200 (Thu, 19 Jul 2007) | 3 lines

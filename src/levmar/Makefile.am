@@ -7,4 +7,4 @@ liblevmar_a_SOURCES	= Axb.c lmbc.c lm.c lmlec.c misc.c \
 			  lm.h misc.h
 EXTRA_liblevmar_a_SOURCES = Axb_core.c lmbc_core.c lm_core.c \
 			  lmlec_core.c misc_core.c \
-EXTRA_DIST		= LICENSE README README.txt lmdemo.c
+			  LICENSE README README.txt lmdemo.c
