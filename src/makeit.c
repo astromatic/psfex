@@ -292,7 +292,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     basistype = prefs.basis_type;
     if (basistype==BASIS_PIXEL_AUTO)
       basistype = (psf->fwhm < PSF_AUTO_FWHM)? BASIS_PIXEL : BASIS_NONE;
-    psf_makebasis(psf, set, prefs.basis_type, prefs.basis_number);
+    psf_makebasis(psf, set, basistype, prefs.basis_number);
     }
   psf_refine(psf, set);
 
