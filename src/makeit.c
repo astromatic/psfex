@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	22/12/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -259,12 +259,13 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/11/2007
+VERSION 15/01/2008
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, int diagflag)
   {
    psfstruct		*psf;
+   basistypenum		basistype;
 
   NFPRINTF(OUTPUT,"Initializing PSF modules...");
   psf = psf_init(prefs.context_name, prefs.context_group,
@@ -288,6 +289,9 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   else
     {
     NFPRINTF(OUTPUT,"Generating the PSF model...");
+    basistype = prefs.basis_type;
+    if (basistype==BASIS_PIXEL_AUTO)
+      basistype = (psf->fwhm < PSF_AUTO_FWHM)? BASIS_PIXEL : BASIS_NONE;
     psf_makebasis(psf, set, prefs.basis_type, prefs.basis_number);
     }
   psf_refine(psf, set);

@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	15/11/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -441,11 +441,12 @@ setstruct *read_samples(setstruct *set, char *filename,
       if (!set->sample)
         {
 /*------ The retina cannot be larger than the input images! */
+/*
         if (prefs.retisize[0]*prefs.psf_step>(double)vigw
 	 || prefs.retisize[1]*prefs.psf_step>(double)vigh)
           error(EXIT_FAILURE, "*Error*: Vignets smaller than the retina in ",
 		filename);
-
+*/
         nsample = 0;
         nsamplemax = LSAMPLE_DEFSIZE;
         malloc_samples(set, nsamplemax);

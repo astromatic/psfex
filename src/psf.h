@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	26/12/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -34,9 +34,11 @@
 #define PSF_NITER	40	/* Maximum number of iterations in fit */
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 #define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
+#define	PSF_AUTO_FWHM	3.0	/* FWHM theshold for PIXEL-AUTO mode */
 
 /*----------------------------- Type definitions --------------------------*/
-typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE}
+typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE,
+		BASIS_PIXEL_AUTO}
         basistypenum;
 /*--------------------------- structure definitions -------------------------*/
 

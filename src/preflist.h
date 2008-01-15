@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	22/12/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,7 +44,7 @@ pkeystruct key[] =
   {"BASIS_NUMBER", P_INT, &prefs.basis_number, 0,10000},
   {"BASIS_SCALE", P_FLOAT, &prefs.basis_scale, 0,0, 0.0,1.0e3},
   {"BASIS_TYPE", P_KEY, &prefs.basis_type, 0,0, 0.0,0.0,
-   {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", ""}},
+   {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", "PIXEL_AUTO", ""}},
   {"CHECKIMAGE_CUBE", P_BOOL, &prefs.check_cubeflag},
   {"CHECKIMAGE_NAME", P_STRINGLIST, prefs.check_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
@@ -104,7 +104,7 @@ char *default_prefs[] =
 "#-------------------------------- PSF model ----------------------------------",
 " ",
 "PSF_NAME        default.psf     # Output PSF filename",
-"BASIS_TYPE      PIXEL           # NONE, PIXEL, GAUSS-LAGUERRE or FILE",
+"BASIS_TYPE      PIXEL_AUTO      # NONE, PIXEL, GAUSS-LAGUERRE or FILE",
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
