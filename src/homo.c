@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF homogenisation stuff.
 *
-*	Last modify:	26/12/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,24 +46,58 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/12/2007
+VERSION 15/01/2008
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
 		int ext, int next)
   {
    moffatstruct		*moffat;
+   polystruct		*poly;
    double		dpos[POLY_MAXDIM],
-			*amat, *bmat;
+			*amat, *bmat, *contcross, *coeff,
+			dstep,dstart, dval;
    float		*basis,*basisc,*basis1,*basis2, *bigpsf, *fbigpsf,
 			*bigconv, *mofpix,*mofpixt,
 			*kernorm,*kernel,*kernelt,
 			a,b;
    int			bigsize[2],
-			i,j,p, nbasis, npix,nbigpix;
+			d,i,j,n,p, nt, nbasis, npix,nbigpix, ndim, ncoeff;
+
+  NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
 
   npix = psf->size[0]*psf->size[1];
-  NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
+  poly = psf->poly;
+  ndim = poly->ndim;
+  coeff = poly->coeff;
+  ncoeff = poly->ncoeff;
+
+/* Computing context cross-products */
+  QCALLOC(contcross, double, ncoeff*ncoeff);
+  nt = 1;
+  for (d=0; d<ndim; d++)
+    nt *= HOMO_NSNAP;
+  dstep = 1.0/HOMO_NSNAP;
+  dstart = (1.0-dstep)/2.0;
+  for (d=0; d<ndim; d++)
+    dpos[d] = -dstart;
+  for (n=0; n<nt; n++)
+    {
+    poly_func(poly, dpos);
+    for (j=0; j<ncoeff; j++)
+      for (i=j; i<ncoeff; i++)
+        contcross[j*ncoeff+i] += coeff[j]*coeff[i];
+    for (d=0; d<ndim; d++)
+      if (dpos[d]<dstart-0.01)
+        {
+        dpos[d] += dstep;
+        break;
+        }
+      else
+        dpos[d] = -dstart;
+    }
+
+  free(contcross);
 
 /* Generate real PSF image at center with extra padding for convolution */
   for (i=0; i<psf->poly->ndim; i++)

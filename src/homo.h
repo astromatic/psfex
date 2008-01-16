@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for homo.c.
 *
-*	Last modify:	26/12/2007
+*	Last modify:	15/01/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -22,6 +22,9 @@
 #define _HOMO_H_
 
 /*----------------------------- Internal constants --------------------------*/
+
+#define		HOMO_NSNAP	5	/* Number of points per PSFVar dim. */
+
 /*----------------------------- Global variables ---------------------------*/
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
