@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF homogenisation stuff.
 *
-*	Last modify:	15/01/2008
+*	Last modify:	01/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/01/2008
+VERSION 01/02/2008
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -55,14 +55,15 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
    moffatstruct		*moffat;
    polystruct		*poly;
    double		dpos[POLY_MAXDIM],
-			*amat, *bmat, *contcross, *coeff,
+			*amat,*amatt, *bmat,*bmatt, *cross,*tcross, *coeff,
 			dstep,dstart, dval;
-   float		*basis,*basisc,*basis1,*basis2, *bigpsf, *fbigpsf,
-			*bigconv, *mofpix,*mofpixt,
+   float		*basis,*basisc,*basis1,*basis2, *bigbasis, *fbigbasis,
+			*bigconv, *target,*targett,
 			*kernorm,*kernel,*kernelt,
 			a,b;
    int			bigsize[2],
-			d,i,j,n,p, nt, nbasis, npix,nbigpix, ndim, ncoeff;
+			c,c1,c2,d,f1,f2,i,i1,i2,j,j1,j2,n,p,
+			nt, npix,nbigpix, ndim, nbasis,ncoeff,nfree;
 
   NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
 
@@ -72,65 +73,10 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   coeff = poly->coeff;
   ncoeff = poly->ncoeff;
 
-/* Computing context cross-products */
-  QCALLOC(contcross, double, ncoeff*ncoeff);
-  nt = 1;
-  for (d=0; d<ndim; d++)
-    nt *= HOMO_NSNAP;
-  dstep = 1.0/HOMO_NSNAP;
-  dstart = (1.0-dstep)/2.0;
-  for (d=0; d<ndim; d++)
-    dpos[d] = -dstart;
-  for (n=0; n<nt; n++)
-    {
-    poly_func(poly, dpos);
-    for (j=0; j<ncoeff; j++)
-      for (i=j; i<ncoeff; i++)
-        contcross[j*ncoeff+i] += coeff[j]*coeff[i];
-    for (d=0; d<ndim; d++)
-      if (dpos[d]<dstart-0.01)
-        {
-        dpos[d] += dstep;
-        break;
-        }
-      else
-        dpos[d] = -dstart;
-    }
-
-  free(contcross);
-
-/* Generate real PSF image at center with extra padding for convolution */
-  for (i=0; i<psf->poly->ndim; i++)
-     dpos[i] = 0.5;
-  psf_build(psf, dpos);
-  bigsize[0] = psf->size[0]*2;
-  bigsize[1] = psf->size[1]*2;
-  nbigpix = bigsize[0]*bigsize[1];
-  QCALLOC(bigpsf, float, nbigpix);
-  vignet_copy(psf->loc, psf->size[0],psf->size[1],
-	bigpsf, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
-  fft_shift(bigpsf, bigsize[0], bigsize[1]);
-  fbigpsf = fft_rtf(bigpsf, bigsize[0], bigsize[1]);
-
 /* Create kernel basis */
   nbasis = psf_pshapelet(&basis, psf->size[0],psf->size[1],
 	homobasis_number, sqrt(homobasis_number+1.0)*homobasis_scale);
-  basisc = NULL;		/* to avoid gcc -Wall warnings */
-  QMEMCPY(basis, basisc, float, nbasis*npix);
-
-/* Convolve kernel basis vectors with real PSF */
-  QMALLOC(bigconv, float, nbigpix);
-  fft_init(prefs.nthreads);
-  for (i=0; i<nbasis; i++)
-    {
-    vignet_copy(&basis[i*npix], psf->size[0],psf->size[1],
-	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
-    fft_conv(bigconv, fbigpsf, bigsize[0], bigsize[1]);
-    vignet_copy(bigconv, bigsize[0],bigsize[1],
-	&basisc[i*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
-    }
-  fft_end(prefs.nthreads);
-  free(bigpsf);
+  nfree = nbasis*ncoeff;
 
 /* Create idealized PSF */
   QCALLOC(moffat, moffatstruct, 1);
@@ -141,45 +87,131 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   moffat->theta = 0.0;
   moffat->beta = homopsf_params[1];
   psf_moffat(psf, moffat);
-  mofpix = psf->loc;
+  QMEMCPY(psf->loc, target, float, npix);
   free(moffat);
 
-/* Compute the normal equation matrix */
-  QCALLOC(amat, double, nbasis*nbasis);
-  QCALLOC(bmat, double, nbasis);
-  for (j=0;j<nbasis; j++)
-    for (i=0; i<nbasis; i++)
-      {
-      basis1 = basisc + j*npix;
-      basis2 = basisc + i*npix;
-      a = 0.0;
-      for (p=npix; p--;)
-        a += *(basis1++)**(basis2++);
-      amat[j*nbasis+i] = a;
-      }
-  for (j=0; j<nbasis; j++)
-    {
-    basis1 = basisc + j*npix;
-    mofpixt = mofpix;
-    b = 0.0;
-    for (p=npix; p--;)
-      b += *(basis1++)**(mofpixt++);
-    bmat[j] = b;
-    }
-  free(basisc);
+/* Prepare a padded space for PSF */
+  bigsize[0] = psf->size[0]*2;
+  bigsize[1] = psf->size[1]*2;
+  nbigpix = bigsize[0]*bigsize[1];
+  QMALLOC(bigbasis, float, nbigpix);
+/* bigconv will receive the result of the convolution */
+  QMALLOC(bigconv, float, nbigpix);
 
-  clapack_dpotrf(CblasRowMajor, CblasUpper, nbasis, amat, nbasis);
-  clapack_dpotrs(CblasRowMajor, CblasUpper, nbasis, 1, amat, nbasis,
-	bmat, nbasis);
+/* Convolve kernel basis vectors with PSF components and compute X-products*/
+  QMALLOC(basisc, float, nfree*npix);
+  QMALLOC(cross, double, nfree*nfree);
+  QMALLOC(tcross, double, nfree);
+  fft_init(prefs.nthreads);
+  f1 = 0;
+  for (i=0; i<nbasis; i++)
+    {
+    vignet_copy(&basis[i*npix], psf->size[0],psf->size[1],
+	bigbasis, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+    fft_shift(bigbasis, bigsize[0], bigsize[1]);
+    fbigbasis = fft_rtf(bigbasis, bigsize[0], bigsize[1]);
+    for (c=0; c<ncoeff; c++, f1++)
+      {
+      vignet_copy(&psf->comp[c*npix], psf->size[0],psf->size[1],
+	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+      fft_conv(bigconv, fbigbasis, bigsize[0], bigsize[1]);
+      vignet_copy(bigconv, bigsize[0],bigsize[1],
+	&basisc[f1*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
+      basis2 = basisc;
+      for (f2=0; f2<=f1; f2++)
+        {
+        basis1 = basisc + f1*npix;
+        dval = 0.0;
+        for (p=npix; p--;)
+          dval += *(basis1++)**(basis2++);
+        cross[f1+f2*nfree] = cross[f2+f1*nfree] = dval;
+        }
+/*---- Cross-product with target PSF */
+      basis1 = basisc + f1*npix;
+      basis2 = target;
+      dval = 0.0;
+      for (p=npix; p--;)
+        dval += *(basis1++)**(basis2++);
+      tcross[f1] = dval;
+      }
+    free(fbigbasis);
+    }
+
+  fft_end(prefs.nthreads);
+  free(basisc);
+  free(bigbasis);
+  free(bigconv);
+  free(target);
+
+  QCALLOC(amat, double, nfree*nfree);
+  QCALLOC(bmat, double, nfree);
+/* Proceed through realizations of the PSF throughout the grid of parameters */
+  nt = 1;
+  for (d=0; d<ndim; d++)
+    nt *= HOMO_NSNAP;
+  dstep = 1.0/HOMO_NSNAP;
+  dstart = (1.0-dstep)/2.0;
+  for (d=0; d<ndim; d++)
+    dpos[d] = -dstart;
+  for (n=0; n<nt; n++)
+    {
+    poly_func(poly, dpos);
+    amatt = amat;
+    bmatt = bmat;
+    for (j1=0; j1<nbasis; j1++)
+      {
+      for (c1=0; c1<ncoeff; c1++)
+        {
+        for (j2=0; j2<nbasis; j2++)
+          {
+          for (c2=0; c2<ncoeff; c2++)
+            {
+            dval = 0.0;
+            for (i1=0; i1<ncoeff; i1++)
+              {
+              f1 = j1*ncoeff + i1;
+              for (i2=0; i2<ncoeff; i2++)
+                dval += coeff[i1]*coeff[i2]*cross[f1*nfree+j2*ncoeff + i2];
+              }
+            *(amatt++) += coeff[c1]*coeff[c2]*dval;
+            }
+          }
+        dval = 0.0;
+        for (i1=0; i1<ncoeff; i1++)
+          dval += coeff[i1]*tcross[j1*nbasis+i1];
+        *(bmatt++) += coeff[c1]*dval;
+        }
+      }
+
+    for (d=0; d<ndim; d++)
+      if (dpos[d]<dstart-0.01)
+        {
+        dpos[d] += dstep;
+        break;
+        }
+      else
+        dpos[d] = -dstart;
+    }
+
+  free(cross);
+  free(tcross);
+
+  clapack_dpotrf(CblasRowMajor, CblasUpper, nfree, amat, nfree);
+  clapack_dpotrs(CblasRowMajor, CblasUpper, nfree, 1, amat, nfree, bmat, nfree);
 
   QCALLOC(kernel, float, npix);
+  bmatt = bmat;
+  kernelt = kernel;
   for (j=0; j<nbasis; j++)
     {
-    basis1 = basis + j*npix;
-    b = bmat[j];
     kernelt = kernel;
-    for (p=npix; p--;)
-      *(kernelt++) += b**(basis1++);
+    for (c=ncoeff; c--;)
+      {
+      basis1 = basis + j*npix;
+      dval = *(bmatt++);
+      for (p=npix; p--;)
+        *(kernelt++) += dval**(basis1++);
+      }
     }
 
   free(amat);
@@ -195,6 +227,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   vignet_copy(bigconv, bigsize[0],bigsize[1],
 	kernorm, psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
 */
+/*
   a = 0.0;
   kernelt = kernel;
   for (p=npix; p--;)
@@ -206,9 +239,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
     for (p=npix; p--;)
       *(kernelt++) *= a;
     }
-
-  free(fbigpsf);
-  free(bigconv);
+*/
 //  free(kernorm);
 
 /* Save homogenization kernel */
@@ -232,12 +263,13 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/12/2007
+VERSION 01/02/2008
  ***/
 void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
   {
    static catstruct	*cat;
    tabstruct		*tab;
+   polystruct		*poly;
    char			str[88];
    int			i, temp;
 
@@ -252,14 +284,16 @@ void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
     if (next>1)
       save_tab(cat, cat->tab);
     }
+
+  poly = psf->poly;
   tab = new_tab("HOMO_DATA");
   addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
-  fitswrite(tab->headbuf, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
-  for (i=0; i<psf->poly->ndim; i++)
+  fitswrite(tab->headbuf, "POLNAXIS", &poly->ndim, H_INT, T_LONG);
+  for (i=0; i<poly->ndim; i++)
     {
     sprintf(str, "POLGRP%1d", i+1);
     addkeywordto_head(tab, str, "Polynom group for this context parameter");
-    temp = psf->poly->group[i]+1;
+    temp = poly->group[i]+1;
     fitswrite(tab->headbuf, str, &temp, H_INT, T_LONG);
     sprintf(str, "POLNAME%1d", i+1);
     addkeywordto_head(tab, str, "Name of this context parameter");
@@ -273,12 +307,12 @@ void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
     }
 
   addkeywordto_head(tab, "POLNGRP", "Number of context groups");
-  fitswrite(tab->headbuf, "POLNGRP", &psf->poly->ngroup, H_INT, T_LONG);
-  for (i=0; i<psf->poly->ngroup; i++)
+  fitswrite(tab->headbuf, "POLNGRP", &poly->ngroup, H_INT, T_LONG);
+  for (i=0; i<poly->ngroup; i++)
     {
     sprintf(str, "POLDEG%1d", i+1);
     addkeywordto_head(tab, str, "Polynom degree for this context group");
-    fitswrite(tab->headbuf, str, &psf->poly->degree[i], H_INT, T_LONG);
+    fitswrite(tab->headbuf, str, &poly->degree[i], H_INT, T_LONG);
     }
 
 /* Add and write important scalars as FITS keywords */
@@ -290,10 +324,22 @@ void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
   fitswrite(tab->headbuf, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
   tab->bitpix = BP_FLOAT;
   tab->bytepix = t_size[T_FLOAT];
-  tab->naxis = 2;
-  tab->naxisn[0] = psf->size[0];
-  tab->naxisn[1] = psf->size[1];
-  tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+  if (poly->ncoeff>1)
+    {
+    tab->naxis = 3;
+    QREALLOC(tab->naxisn, int, tab->naxis);
+    tab->naxisn[0] = psf->size[0];
+    tab->naxisn[1] = psf->size[1];
+    tab->naxisn[2] = poly->ncoeff;
+    tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1]*tab->naxisn[2];
+    }
+  else
+    {
+    tab->naxis = 2;
+    tab->naxisn[0] = psf->size[0];
+    tab->naxisn[1] = psf->size[1];
+    tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+    }
   tab->bodybuf = (char *)psf->homo_kernel; 
   if (next == 1)
     prim_head(tab);
