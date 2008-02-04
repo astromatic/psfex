@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	15/01/2008
+*	Last modify:	04/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -200,8 +200,11 @@ void	makeit(char **incatnames, int ncat)
 
 /* Create a homogenisation kernel */
     if (prefs.homobasis_type != HOMOBASIS_NONE)
+      {
+      NFPRINTF(OUTPUT, "Computing homogenisation kernel...");
       psf_homo(psf[ext], prefs.homokernel_name, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
+      }
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)

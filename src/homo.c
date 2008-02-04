@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF homogenisation stuff.
 *
-*	Last modify:	01/02/2008
+*	Last modify:	04/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 01/02/2008
+VERSION 04/02/2008
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -58,11 +58,11 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 			*amat,*amatt, *bmat,*bmatt, *cross,*tcross, *coeff,
 			dstep,dstart, dval;
    float		*basis,*basisc,*basis1,*basis2, *bigbasis, *fbigbasis,
-			*bigconv, *target,*targett,
+			*bigconv, *target,
 			*kernorm,*kernel,*kernelt,
 			a,b;
    int			bigsize[2],
-			c,c1,c2,d,f1,f2,i,i1,i2,j,j1,j2,n,p,
+			c,c1,c2,c3,c4,d,f1,f2,i,j,j1,j2,n,p,
 			nt, npix,nbigpix, ndim, nbasis,ncoeff,nfree;
 
   NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
@@ -70,7 +70,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   npix = psf->size[0]*psf->size[1];
   poly = psf->poly;
   ndim = poly->ndim;
-  coeff = poly->coeff;
+  coeff = poly->basis;
   ncoeff = poly->ncoeff;
 
 /* Create kernel basis */
@@ -167,18 +167,18 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
           for (c2=0; c2<ncoeff; c2++)
             {
             dval = 0.0;
-            for (i1=0; i1<ncoeff; i1++)
+            for (c3=0; c3<ncoeff; c3++)
               {
-              f1 = j1*ncoeff + i1;
-              for (i2=0; i2<ncoeff; i2++)
-                dval += coeff[i1]*coeff[i2]*cross[f1*nfree+j2*ncoeff + i2];
+              f1 = j1*ncoeff + c3;
+              for (c4=0; c4<ncoeff; c4++)
+                dval += coeff[c3]*coeff[c4]*cross[f1*nfree+j2*ncoeff + c4];
               }
             *(amatt++) += coeff[c1]*coeff[c2]*dval;
             }
           }
         dval = 0.0;
-        for (i1=0; i1<ncoeff; i1++)
-          dval += coeff[i1]*tcross[j1*nbasis+i1];
+        for (c3=0; c3<ncoeff; c3++)
+          dval += coeff[c3]*tcross[j1*ncoeff+c3];
         *(bmatt++) += coeff[c1]*dval;
         }
       }
@@ -199,9 +199,8 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   clapack_dpotrf(CblasRowMajor, CblasUpper, nfree, amat, nfree);
   clapack_dpotrs(CblasRowMajor, CblasUpper, nfree, 1, amat, nfree, bmat, nfree);
 
-  QCALLOC(kernel, float, npix);
+  QCALLOC(kernel, float, npix*ncoeff);
   bmatt = bmat;
-  kernelt = kernel;
   for (j=0; j<nbasis; j++)
     {
     kernelt = kernel;
@@ -227,19 +226,18 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   vignet_copy(bigconv, bigsize[0],bigsize[1],
 	kernorm, psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
 */
-/*
-  a = 0.0;
+  dval = 0.0;
   kernelt = kernel;
   for (p=npix; p--;)
-    a += *(kernelt++);
-  if (a>0.0)
+    dval += *(kernelt++);
+  if (dval>0.0)
     {
-    a = 1.0/a;
+    a = 1.0/dval;
     kernelt = kernel;
-    for (p=npix; p--;)
+    for (p=npix*ncoeff; p--;)
       *(kernelt++) *= a;
     }
-*/
+
 //  free(kernorm);
 
 /* Save homogenization kernel */
@@ -340,7 +338,7 @@ void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
     tab->naxisn[1] = psf->size[1];
     tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
     }
-  tab->bodybuf = (char *)psf->homo_kernel; 
+  tab->bodybuf = (char *)psf->homo_kernel;
   if (next == 1)
     prim_head(tab);
   fitswrite(tab->headbuf, "XTENSION", "IMAGE   ", H_STRING, T_STRING);
