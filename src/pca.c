@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	15/11/2007
+*	Last modify:	18/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,17 +30,19 @@
 #include	"psf.h"
 
 /****** pca_make **************************************************************
-PROTO	float *pca_make(psfstruct **psf, int ncat, int npc)
+PROTO	float *pca_make(psfstruct **psf, int ncat, int npc
+			newbasisenum pcatype)
 PURPOSE	Make a Principal Component Analysis from PSF models.
 INPUT	Pointer to an array of PSF structures,
 	Number of catalogues (PSFs),
-	Number of principal components.
+	Number of principal components,
+	Type of PCA
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
 VERSION 15/11/2007
  ***/
-float *pca_make(psfstruct **psfs, int ncat, int npc)
+float *pca_make(psfstruct **psfs, int ncat, int npc, newbasisenum pcatype)
   {
    psfstruct	*psf;
    char		str[MAXCHAR];
@@ -72,7 +74,7 @@ float *pca_make(psfstruct **psfs, int ncat, int npc)
       {
       psf_build(psf, dpos);
       pix1 = pix = psf->loc;
-/*---- Set-up the covariance/correlation matrix */
+/*---- Set-up the covariance/correlation matrix in signal space */
       covmatt = covmat;
       sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		100.0*((float)n/nt+c)/ncat);

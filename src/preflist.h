@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	15/01/2008
+*	Last modify:	18/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -61,7 +61,7 @@ pkeystruct key[] =
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
-	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
+	{"NONE", "PCA_PIXEL", "PCA_PSFVAR", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
@@ -108,7 +108,7 @@ char *default_prefs[] =
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
-"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_MULTI or PCA_SINGLE",
+"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_PIXEL or PCA_PSFVAR",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
@@ -117,10 +117,10 @@ char *default_prefs[] =
 " ",
 "#----------------------------- PSF variability -----------------------------",
 " ",
-"PSFVAR_KEYS    X_IMAGE,Y_IMAGE # SExtractor or FITS (preceded by :) params",
-"PSFVAR_GROUPS  1,1             # Group tag for each context key",
-"PSFVAR_DEGREES   1             # Polynom degree for each group",
-"*PSFVAR_NSNAP   7               # Number of PSF snapshots per axis",
+"PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params",
+"PSFVAR_GROUPS  1,1              # Group tag for each context key",
+"PSFVAR_DEGREES   1              # Polynom degree for each group",
+"*PSFVAR_NSNAP   7                # Number of PSF snapshots per axis",
 " ",
 "#----------------------------- Sample selection ------------------------------",
 " ",

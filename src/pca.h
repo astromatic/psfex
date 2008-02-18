@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for pca.c.
 *
-*	Last modify:	14/11/2007
+*	Last modify:	18/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,10 +27,15 @@
 #define		PCA_NITER	15	/* Max nb of iter. in pc_find() */
 #define		PCA_CONVEPS	1e-6	/* pc_find() converg. criterion */
 
+/*--------------------------------- typedefs --------------------------------*/
+typedef enum {NEWBASIS_NONE, NEWBASIS_PCAPIXEL, NEWBASIS_PCAPSFVAR}
+	newbasisenum;
+
 /*--------------------------- structure definitions -------------------------*/
-/*---------------------------------- protos --------------------------------*/
+/*---------------------------------- protos ---------------------------------*/
 extern double	pca_findpc(double *covmat, float *vec, int nmat);
 
-extern float	*pca_make(psfstruct **psfs, int ncat, int npc);
+extern float	*pca_make(psfstruct **psfs, int ncat, int npc,
+			newbasisenum pcatype);
 
 #endif

@@ -9,13 +9,17 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	22/12/2007
+*	Last modify:	18/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
 #ifndef	_CHECK_H_
 #include "check.h"
+#endif
+
+#ifndef _PCA_H_
+#include "pca.h"
 #endif
 
 #ifndef _PSF_H_
@@ -40,8 +44,7 @@ typedef struct
   char		prefs_name[MAXCHAR];		/* prefs filename */
   char		psf_name[MAXCHAR];		/* PSF filename */
   int		retisize[2], nretisize;		/* Retina size */
-  enum {NEWBASIS_NONE, NEWBASIS_PCAMULTI, NEWBASIS_PCASINGLE}
-		newbasis_type;			/* Type of new basis */
+  newbasisenum	newbasis_type;			/* Type of new basis */
   int		newbasis_number;		/* Number of PCs */
 /* Point-source sample */
   double	minsn;				/* Minimum S/N for patterns */

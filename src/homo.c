@@ -59,8 +59,8 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 			dstep,dstart, dval;
    float		*basis,*basisc,*basis1,*basis2, *bigbasis, *fbigbasis,
 			*bigconv, *target,
-			*kernorm,*kernel,*kernelt,
-			a,b;
+			*kernel,*kernelt,
+			a;
    int			bigsize[2],
 			c,c1,c2,c3,c4,d,f1,f2,i,j,j1,j2,n,p,
 			nt, npix,nbigpix, ndim, nbasis,ncoeff,nfree;
@@ -87,6 +87,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   moffat->theta = 0.0;
   moffat->beta = homopsf_params[1];
   psf_moffat(psf, moffat);
+  target = NULL;		/* to avoid gcc -Wall warnings */
   QMEMCPY(psf->loc, target, float, npix);
   free(moffat);
 

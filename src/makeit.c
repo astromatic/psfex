@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	04/02/2008
+*	Last modify:	18/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -103,7 +103,7 @@ void	makeit(char **incatnames, int ncat)
   nbasis = 0;
   basis = NULL;
 
-  if (prefs.newbasis_type==NEWBASIS_PCAMULTI && (!psfstep))
+  if (prefs.newbasis_type==NEWBASIS_PCAPIXEL && (!psfstep))
     {
 /* A first run through all samples only to derive a common pixel step */
     QMALLOC(psfsteps, float, next);
@@ -114,43 +114,6 @@ void	makeit(char **incatnames, int ncat)
       end_set(set);
       }
     }
-  else if (prefs.newbasis_type==NEWBASIS_PCASINGLE)
-    {
-    NFPRINTF(OUTPUT, "");
-    QPRINTF(OUTPUT,
-	"----- First pass for Principal Component Analysis (single): "
-	"%dx%d PSFs required\n", ncat, next);
-    if (!prefs.psf_step)
-      {
-      QMALLOC(psfsteps, float, next);
-      for (ext=0 ; ext<next; ext++)
-        {
-        set = load_samples(incatnames, ncat, ext, next);
-        psfsteps[ext] = (float)((set->fwhm/2.35)*0.5);
-        end_set(set);
-        }
-      psfstep = fast_median(psfsteps, next);
-      }
-/*-- Derive a new common PCA basis for all extensions */
-    QMALLOC(cpsf, psfstruct *, ncat*next);
-    for (ext=0 ; ext<next; ext++)
-      for (c=0; c<ncat; c++)
-        {
-        set = load_samples(&incatnames[c], 1, ext, next);
-        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
-        NFPRINTF(OUTPUT, str);
-        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, 0);
-        end_set(set);
-        }
-    nbasis = prefs.newbasis_number;
-    basis = pca_make(cpsf, ncat*next, nbasis);
-    for (i=0 ; i<ncat*next; i++)
-      psf_end(cpsf[i]);
-    free(cpsf);
-    NFPRINTF(OUTPUT, "");
-    QPRINTF(OUTPUT,
-	"----- Second pass for Principal Component Analysis (single):\n\n");
-    }
 
 /* Create an array of PSFs (one PSF for each extension) */
   QMALLOC(psf, psfstruct *, next);
@@ -159,7 +122,7 @@ void	makeit(char **incatnames, int ncat)
 	" residuals asymmetry");
   for (ext=0 ; ext<next; ext++)
     {
-    if (prefs.newbasis_type == NEWBASIS_PCAMULTI)
+    if (prefs.newbasis_type != NEWBASIS_NONE)
 /*---- Derive a new PCA basis for each extension */
       {
       psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
@@ -173,7 +136,7 @@ void	makeit(char **incatnames, int ncat)
         end_set(set);
         }
       nbasis = prefs.newbasis_number;
-      basis = pca_make(cpsf, ncat, nbasis);
+      basis = pca_make(cpsf, ncat, nbasis, prefs.newbasis_type);
       for (c=0 ; c<ncat; c++)
         psf_end(cpsf[c]);
       free(cpsf);
@@ -194,6 +157,7 @@ void	makeit(char **incatnames, int ncat)
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
 	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
+
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
     psf_save(psf[ext], prefs.psf_name, ext, next);
