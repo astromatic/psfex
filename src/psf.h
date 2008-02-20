@@ -9,10 +9,14 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	15/01/2008
+*	Last modify:	19/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _CONTEXT_H_
+#include "context.h"
+#endif
 
 #ifndef _POLY_H_
 #include "poly.h"
@@ -120,9 +124,8 @@ extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);
 
-extern psfstruct	*psf_init(char **names, int *group, int ndim,
-				int *dim, int ngroup,
-				int wpsf, int hpsf, float psfstep,int nsample),
+extern psfstruct	*psf_init(contextstruct *context, int *size,
+				float psfstep,int nsample),
 			*psf_load(char *filename);
 
 

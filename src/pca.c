@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	18/02/2008
+*	Last modify:	20/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,20 +29,19 @@
 #include	"prefs.h"
 #include	"psf.h"
 
-/****** pca_make **************************************************************
-PROTO	float *pca_make(psfstruct **psf, int ncat, int npc
-			newbasisenum pcatype)
-PURPOSE	Make a Principal Component Analysis from PSF models.
+
+/****** pca_onsnaps ***********************************************************
+PROTO	float *pca_onsnaps(psfstruct **psf, int ncat, int npc)
+PURPOSE	Make a Principal Component Analysis in pixel space of PSF models.
 INPUT	Pointer to an array of PSF structures,
 	Number of catalogues (PSFs),
-	Number of principal components,
-	Type of PCA
+	Number of principal components.
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 15/11/2007
+VERSION 20/02/2008
  ***/
-float *pca_make(psfstruct **psfs, int ncat, int npc, newbasisenum pcatype)
+float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
   {
    psfstruct	*psf;
    char		str[MAXCHAR];
@@ -74,7 +73,7 @@ float *pca_make(psfstruct **psfs, int ncat, int npc, newbasisenum pcatype)
       {
       psf_build(psf, dpos);
       pix1 = pix = psf->loc;
-/*---- Set-up the covariance/correlation matrix in signal space */
+/*---- Set-up the covariance/correlation matrix */
       covmatt = covmat;
       sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		100.0*((float)n/nt+c)/ncat);
@@ -108,6 +107,25 @@ float *pca_make(psfstruct **psfs, int ncat, int npc, newbasisenum pcatype)
   free(covmat);
 
   return basis;
+  }
+
+
+/****** pca_onprotos **********************************************************
+PROTO	float *pca_onprotos(psfstruct **psf, int ncat, int npc)
+PURPOSE	Make a Principal Component Analysis in image space on PSF model
+	components.
+INPUT	Pointer to an array of PSF structures,
+	Number of catalogues (PSFs),
+	Number of principal components.
+OUTPUT  Pointer to an array of principal component vectors.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 20/02/2008
+ ***/
+float *pca_onprotos(psfstruct **psfs, int ncat, int npc)
+  {
+
+  return NULL;
   }
 
 

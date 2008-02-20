@@ -52,10 +52,11 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_psfex_OBJECTS = check.$(OBJEXT) diagnostic.$(OBJEXT) fft.$(OBJEXT) \
-	homo.$(OBJEXT) main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) \
-	pca.$(OBJEXT) poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
-	sample.$(OBJEXT) vignet.$(OBJEXT) xml.$(OBJEXT)
+am_psfex_OBJECTS = check.$(OBJEXT) context.$(OBJEXT) \
+	diagnostic.$(OBJEXT) fft.$(OBJEXT) homo.$(OBJEXT) \
+	main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) pca.$(OBJEXT) \
+	poly.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) sample.$(OBJEXT) \
+	vignet.$(OBJEXT) xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(top_builddir)/src/fits/libfits.a \
 	$(top_builddir)/src/levmar/liblevmar.a
@@ -189,14 +190,14 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 # Program Makefile for PSFEx
-# Copyright (C) 2002-2007 Emmanuel Bertin.
+# Copyright (C) 2002-2008 Emmanuel Bertin.
 SUBDIRS = fits levmar
-psfex_SOURCES = check.c diagnostic.c fft.c homo.c main.c makeit.c \
-			  misc.c pca.c poly.c prefs.c psf.c sample.c vignet.c \
-			  xml.c \
-			  check.h define.h diagnostic.h fft.h globals.h homo.h \
-			  key.h pca.h poly.h prefs.h preflist.h psf.h sample.h \
-			  types.h vignet.h xml.h
+psfex_SOURCES = check.c context.c diagnostic.c fft.c homo.c main.c \
+			  makeit.c misc.c pca.c poly.c prefs.c psf.c sample.c \
+			  vignet.c xml.c \
+			  check.h context.h define.h diagnostic.h fft.h \
+			  globals.h homo.h key.h pca.h poly.h prefs.h \
+			  preflist.h psf.h sample.h types.h vignet.h xml.h
 
 psfex_LDADD = $(top_builddir)/src/fits/libfits.a \
 			  $(top_builddir)/src/levmar/liblevmar.a
@@ -274,6 +275,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/diagnostic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fft.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/homo.Po@am__quote@

@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	15/01/2008
+*	Last modify:	20/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,6 +28,7 @@
 #include "globals.h"
 #include "fits/fitscat.h"
 #include "prefs.h"
+#include "context.h"
 #include "sample.h"
 #include "vignet.h"
 
@@ -35,7 +36,8 @@
 /*
 Examine and load PSF candidates.
 */
-setstruct *load_samples(char **filename, int ncat, int ext, int next)
+setstruct *load_samples(char **filename, int ncat, int ext, int next,
+			contextstruct *context)
   {
    setstruct		*set;
    catstruct		*cat;
@@ -203,7 +205,8 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
 /* Load the samples */
   set = NULL;
   for (i=0; i<ncat; i++)
-    set = read_samples(set, filename[i], fwhmmin/2.0, fwhmmax/2.0, ext, next);
+    set = read_samples(set, filename[i], fwhmmin/2.0, fwhmmax/2.0, ext, next,
+			context);
 
   set->fwhm = fmin;
   sprintf(str, "%d samples loaded.", set->nsample);
@@ -219,7 +222,8 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next)
 /*
 */
 setstruct *read_samples(setstruct *set, char *filename,
-			float frmin, float frmax, int ext, int next)
+			float frmin, float frmax, int ext, int next,
+			contextstruct *context)
 
   {
    catstruct		*cat;
@@ -227,7 +231,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    keystruct		*key, *vigkey;
    samplestruct		*sample;
    t_type		contexttyp[MAXCONTEXT];
-   void			*context[MAXCONTEXT];
+   void			*contextvalp[MAXCONTEXT];
    static char		str[MAXCHAR], str2[MAXCHAR];
    char			**kstr,
 			*head, *buf;
@@ -250,7 +254,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 /* If a NULL pointer is provided, we allocate a new set */
   if (!set)
     {
-    set = init_set();
+    set = init_set(context);
     nsample = nsamplemax = 0;
     ncat = 1;
     }
@@ -381,13 +385,14 @@ setstruct *read_samples(setstruct *set, char *filename,
     }
 
 /* Try to load the set of context keys */
-  kstr = prefs.context_name;
+  kstr = context->name;
   for (i=0; i<set->ncontext; i++, kstr++)
     if (**kstr==(char)':')
       {
-      context[i] = &contextval[i];
+      contextvalp[i] = &contextval[i];
       contexttyp[i] = T_DOUBLE;
-      if (fitsread(head, *kstr+1, context[i], H_FLOAT,T_DOUBLE)==RETURN_ERROR)
+      if (fitsread(head, *kstr+1, contextvalp[i], H_FLOAT,T_DOUBLE)
+		== RETURN_ERROR)
         {
         sprintf(str, "*Error*: %s parameter not found in the header of ",
 		*kstr+1);
@@ -401,7 +406,7 @@ setstruct *read_samples(setstruct *set, char *filename,
         sprintf(str, "*Error*: %s parameter not found in catalog ", *kstr);
         error(EXIT_FAILURE, str, filename);
         }
-      context[i] = key->ptr;
+      contextvalp[i] = key->ptr;
       contexttyp[i] = key->ttype;
       strcpy(set->contextname[i], key->name);
       }
@@ -482,7 +487,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       for (i=0; i<set->ncontext; i++)
         {
         dval = sample->context[i];
-        ttypeconv(context[i], &dval, contexttyp[i], T_DOUBLE);
+        ttypeconv(contextvalp[i], &dval, contexttyp[i], T_DOUBLE);
         sample->context[i] = dval;
 /*------ Update min and max */
         if (dval<cmin[i])
@@ -694,9 +699,9 @@ INPUT   -.
 OUTPUT  -.
 NOTES   See prefs.h.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 25/04/2007
+VERSION 20/02/2008
 */
-setstruct	*init_set(void)
+setstruct	*init_set(contextstruct *context)
 
   {
    setstruct	*set;
@@ -710,7 +715,7 @@ setstruct	*init_set(void)
   set->retisize[0] = prefs.retisize[0];
   set->retisize[1] = prefs.retisize[1];
   set->nreti = set->retisize[0]*set->retisize[1];/* Temporary solution (?) */
-  set->ncontext = prefs.ncontext_group;
+  set->ncontext = context->ncontext;
   if (set->ncontext)
     {
     QMALLOC(set->contextoffset, double, set->ncontext);

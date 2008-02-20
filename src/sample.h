@@ -9,10 +9,14 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	10/07/2003
+*	Last modify:	20/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+#ifndef _CONTEXT_H_
+#include "context.h"
+#endif
 
 #ifndef _SAMPLE_H_
 #define _SAMPLE_H_
@@ -63,10 +67,12 @@ typedef struct set
 
 samplestruct	*remove_sample(setstruct *set, int isample);
 
-setstruct	*init_set(void),
-		*load_samples(char **filename, int ncat, int ext, int next),
+setstruct	*init_set(contextstruct *context),
+		*load_samples(char **filename, int ncat, int ext, int next,
+			contextstruct *context),
 		*read_samples(setstruct *set, char *filename,
-			float frmin, float frmax, int ext, int next);
+			float frmin, float frmax, int ext, int next,
+			contextstruct *context);
 
 void		end_set(setstruct *set),
 		free_samples(setstruct *set),

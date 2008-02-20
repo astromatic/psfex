@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	18/02/2008
+*	Last modify:	20/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,6 +29,7 @@
 #include	"globals.h"
 #include	"fits/fitscat.h"
 #include	"check.h"
+#include	"context.h"
 #include	"diagnostic.h"
 #include	"homo.h"
 #include	"pca.h"
@@ -38,7 +39,8 @@
 #include	"xml.h"
 
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, int diagflag);
+			float *basis, int nbasis, int diagflag,
+			contextstruct *context);
 time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
@@ -51,6 +53,7 @@ void	makeit(char **incatnames, int ncat)
    setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
+   contextstruct	*context;
    struct tm		*tm;
    static char		str[MAXCHAR];
    float		*psfsteps, *basis,
@@ -103,16 +106,58 @@ void	makeit(char **incatnames, int ncat)
   nbasis = 0;
   basis = NULL;
 
-  if (prefs.newbasis_type==NEWBASIS_PCAPIXEL && (!psfstep))
+/* Initialize context */
+  context = context_init(prefs.context_name, prefs.context_group,
+		prefs.ncontext_group, prefs.group_deg, prefs.ngroup_deg,
+		CONTEXT_REMOVEPC);
+
+  if (prefs.newbasis_type==NEWBASIS_PCAMULTI && (!psfstep))
     {
 /* A first run through all samples only to derive a common pixel step */
     QMALLOC(psfsteps, float, next);
     for (ext=0 ; ext<next; ext++)
       {
-      set = load_samples(incatnames, ncat, ext, next);
+      set = load_samples(incatnames, ncat, ext, next, context);
       psfsteps[ext] = (float)(psfstep? psfstep : (set->fwhm/2.35)*0.5);
       end_set(set);
       }
+    }
+  else if (prefs.newbasis_type==NEWBASIS_PCASINGLE)
+    {
+    NFPRINTF(OUTPUT, "");
+    QPRINTF(OUTPUT,
+	"----- First pass for Principal Component Analysis (single): "
+	"%dx%d PSFs required\n", ncat, next);
+    if (!prefs.psf_step)
+      {
+      QMALLOC(psfsteps, float, next);
+      for (ext=0 ; ext<next; ext++)
+        {
+        set = load_samples(incatnames, ncat, ext, next, context);
+        psfsteps[ext] = (float)((set->fwhm/2.35)*0.5);
+        end_set(set);
+        }
+      psfstep = fast_median(psfsteps, next);
+      }
+/*-- Derive a new common PCA basis for all extensions */
+    QMALLOC(cpsf, psfstruct *, ncat*next);
+    for (ext=0 ; ext<next; ext++)
+      for (c=0; c<ncat; c++)
+        {
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        NFPRINTF(OUTPUT, str);
+        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, 0, context);
+        end_set(set);
+        }
+    nbasis = prefs.newbasis_number;
+    basis = pca_onsnaps(cpsf, ncat*next, nbasis);
+    for (i=0 ; i<ncat*next; i++)
+      psf_end(cpsf[i]);
+    free(cpsf);
+    NFPRINTF(OUTPUT, "");
+    QPRINTF(OUTPUT,
+	"----- Second pass for Principal Component Analysis (single):\n\n");
     }
 
 /* Create an array of PSFs (one PSF for each extension) */
@@ -122,31 +167,31 @@ void	makeit(char **incatnames, int ncat)
 	" residuals asymmetry");
   for (ext=0 ; ext<next; ext++)
     {
-    if (prefs.newbasis_type != NEWBASIS_NONE)
+    if (prefs.newbasis_type == NEWBASIS_PCAMULTI)
 /*---- Derive a new PCA basis for each extension */
       {
       psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
       QMALLOC(cpsf, psfstruct *, ncat);
       for (c=0; c<ncat; c++)
         {
-        set = load_samples(&incatnames[c], 1, ext, next);
+        set = load_samples(&incatnames[c], 1, ext, next, context);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, NULL, 0, 0);
+        cpsf[c] = make_psf(set, psfstep, NULL, 0, 0, context);
         end_set(set);
         }
       nbasis = prefs.newbasis_number;
-      basis = pca_make(cpsf, ncat, nbasis, prefs.newbasis_type);
+      basis = pca_onsnaps(cpsf, ncat, nbasis);
       for (c=0 ; c<ncat; c++)
         psf_end(cpsf[c]);
       free(cpsf);
       }
 
 /*-- Load all the samples */
-    set = load_samples(incatnames, ncat, ext, next);
+    set = load_samples(incatnames, ncat, ext, next, context);
     if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
       psfstep = (float)((set->fwhm/2.35)*0.5);
-    psf[ext] = make_psf(set, psfstep, basis, nbasis, 1);
+    psf[ext] = make_psf(set, psfstep, basis, nbasis, 1, context);
     nmed = psf[ext]->nmed;
     QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
@@ -157,7 +202,6 @@ void	makeit(char **incatnames, int ncat)
 	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
 	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
 	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
-
 /*-- Save result */
     NFPRINTF(OUTPUT,"Saving the PSF description...");
     psf_save(psf[ext], prefs.psf_name, ext, next);
@@ -209,6 +253,7 @@ void	makeit(char **incatnames, int ncat)
   for (ext = 0 ; ext<next; ext++)
     psf_end(psf[ext]);
   free(psf);
+  context_end(context);
 
   return;
   }
@@ -222,25 +267,22 @@ INPUT	Pointer to a sample set,
 	PSF sampling step,
 	Pointer to basis image vectors,
 	Number of basis vectors,
-	Diagnostic flag.
+	Diagnostic flag,
+	Pointer to context structure.
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/01/2008
+VERSION 20/02/2008
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, int diagflag)
+			float *basis, int nbasis, int diagflag,
+			contextstruct *context)
   {
    psfstruct		*psf;
    basistypenum		basistype;
 
   NFPRINTF(OUTPUT,"Initializing PSF modules...");
-  psf = psf_init(prefs.context_name, prefs.context_group,
-		prefs.ncontext_group,
-		prefs.group_deg, prefs.ngroup_deg,
-		set->retisize[0], set->retisize[1],
-		psfstep,
-		set->nsample);
+  psf = psf_init(context, set->retisize, psfstep, set->nsample);
 
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;

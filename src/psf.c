@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	26/12/2007
+*	Last modify:	20/02/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -206,25 +206,26 @@ void	psf_clip(psfstruct *psf)
 
 
 /****** psf_init **************************************************************
-PROTO	psfstruct *psf_init(int *dim, int ndim)
+PROTO	psfstruct *psf_init(contextstruct *context,
+			int *size, float psfstep, int nsample)
 PURPOSE	Allocate and initialize a PSF structure.
-INPUT	1D array of degrees of the polynom,
-	Array of char pointers to the context names,
+INPUT	Pointer to context structure,
+	PSF model width,
+	PSF model height,
 	Number of dimensions.
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 01/03/2007
+VERSION 20/02/2008
  ***/
-psfstruct	*psf_init(char **names, int *group, int ndim,
-			int *dim, int ngroup,
-			int wpsf, int hpsf, float psfstep, int nsample)
+psfstruct	*psf_init(contextstruct *context, int *size,
+			float psfstep, int nsample)
   {
    psfstruct	*psf;
    static char	str[MAXCHAR];
    char		**names2, **names2t;
    int		*group2, *dim2,
-		d, ndim2,ngroup2, npix, nsnap;
+		d, ndim,ndim2,ngroup2, npix, nsnap;
 
 /* Allocate memory for the PSF structure itself */
   QCALLOC(psf, psfstruct, 1);
@@ -234,14 +235,15 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
 /* The polynom */
   names2 = NULL;
   group2 = dim2 = NULL;
-  if ((ndim2=ndim))
+  ndim2 = ndim = context->ncontext;
+  if (ndim2)
     {
-    QMEMCPY(names, names2, char *, ndim);
-    QMEMCPY(group, group2, int, ndim);
+    QMEMCPY(context->name, names2, char *, ndim);
+    QMEMCPY(context->group, group2, int, ndim);
     }
-  if ((ngroup2=ngroup))
+  if ((ngroup2=context->ngroup))
     {
-    QMEMCPY(dim, dim2, int, ngroup);
+    QMEMCPY(context->degree, dim2, int, context->ngroup);
     }
 
   psf->poly = poly_init(group2, ndim2, dim2, ngroup2);
@@ -280,8 +282,8 @@ psfstruct	*psf_init(char **names, int *group, int ndim,
       }
 
   psf->pixstep = psfstep;
-  psf->npix = psf->size[0] = wpsf;
-  psf->npix *= (psf->size[1] = hpsf);
+  psf->npix = psf->size[0] = size[0];
+  psf->npix *= (psf->size[1] = size[1]);
   psf->npix *= (psf->size[2] = psf->poly->ncoeff);
   QCALLOC(psf->comp, float, psf->npix);
   npix = psf->size[0]*psf->size[1];
