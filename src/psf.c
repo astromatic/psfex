@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	20/02/2008
+*	Last modify:	06/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -28,9 +28,10 @@
 #include	"globals.h"
 #include	"fits/fitscat.h"
 #include	"prefs.h"
-#include	"sample.h"
+#include	"context.h"
 #include	"poly.h"
 #include	"psf.h"
+#include	"sample.h"
 #include	"vignet.h"
 #include	ATLAS_LAPACK_H
 
@@ -216,7 +217,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/02/2008
+VERSION 11/03/2008
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
 			float psfstep, int nsample)
@@ -236,15 +237,13 @@ psfstruct	*psf_init(contextstruct *context, int *size,
   names2 = NULL;
   group2 = dim2 = NULL;
   ndim2 = ndim = context->ncontext;
-  if (ndim2)
+  if (ndim)
     {
-    QMEMCPY(context->name, names2, char *, ndim);
     QMEMCPY(context->group, group2, int, ndim);
+    QMEMCPY(context->name, names2, char *, ndim);
     }
   if ((ngroup2=context->ngroup))
-    {
     QMEMCPY(context->degree, dim2, int, context->ngroup);
-    }
 
   psf->poly = poly_init(group2, ndim2, dim2, ngroup2);
 
@@ -292,6 +291,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 
 /* Context arrays */
   nsnap = 1;
+  psf->nsnap = prefs.context_nsnap;
   if (ndim2)
     {
     QMALLOC(psf->contextoffset, double, ndim2);
@@ -299,7 +299,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
     QMALLOC(psf->contextname, char *, ndim2);
     for (names2t=names2, d=0; d<ndim2; d++)
       {
-      nsnap *= prefs.context_nsnap;
+      nsnap *= psf->nsnap;
       QMALLOC(psf->contextname[d], char, 80);
       strcpy(psf->contextname[d], *(names2t++));
       }
@@ -349,6 +349,57 @@ void	psf_end(psfstruct *psf)
   free(psf);
 
   return;
+  }
+
+
+/****** psf_copy **************************************************************
+PROTO   psfstruct *psf_copy(psfstruct *psf)
+PURPOSE Copy a PSF structure and everything it contains.
+INPUT   psfstruct pointer.
+OUTPUT  psfstruct pointer.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 11/03/2008
+ ***/
+psfstruct *psf_copy(psfstruct *psf)
+  {
+   psfstruct	*newpsf;
+   int		d, ndim,npix,nsnap;
+
+  QMALLOC(newpsf, psfstruct, 1);
+  *newpsf = *psf;
+  ndim = psf->poly->ndim;
+  QMEMCPY(psf->size, newpsf->size, int, psf->dim);
+  QMALLOC(newpsf->contextname, char *, ndim);
+  for (d=0; d<ndim; d++)
+    {
+    QMALLOC(newpsf->contextname[d], char, 80);
+    strncpy(newpsf->contextname[d], psf->contextname[d], 80);
+    }
+  if (ndim)
+    {
+    QMEMCPY(psf->contextoffset, newpsf->contextoffset, double, ndim);
+    QMEMCPY(psf->contextscale, newpsf->contextscale, double, ndim);
+    }
+  newpsf->poly = poly_copy(psf->poly);
+  npix = psf->size[0]*psf->size[1];
+  if (psf->pixmask)
+    QMEMCPY(psf->pixmask, newpsf->pixmask, int, npix);
+  if (psf->basis)
+    QMEMCPY(psf->basis, newpsf->basis, float, psf->nbasis*npix);
+  QMEMCPY(psf->comp, newpsf->comp, float, psf->npix);
+  QMEMCPY(psf->loc, newpsf->loc, float, npix);
+  QMEMCPY(psf->resi, newpsf->resi, float, npix);
+  nsnap = 1;
+  for (d=0; d<ndim; d++)
+    {
+    nsnap *= psf->nsnap;
+    }
+  QMEMCPY(psf->moffat, newpsf->moffat, moffatstruct, nsnap);
+  if (psf->homo_kernel)
+    QMEMCPY(psf->homo_kernel, newpsf->homo_kernel, float, psf->npix);
+
+  return newpsf;
   }
 
 
@@ -1254,9 +1305,51 @@ int	psf_readbasis(psfstruct *psf, char *filename, int ext)
   }
 
 
-/****** psf_save **************************************************************
-PROTO   void	psf_save(psfstruct *psf, char *filename, int ext, int next)
-PURPOSE Save the PSF data as a FITS file.
+/****** psfmef_init ***********************************************************
+PROTO	psfmefstruct *psfmef_init(int next)
+PURPOSE	Allocate and initialize a PSF MEF structure (groups of PSFs).
+INPUT	Number of extensions.
+OUTPUT  psfmefstruct pointer.
+NOTES   .
+AUTHOR  E. Bertin (IAP)
+VERSION 11/03/2008
+ ***/
+psfmefstruct	*psfmef_init(int next)
+  {
+   psfmefstruct	*psfmef;
+
+  QCALLOC(psfmef, psfmefstruct, 1);
+  psfmef->next = next;
+  QMALLOC(psfmef->psf, psfstruct *, next);
+  return psfmef;
+  }
+
+
+/****** psfmef_end ***********************************************************
+PROTO	void psfmef_end(psfmefstruct *psfmef)
+PURPOSE	Free a PSF MEF structure (groups of PSFs).
+INPUT	Pointer to the psfmefstruct.
+OUTPUT  -.
+NOTES   .
+AUTHOR  E. Bertin (IAP)
+VERSION 11/03/2008
+ ***/
+void	psfmef_end(psfmefstruct *psfmef)
+  {
+   int	ext;
+
+  for (ext=0; ext<psfmef->next; ext++)
+    psf_end(psfmef->psf[ext]);
+  free(psfmef->psf);
+  free(psfmef);
+
+  return;
+  }
+
+
+/****** psfmef_save ***********************************************************
+PROTO   void	psfmef_save(psfmefstruct *psfmef, char *filename)
+PURPOSE Save PSF data as a Multi-extension FITS file.
 INPUT   Pointer to the PSF structure,
 	Filename,
 	Extension number,
@@ -1264,99 +1357,101 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 11/03/2008
  ***/
-void	psf_save(psfstruct *psf, char *filename, int ext, int next)
+void	psfmef_save(psfmefstruct *psfmef, char *filename)
   {
-   static catstruct	*cat;
+   catstruct	*cat;
    tabstruct	*tab;
    keystruct	*key;
-   char		*head, str[80];
-   int		i, temp;
+   psfstruct	*psf;
+   char		*head,
+		str[80];
+   int		i, ext, temp;
 
-/* Create the new cat (well it is not a "cat", but simply a FITS table */
-  if (!ext)
+  cat = new_cat(1);
+  init_cat(cat);
+  sprintf(cat->filename, filename);
+  if (open_cat(cat, WRITE_ONLY) != RETURN_OK)
+    error(EXIT_FAILURE, "*Error*: cannot open for writing ", cat->filename);
+/* Write primary HDU */
+  save_tab(cat, cat->tab);
+
+  for (ext=0; ext<psfmef->next; ext++)
     {
-    cat = new_cat(1);
-    init_cat(cat);
-    strcpy(cat->filename, filename);
-    if (open_cat(cat, WRITE_ONLY) != RETURN_OK)
-      error(EXIT_FAILURE, "*Error*: cannot open for writing ", filename);
-    save_tab(cat, cat->tab);
+    psf = psfmef->psf[ext];
+    tab = new_tab("PSF_DATA");
+
+    head = tab->headbuf;
+    addkeywordto_head(tab, "LOADED", "Number of loaded sources");
+    fitswrite(head, "LOADED", &psf->samples_loaded, H_INT, T_LONG);
+    addkeywordto_head(tab, "ACCEPTED", "Number of accepted sources");
+    fitswrite(head, "ACCEPTED", &psf->samples_accepted, H_INT, T_LONG);
+    addkeywordto_head(tab, "CHI2", "Final Chi2");
+    fitswrite(head, "CHI2", &psf->chi2, H_FLOAT, T_DOUBLE);
+    addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
+    fitswrite(head, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
+    for (i=0; i<psf->poly->ndim; i++)
+      {
+      sprintf(str, "POLGRP%1d", i+1);
+      addkeywordto_head(tab, str, "Polynom group for this context parameter");
+      temp = psf->poly->group[i]+1;
+      fitswrite(head, str, &temp, H_INT, T_LONG);
+      sprintf(str, "POLNAME%1d", i+1);
+      addkeywordto_head(tab, str, "Name of this context parameter");
+      fitswrite(head, str, psf->contextname[i], H_STRING, T_STRING);
+      sprintf(str, "POLZERO%1d", i+1);
+      addkeywordto_head(tab, str, "Offset value for this context parameter");
+      fitswrite(head, str, &psf->contextoffset[i], H_EXPO, T_DOUBLE);
+      sprintf(str, "POLSCAL%1d", i+1);
+      addkeywordto_head(tab, str, "Scale value for this context parameter");
+      fitswrite(head, str, &psf->contextscale[i], H_EXPO, T_DOUBLE);
+      }
+
+    addkeywordto_head(tab, "POLNGRP", "Number of context groups");
+    fitswrite(head, "POLNGRP", &psf->poly->ngroup, H_INT, T_LONG);
+    for (i=0; i<psf->poly->ngroup; i++)
+      {
+      sprintf(str, "POLDEG%1d", i+1);
+      addkeywordto_head(tab, str, "Polynom degree for this context group");
+      fitswrite(head, str, &psf->poly->degree[i], H_INT, T_LONG);
+      }
+
+/*-- Add and write important scalars as FITS keywords */
+    addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
+    fitswrite(head, "PSF_FWHM", &psf->fwhm, H_FLOAT, T_FLOAT);
+    addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
+    fitswrite(head, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
+    addkeywordto_head(tab, "PSFNAXIS", "Dimensionality of the PSF data");
+    fitswrite(head, "PSFNAXIS", &psf->dim, H_INT, T_LONG);
+    for (i=0; i<psf->dim; i++)
+      {
+      sprintf(str, "PSFAXIS%1d", i+1);
+      addkeywordto_head(tab, str, "Number of element along this axis");
+      fitswrite(head, str, &psf->size[i], H_INT, T_LONG);
+      }
+
+/*-- Create and fill the arrays */
+    key = new_key("PSF_MASK");
+    key->naxis = psf->dim;
+    QMALLOC(key->naxisn, int, key->naxis);
+    for (i=0; i<psf->dim; i++)
+      key->naxisn[i] = psf->size[i];
+    strcat(key->comment, "Tabulated PSF data");
+    key->htype = H_FLOAT;
+    key->ttype = T_FLOAT;
+    key->nbytes = psf->npix*t_size[T_FLOAT];
+    key->nobj = 1;
+    key->ptr = psf->comp;
+    add_key(key, tab, 0);
+
+    save_tab(cat, tab);
+/*-- But don't touch my arrays!! */
+    blank_keys(tab);
+    free_tab(tab);
     }
-  tab = new_tab("PSF_DATA");
 
-  head = tab->headbuf;
-  addkeywordto_head(tab, "LOADED", "Number of loaded sources");
-  fitswrite(head, "LOADED", &psf->samples_loaded, H_INT, T_LONG);
-  addkeywordto_head(tab, "ACCEPTED", "Number of accepted sources");
-  fitswrite(head, "ACCEPTED", &psf->samples_accepted, H_INT, T_LONG);
-  addkeywordto_head(tab, "CHI2", "Final Chi2");
-  fitswrite(head, "CHI2", &psf->chi2, H_FLOAT, T_DOUBLE);
-  addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
-  fitswrite(head, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
-  for (i=0; i<psf->poly->ndim; i++)
-    {
-    sprintf(str, "POLGRP%1d", i+1);
-    addkeywordto_head(tab, str, "Polynom group for this context parameter");
-    temp = psf->poly->group[i]+1;
-    fitswrite(head, str, &temp, H_INT, T_LONG);
-    sprintf(str, "POLNAME%1d", i+1);
-    addkeywordto_head(tab, str, "Name of this context parameter");
-    fitswrite(head, str, psf->contextname[i], H_STRING, T_STRING);
-    sprintf(str, "POLZERO%1d", i+1);
-    addkeywordto_head(tab, str, "Offset value for this context parameter");
-    fitswrite(head, str, &psf->contextoffset[i], H_EXPO, T_DOUBLE);
-    sprintf(str, "POLSCAL%1d", i+1);
-    addkeywordto_head(tab, str, "Scale value for this context parameter");
-    fitswrite(head, str, &psf->contextscale[i], H_EXPO, T_DOUBLE);
-    }
-
-  addkeywordto_head(tab, "POLNGRP", "Number of context groups");
-  fitswrite(head, "POLNGRP", &psf->poly->ngroup, H_INT, T_LONG);
-  for (i=0; i<psf->poly->ngroup; i++)
-    {
-    sprintf(str, "POLDEG%1d", i+1);
-    addkeywordto_head(tab, str, "Polynom degree for this context group");
-    fitswrite(head, str, &psf->poly->degree[i], H_INT, T_LONG);
-    }
-
-/* Add and write important scalars as FITS keywords */
-  /* -- FM -- : write fwhm too */
-  addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
-  fitswrite(head, "PSF_FWHM", &psf->fwhm, H_FLOAT, T_FLOAT);
-  addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
-  fitswrite(head, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
-  addkeywordto_head(tab, "PSFNAXIS", "Dimensionality of the PSF data");
-  fitswrite(head, "PSFNAXIS", &psf->dim, H_INT, T_LONG);
-  for (i=0; i<psf->dim; i++)
-    {
-    sprintf(str, "PSFAXIS%1d", i+1);
-    addkeywordto_head(tab, str, "Number of element along this axis");
-    fitswrite(head, str, &psf->size[i], H_INT, T_LONG);
-    }
-
-/* Create and fill the arrays */
-  key = new_key("PSF_MASK");
-  key->naxis = psf->dim;
-  QMALLOC(key->naxisn, int, key->naxis);
-  for (i=0; i<psf->dim; i++)
-    key->naxisn[i] = psf->size[i];
-  strcat(key->comment, "Tabulated PSF data");
-  key->htype = H_FLOAT;
-  key->ttype = T_FLOAT;
-  key->nbytes = psf->npix*t_size[T_FLOAT];
-  key->nobj = 1;
-  key->ptr = psf->comp;
-  add_key(key, tab, 0);
-
-  save_tab(cat, tab);
-/* But don't touch my arrays!! */
-  blank_keys(tab);
-  free_tab(tab);
-
-  if (ext==next-1)
-    free_cat(&cat , 1);
+  free_cat(&cat , 1);
 
   return;
   }

@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	20/02/2008
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -72,7 +72,7 @@ setstruct	*init_set(contextstruct *context),
 			contextstruct *context),
 		*read_samples(setstruct *set, char *filename,
 			float frmin, float frmax, int ext, int next,
-			contextstruct *context);
+			contextstruct *context, double *pcval);
 
 void		end_set(setstruct *set),
 		free_samples(setstruct *set),

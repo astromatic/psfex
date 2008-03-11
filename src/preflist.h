@@ -9,7 +9,11 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
+<<<<<<< .mine
+*	Last modify:	22/02/2008
+=======
 *	Last modify:	18/02/2008
+>>>>>>> .r703
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -21,6 +25,10 @@
 #include "key.h"
 #ifndef	_CHECK_H_
 #include "check.h"
+#endif
+
+#ifndef	_CONTEXT_H_
+#include "context.h"
 #endif
 
 #ifndef _XML_H_
@@ -57,7 +65,7 @@ pkeystruct key[] =
   {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
   {"HOMOBASIS_TYPE", P_KEY, &prefs.homobasis_type, 0,0, 0.0,0.0,
    {"NONE", "GAUSS-LAGUERRE", ""}},
-  {"HOMOKERNEL_NAME", P_STRING, prefs.homokernel_name},
+  {"HOMOKERNEL_SUFFIX", P_STRING, prefs.homokernel_suffix},
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
@@ -72,11 +80,11 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,16},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
-  {"PSF_NAME", P_STRING, prefs.psf_name},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.retisize, 1,1024, 0.0,0.0, {""},
      1,2, &prefs.nretisize},
+  {"PSF_SUFFIX", P_STRING, prefs.psf_suffix},
   {"SAMPLE_AUTOSELECT", P_BOOL, &prefs.autoselect_flag},
   {"SAMPLE_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
   {"SAMPLE_FWHMRANGE", P_FLOATLIST, prefs.fwhmrange, 0,0, 0.0,1e3, {""},
@@ -103,7 +111,6 @@ char *default_prefs[] =
 " ",
 "#-------------------------------- PSF model ----------------------------------",
 " ",
-"PSF_NAME        default.psf     # Output PSF filename",
 "BASIS_TYPE      PIXEL_AUTO      # NONE, PIXEL, GAUSS-LAGUERRE or FILE",
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
@@ -139,7 +146,7 @@ char *default_prefs[] =
 "*HOMOBASIS_NUMBER   10           # Kernel basis number or parameter",
 "*HOMOBASIS_SCALE    1.0          # GAUSS-LAGUERRE beta parameter",
 "*HOMOPSF_PARAMS     2.0, 3.0     # Moffat parameters of the idealised PSF",
-"*HOMOKERNEL_NAME    homo.fits    # Output PSF homogenisation kernel filename",
+"*HOMOKERNEL_SUFFIX  .homo.fits   # Output PSF homogenisation kernel filename",
 "*",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
@@ -151,6 +158,7 @@ char *default_prefs[] =
 " ",
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",
+"PSF_SUFFIX      .psf            # Filename extension for output PSF filename",
 "VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL",
 "WRITE_XML       Y               # Write XML file (Y/N)?",
 "XML_NAME        psfex.xml       # Filename for XML output",

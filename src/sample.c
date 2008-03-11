@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	20/02/2008
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -206,7 +206,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   set = NULL;
   for (i=0; i<ncat; i++)
     set = read_samples(set, filename[i], fwhmmin/2.0, fwhmmax/2.0, ext, next,
-			context);
+			context, context->pc + i*context->npc);
 
   set->fwhm = fmin;
   sprintf(str, "%d samples loaded.", set->nsample);
@@ -223,7 +223,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax, int ext, int next,
-			contextstruct *context)
+			contextstruct *context, double *pcval)
 
   {
    catstruct		*cat;
@@ -243,7 +243,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    static int		ncat;
    int			i,j, n, nsample,nsamplemax,
 			vigw, vigh, vigsize, imaw,imah, nobj, nt,
-			maxbad, maxbadflag, ldflag, ext2;
+			maxbad, maxbadflag, ldflag, ext2, pc;
 
 
   maxbad = prefs.badpix_nmax;
@@ -386,6 +386,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /* Try to load the set of context keys */
   kstr = context->name;
+  pc = 0;
   for (i=0; i<set->ncontext; i++, kstr++)
     if (**kstr==(char)':')
       {
@@ -398,6 +399,11 @@ setstruct *read_samples(setstruct *set, char *filename,
 		*kstr+1);
         error(EXIT_FAILURE, str, filename);
         }
+      }
+    else if (!wstrncmp(*kstr, "PC?", 80))
+      {
+      contextvalp[i] = &pcval[pc++];
+      contexttyp[i] = T_DOUBLE;
       }
     else
       {

@@ -110,8 +110,8 @@ float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
   }
 
 
-/****** pca_onprotos **********************************************************
-PROTO	float *pca_onprotos(psfstruct **psf, int ncat, int npc)
+/****** pca_oncomps ***********************************************************
+PROTO	double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
 PURPOSE	Make a Principal Component Analysis in image space on PSF model
 	components.
 INPUT	Pointer to an array of PSF structures,
@@ -120,12 +120,54 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/02/2008
+VERSION 11/03/2008
  ***/
-float *pca_onprotos(psfstruct **psfs, int ncat, int npc)
+double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
+   char		str[MAXCHAR];
+   double	*covmat, *covmatt, *pc,
+		dval;
+   float	*comp1, *comp2, *vector;
+   int		i,c,c1,c2,p, npix;
 
-  return NULL;
+  NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
+
+  npix = psfs[0]->size[0]*psfs[0]->size[1];
+/* Set-up the covariance/correlation matrix */
+  QCALLOC(covmat, double, ncat*ncat);
+  covmatt = covmat;
+  for (c1=0; c1<ncat; c1++)
+    {
+    sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
+		100.0*((float)c1)/ncat);
+    NFPRINTF(OUTPUT, str);
+    dval = 0.0;
+    for (c2=0; c2<ncat; c2++)
+      {
+      comp1 = psfs[c1]->comp;
+      comp2 = psfs[c2]->comp;
+      for (i=npix; i--;)
+        dval += (double)*(comp1++)**(comp2++);
+        }
+    *(covmatt++) = dval;
+    }
+
+/* Do recursive PCA */
+  QMALLOC(vector, float, npc);
+  QMALLOC(pc, double, ncat*npc);
+  for (p=0; p<npc; p++)
+    {
+    sprintf(str, "Computing Principal Component vector #%d...", p);
+    NFPRINTF(OUTPUT, str);
+    pca_findpc(covmat, vector, ncat);
+    for (c=0; c<ncat; c++)
+      pc[c*npc+p] = vector[c];     
+    }
+
+  free(covmat);
+  free(vector);
+
+  return pc;
   }
 
 

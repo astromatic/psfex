@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -49,12 +49,20 @@ INPUT	Number of extensions.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	02/03/2007
+VERSION	04/03/2008
  ***/
 int	init_xml(int next)
   {
-  QMALLOC(psf_xml, psfstruct *, next);
-  QMALLOC(nfield_xml, int, next);
+  if (next)
+    {
+    QMALLOC(psf_xml, psfstruct *, next);
+    QMALLOC(nfield_xml, int, next);
+    }
+  else
+    {
+    psf_xml = NULL;
+    nfield_xml = NULL;
+    }
   nxml = 0;
   nxmlmax = next;
 

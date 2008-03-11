@@ -9,7 +9,7 @@
 *
 *	Contents:	Polynomial fitting
 *
-*	Last modify:	11/03/2008
+*	Last modify:	08/03/2005
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -35,13 +35,6 @@
 		{if (!(ptr = (typ *)malloc((size_t)(nel)*sizeof(typ)))) \
 		  qerror("Not enough memory for ", \
 			#ptr " (" #nel " elements) !");;}
-
-#define QMEMCPY(ptrin, ptrout, typ, nel) \
-		{if (ptrin) \
-		  {if (!(ptrout = (typ *)malloc((size_t)(nel)*sizeof(typ)))) \
-		    qerror("Not enough memory for ", \
-			#ptrout " (" #nel " elements) !"); \
-		memcpy(ptrout, ptrin, (size_t)(nel)*sizeof(typ));};;}
 
 /********************************* qerror ************************************/
 /*
@@ -147,41 +140,6 @@ void	poly_end(polystruct *poly)
     free(poly->group);
     free(poly);
     }
-
-  return;
-  }
-
-
-/****** poly_copy *************************************************************
-PROTO   polystruct *poly_copy(polystruct *poly)
-PURPOSE Copy a polynom structure and everything it contains.
-INPUT   polystruct pointer.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 06/03/2008
- ***/
-polystruct *poly_copy(polystruct *poly)
-  {
-   polystruct	*newpoly;
-
-  if (poly)
-    {
-    QMALLOC(newpoly, polystruct, 1);
-    *newpoly = *poly;
-    if (poly->ncoeff)
-      {
-      QMEMCPY(poly->coeff, newpoly->coeff, double, poly->ncoeff);
-      QMEMCPY(poly->basis, newpoly->basis, double, poly->ncoeff);
-      }
-    if (poly->ndim)
-      QMEMCPY(poly->group, newpoly->group, int, poly->ndim);
-    if (poly->ngroup)
-      QMEMCPY(poly->degree, newpoly->degree, int, poly->ngroup);
-    return newpoly;
-    }
-  else
-    return NULL;
   }
 
 

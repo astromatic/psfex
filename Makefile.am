@@ -6,7 +6,7 @@ dist_pkgdata_DATA	= xsl/psfex.xsl
 EXTRA_DIST		= config doc AUTHORS BUGS ChangeLog \
 			  COPYING HISTORY INSTALL README THANKS \
 			  acx_atlas.m4 acx_fftw.m4 acx_prog_cc_optim.m4 \
-			  acx_urbi_resolve_dir.m4
+			  acx_plplot.m4 acx_urbi_resolve_dir.m4
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
 dist-hook:

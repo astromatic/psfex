@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	18/02/2008
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -18,8 +18,12 @@
 #include "check.h"
 #endif
 
-#ifndef _PCA_H_
-#include "pca.h"
+#ifndef _CONTEXT_H_
+#include "context.h"
+#endif
+
+#ifndef _CPLOT_H_
+#include "cplot.h"
 #endif
 
 #ifndef _PSF_H_
@@ -31,7 +35,9 @@
 
 /*----------------------------- Internal constants --------------------------*/
 
-#define	MAXLIST		32		/* max. nb of list members */
+#define	MAXCHARL	16384		/* max. nb of chars in a string list */
+#define	MAXLIST		64		/* max. nb of list members */
+#define	MAXLISTSIZE	2000000		/* max size of list */
 
 /* NOTES:
 One must have:	MAXLIST >= 1 (preferably >= 16!)
@@ -42,9 +48,12 @@ typedef struct
   char		**command_line;			/* Command line */
   int		ncommand_line;			/* nb of params */
   char		prefs_name[MAXCHAR];		/* prefs filename */
-  char		psf_name[MAXCHAR];		/* PSF filename */
+  char		*(incat_name[MAXFILE]);		/* Filename(s) of input cats */
+  int		ncat;				/* Number of input images */
+  char		psf_suffix[MAXCHAR];		/* Suffix for PSF filenames */
   int		retisize[2], nretisize;		/* Retina size */
-  newbasisenum	newbasis_type;			/* Type of new basis */
+  enum {NEWBASIS_NONE, NEWBASIS_PCAMULTI, NEWBASIS_PCASINGLE}
+		newbasis_type;			/* Type of new basis */
   int		newbasis_number;		/* Number of PCs */
 /* Point-source sample */
   double	minsn;				/* Minimum S/N for patterns */
@@ -83,10 +92,22 @@ typedef struct
   enum	{HOMOBASIS_NONE, HOMOBASIS_GAUSSLAGUERRE}
 		homobasis_type;			/* Homo. kernel basis set */
   int		homobasis_number;		/* nb of supersampled pixels */
-  char		homokernel_name[MAXCHAR];	/* Homo. kernel filename */
+  char		homokernel_suffix[MAXCHAR];	/* Homo. kernel file suffix */
   double	homobasis_scale;		/* Gauss-Laguerre beta param */
   double	homopsf_params[2];		/* Idealised Moffat PSF params*/
   int		nhomopsf_params;		/* nb of params */
+/* Check-plots */
+  cplotenum	cplot_device[MAXCHECK];		/* check-plot format */
+  int		ncplot_device;			/* nb of params */
+  cplotenum	cplot_type[MAXCHECK];		/* check-plot types */
+  int		ncplot_type;			/* nb of params */
+  char		*(cplot_name[MAXCHECK]);	/* check-plot names */
+  int		ncplot_name;			/* nb of params */
+  int		cplot_flag;			/* = 0 if no check-plot */
+  char		cplot_colourkey[72];		/* FITS keyword for colour */
+  int		cplot_res[2];			/* X,Y check-plot resolution */
+  int		ncplot_res;			/* nb of params */
+  int		cplot_antialiasflag;		/* Anti-aliasing on/off */
 /* Multithreading */
   int		nthreads;			/* Number of active threads */
 /* Misc */
@@ -104,6 +125,8 @@ typedef struct
   prefstruct		prefs;
 
 /*-------------------------------- protos -----------------------------------*/
+extern char	*list_to_str(char *listname);
+
 extern int	cistrcmp(char *cs, char *ct, int mode);
 
 extern void	dumpprefs(int state),

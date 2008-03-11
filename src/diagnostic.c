@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	13/11/2007
+*	Last modify:	06/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 13/11/2007
+VERSION 06/03/2008
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -53,10 +53,9 @@ void	psf_diagnostic(psfstruct *psf)
 
   nmed = 0;
   npc = psf->poly->ndim;
-  psf->nsnap = prefs.context_nsnap;
   for (nt=1, i=npc; (i--)>0;)
     {
-    nt *= prefs.context_nsnap;
+    nt *= psf->nsnap;
     nmed += nmed*psf->nsnap + (psf->nsnap-1)/2;
     }
   psf->nmed = nmed;
@@ -66,7 +65,7 @@ void	psf_diagnostic(psfstruct *psf)
   m = w*h;
   QCALLOC(dresi, double, m);
   moffat = psf->moffat;
-  dstep = 1.0/prefs.context_nsnap;
+  dstep = 1.0/psf->nsnap;
   dstart = (1.0-dstep)/2.0;
   memset(dpos, 0, POLY_MAXDIM*sizeof(double));
   for (i=0; i<npc; i++)

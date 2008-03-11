@@ -9,7 +9,7 @@
 *
 *	Contents:	parsing and main loop.
 *
-*	Last modify:	01/03/2007
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -18,28 +18,43 @@
 #include        "config.h"
 #endif
 
-#include	<ctype.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#include	"define.h"
-#include	"types.h"
-#include	"globals.h"
-#include	"fits/fitscat.h"
-#include	"prefs.h"
+#ifdef HAVE_PLPLOT
+#include <plplot.h>
+#endif
+
+#include "define.h"
+#include "types.h"
+#include "globals.h"
+#include "fits/fitscat.h"
+#include "prefs.h"
+#include "cplot.h"
 
 #define		SYNTAX \
-EXECUTABLE " catalog [catalog2 ...][-c <config_file>][-<keyword> <value>]\n" \
+EXECUTABLE " catalog1 [catalog2,...][@catalog_list1 [@catalog_list2 ...]]\n" \
+"\t\t[-c <config_file>][-<keyword> <value>]\n" \
 "> to dump a default configuration file: " EXECUTABLE " -d \n" \
 "> to dump a default extended configuration file: " EXECUTABLE " -dd \n"
+
+extern const char       notokstr[];
 
 /********************************** main ************************************/
 
 int main(int argc, char *argv[])
   {
-   int		a,ab,na, narg, opt, opt2;
-   char		**argkey, **argval;
+   char		**argkey, **argval,
+		*str,*listbuf;
+   int		a, narg, nim, ntok, opt, opt2;
+
+#ifdef HAVE_SETLINEBUF
+/* flush output buffer at each line */
+  setlinebuf(stderr);
+#endif
 
   if (argc<2)
     {
@@ -49,14 +64,19 @@ int main(int argc, char *argv[])
     error(EXIT_SUCCESS, "SYNTAX: ", SYNTAX);
     }
 
+#ifdef HAVE_PLPLOT
+  if (argc>2)
+    plParseOpts(&argc, argv, PL_PARSE_SKIP);
+#endif
+
   QMALLOC(argkey, char *, argc);
   QMALLOC(argval, char *, argc);
 
 /* Default parameters */
   prefs.command_line = argv;
   prefs.ncommand_line = argc;
-  ab=na=0;
-  narg = 0;
+  narg = nim = 0;
+  listbuf = (char *)NULL;
   strcpy(prefs.prefs_name, "default.psfex");
 
   for (a=1; a<argc; a++)
@@ -84,9 +104,16 @@ int main(int argc, char *argv[])
             break;
           case 'v':
             printf("%s version %s (%s)\n", BANNER,MYVERSION,DATE);
-            exit(0);
+            exit(EXIT_SUCCESS);
             break;
           case 'h':
+            fprintf(OUTPUT, "\nSYNTAX: %s", SYNTAX);
+#ifdef HAVE_PLPLOT
+            fprintf(OUTPUT, "\nPLPLOT-specific options:\n");
+            plParseOpts(&argc, argv, PL_PARSE_SKIP);
+#endif
+            exit(EXIT_SUCCESS);
+            break;
           default:
             error(EXIT_SUCCESS,"SYNTAX: ", SYNTAX);
           }
@@ -100,25 +127,33 @@ int main(int argc, char *argv[])
       }
     else
       {
-      for(ab = a; (a<argc) && (*argv[a]!='-'); a++);
-      na = (a--) - ab;
+/*---- The input image filename(s) */
+      for(; (a<argc) && (*argv[a]!='-'); a++)
+        {
+        str = (*argv[a] == '@'? listbuf=list_to_str(argv[a]+1) : argv[a]);
+        for (ntok=0; (str=strtok(ntok?NULL:str, notokstr)); nim++,ntok++)
+          if (nim<MAXFILE)
+            prefs.incat_name[nim] = str;
+          else
+            error(EXIT_FAILURE, "*Error*: Too many input catalogues: ", str);
+        }
+      a--;
       }
     }
 
-  if (!na)
-    error(EXIT_SUCCESS,"SYNTAX: ", SYNTAX);
+  prefs.ncat = nim;
 
   readprefs(prefs.prefs_name, argkey, argval, narg);
   useprefs();
   free(argkey);
   free(argval);
 
+  makeit();
 
-  makeit(argv+ab, na);
+  free(listbuf);
 
   NFPRINTF(OUTPUT, "");
   NPRINTF(OUTPUT, "> All done (in %.0f s)\n", prefs.time_diff);
 
   exit(EXIT_SUCCESS);
-  return 0;
   }

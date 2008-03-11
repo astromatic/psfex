@@ -9,15 +9,15 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	23/02/2007
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
 /* Check if we are using a configure script here */
 #ifndef HAVE_CONFIG_H
-#define		VERSION		"1.x"
-#define		DATE		"2007-02-23"
+#define		VERSION		"3.x"
+#define		DATE		"2008-03-11"
 #endif
 /*------------------------ what, who, when and where ------------------------*/
 
@@ -32,7 +32,7 @@
 #define		OUTPUT		stdout		/* where all msgs are sent */
 #define		BIG		1e+30		/* a huge number */
 #define		MAXCHAR		512		/* max. number of characters */
-#define		MAXCONTEXT	8		/* max. # of context keys */
+#define		MAXFILE		32768		/* max number of input files */
 
 /*------------ Set defines according to machine's specificities -------------*/
 #if _LARGEFILE_SOURCE

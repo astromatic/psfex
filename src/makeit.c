@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	20/02/2008
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,22 +46,29 @@ time_t		thetime, thetime2;
 /********************************** makeit ***********************************/
 /*
 */
-void	makeit(char **incatnames, int ncat)
+void	makeit(void)
 
   {
-   psfstruct		**psf, **cpsf;
+   psfmefstruct		**psfmefs;
+   psfstruct		**cpsf,
+			*psf;
    setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
-   contextstruct	*context;
+   contextstruct	*context, *fullcontext;
    struct tm		*tm;
    static char		str[MAXCHAR];
+   char			**incatnames,
+			*pstr;
    float		*psfsteps, *basis,
 			psfstep;
-   int			c,i, ntab, ext, next, nmed, nbasis;
+   int			c,i, ncat, ntab, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
+
+  incatnames = prefs.incat_name;
+  ncat = prefs.ncat;
 
 /* Processing start date and time */
   thetime = time(NULL);
@@ -80,6 +87,29 @@ void	makeit(char **incatnames, int ncat)
 		prefs.stime_start,
 		prefs.nthreads,
 		prefs.nthreads>1? "s":"");
+
+
+/* End here if no filename has been provided */
+  if (!ncat)
+    {
+/*-- Processing end date and time */
+    thetime2 = time(NULL);
+    tm = localtime(&thetime2);
+    sprintf(prefs.sdate_end,"%04d-%02d-%02d",
+	tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
+    sprintf(prefs.stime_end,"%02d:%02d:%02d",
+	tm->tm_hour, tm->tm_min, tm->tm_sec);
+    prefs.time_diff = difftime(thetime2, thetime);
+
+/*-- Write XML */
+    if (prefs.xml_flag)
+      {
+      init_xml(0);
+      write_xml(prefs.xml_name);
+      end_xml();
+      }
+    return;
+    }
 
 /* Compute the number of valid input extensions */
   if (!(cat = read_cat(incatnames[0])))
@@ -110,6 +140,11 @@ void	makeit(char **incatnames, int ncat)
   context = context_init(prefs.context_name, prefs.context_group,
 		prefs.ncontext_group, prefs.group_deg, prefs.ngroup_deg,
 		CONTEXT_REMOVEPC);
+  fullcontext = context->npc?
+		  context_init(prefs.context_name, prefs.context_group,
+		    prefs.ncontext_group, prefs.group_deg, prefs.ngroup_deg,
+		    CONTEXT_KEEPPC)
+		: context;
 
   if (prefs.newbasis_type==NEWBASIS_PCAMULTI && (!psfstep))
     {
@@ -147,7 +182,7 @@ void	makeit(char **incatnames, int ncat)
         set = load_samples(&incatnames[c], 1, ext, next, context);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, 0, context);
+        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, PSF_NODIAG, context);
         end_set(set);
         }
     nbasis = prefs.newbasis_number;
@@ -161,7 +196,9 @@ void	makeit(char **incatnames, int ncat)
     }
 
 /* Create an array of PSFs (one PSF for each extension) */
-  QMALLOC(psf, psfstruct *, next);
+  QMALLOC(psfmefs, psfmefstruct *, ncat);
+  for (c=0; c<ncat; c++)
+    psfmefs[c] = psfmef_init(next);
   QIPRINTF(OUTPUT,
         " extension accepted/total sampling chi2/dof FWHM(pix) elong."
 	" residuals asymmetry");
@@ -177,7 +214,7 @@ void	makeit(char **incatnames, int ncat)
         set = load_samples(&incatnames[c], 1, ext, next, context);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, NULL, 0, 0, context);
+        cpsf[c] = make_psf(set, psfstep, NULL, 0, PSF_NODIAG, context);
         end_set(set);
         }
       nbasis = prefs.newbasis_number;
@@ -187,32 +224,43 @@ void	makeit(char **incatnames, int ncat)
       free(cpsf);
       }
 
+    if (context->npc)
+/*---- Derive principal components of PSF components */
+      {
+      psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
+      QMALLOC(cpsf, psfstruct *, ncat);
+      for (c=0; c<ncat; c++)
+        {
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        NFPRINTF(OUTPUT, str);
+        cpsf[c] = make_psf(set, psfstep, basis, nbasis, PSF_NODIAG, context);
+        end_set(set);
+        }
+      free(fullcontext->pc);
+      fullcontext->pc = pca_oncomps(cpsf, ncat, context->npc);
+      for (c=0 ; c<ncat; c++)
+        psf_end(cpsf[c]);
+      free(cpsf);
+      }
+
 /*-- Load all the samples */
-    set = load_samples(incatnames, ncat, ext, next, context);
+    set = load_samples(incatnames, ncat, ext, next, fullcontext);
     if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
       psfstep = (float)((set->fwhm/2.35)*0.5);
-    psf[ext] = make_psf(set, psfstep, basis, nbasis, 1, context);
-    nmed = psf[ext]->nmed;
+    psf = make_psf(set, psfstep, basis, nbasis, PSF_DIAG, fullcontext);
+    NFPRINTF(OUTPUT, "Computing final model...");
+    context_apply(fullcontext, psf, psfmefs, ext, ncat);
+    nmed = psf->nmed;
     QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
 	ext+1, next,
-	psf[ext]->samples_accepted, psf[ext]->samples_loaded,
-	psf[ext]->pixstep,
-	psf[ext]->chi2,
-	sqrt(psf[ext]->moffat[nmed].fwhm_min*psf[ext]->moffat[nmed].fwhm_max),
-	psf[ext]->moffat[nmed].fwhm_max/psf[ext]->moffat[nmed].fwhm_min,
-	psf[ext]->moffat[nmed].residuals, psf[ext]->moffat[nmed].symresiduals);
-/*-- Save result */
-    NFPRINTF(OUTPUT,"Saving the PSF description...");
-    psf_save(psf[ext], prefs.psf_name, ext, next);
-
-/* Create a homogenisation kernel */
-    if (prefs.homobasis_type != HOMOBASIS_NONE)
-      {
-      NFPRINTF(OUTPUT, "Computing homogenisation kernel...");
-      psf_homo(psf[ext], prefs.homokernel_name, prefs.homopsf_params,
-		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
-      }
+	psf->samples_accepted, psf->samples_loaded,
+	psf->pixstep,
+	psf->chi2,
+	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
+	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
+	psf->moffat[nmed].residuals, psf->moffat[nmed].symresiduals);
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
@@ -220,17 +268,42 @@ void	makeit(char **incatnames, int ncat)
         {
         sprintf(str, "Saving CHECK-image #%d...", i+1);
         NFPRINTF(OUTPUT, str);
-        psf_writecheck(psf[ext], set, prefs.check_name[i],
+        psf_writecheck(psf, set, prefs.check_name[i],
 		prefs.check_type[i], ext, next, prefs.check_cubeflag);
         }
 /*-- Update XML */
     if (prefs.xml_flag)
-      update_xml(psf[ext], ncat);
+      update_xml(psfmefs[0]->psf[ext], ncat);
 /*-- Free memory */
     end_set(set);
+    psf_end(psf);
     }
 
   free(psfsteps);
+
+/* Save result */
+  NFPRINTF(OUTPUT,"Saving the PSF descriptions...");
+  for (c=0; c<ncat; c++)
+    {
+/*-- Create a file name with a "PSF" extension */
+    strcpy(str, incatnames[c]);
+    if (!(pstr = strrchr(str, '.')))
+      pstr = str+strlen(str);
+    sprintf(pstr, "%s", prefs.psf_suffix);
+    psfmef_save(psfmefs[c], str);
+/* Create homogenisation kernels */
+    if (prefs.homobasis_type != HOMOBASIS_NONE)
+      {
+      NFPRINTF(OUTPUT, "Computing homogenisation kernel...");
+      strcpy(str, incatnames[c]);
+      if (!(pstr = strrchr(str, '.')))
+        pstr = str+strlen(str);
+        sprintf(pstr, "%s", prefs.homokernel_suffix);
+      for (ext=0; ext<next; ext++)
+        psf_homo(psfmefs[c]->psf[ext], str, prefs.homopsf_params,
+		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
+      }
+    }
 
 /* Processing end date and time */
   thetime2 = time(NULL);
@@ -250,10 +323,12 @@ void	makeit(char **incatnames, int ncat)
     }
 
 /* Free memory */
-  for (ext = 0 ; ext<next; ext++)
-    psf_end(psf[ext]);
-  free(psf);
-  context_end(context);
+  for (c=0; c<ncat; c++)
+    psfmef_end(psfmefs[c]);
+
+  if (context->npc)
+    context_end(fullcontext);   
+  context_end(context);   
 
   return;
   }
@@ -311,7 +386,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     psf_clean(psf, set);
 
 /*-- Make the basic PSF-model (2nd pass) */
-    NFPRINTF(OUTPUT,"Modeling the PSF.");
+    NFPRINTF(OUTPUT,"Modeling the PSF...");
     psf_make(psf, set);
     psf_refine(psf, set);
     }
@@ -333,7 +408,10 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 
 /* Make a diagnostic of the PSF */
   if (diagflag)
+    {
+    NFPRINTF(OUTPUT,"Computing diagnostics...");
     psf_diagnostic(psf);
+    }
 
   return psf;
   }

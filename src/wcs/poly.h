@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for poly.c
 *
-*	Last modify:	11/03/2008
+*	Last modify:	03/03/2004
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,10 +39,9 @@ typedef struct poly
 
 /*---------------------------------- protos --------------------------------*/
 
-extern polystruct	*poly_copy(polystruct *poly),
-			*poly_init(int *group,int ndim,int *degree,int ngroup);
+extern polystruct	*poly_init(int *group,int ndim,int *degree,int ngroup);
 
-extern double		poly_func(polystruct *poly, double *pos);
+extern double			poly_func(polystruct *poly, double *pos);
 
 extern int		cholsolve(double *a, double *b, int n),
 			*poly_powers(polystruct *poly);

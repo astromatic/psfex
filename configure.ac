@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 2.4.2, [bertin@iap.fr])
+AC_INIT(psfex, 3.0.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -22,7 +22,9 @@ AC_SUBST(DATE3, "$date3")
 # Include macros
 sinclude(acx_atlas.m4)
 sinclude(acx_fftw.m4)
+sinclude(acx_plplot.m4)
 sinclude(acx_prog_cc_optim.m4)
+sinclude(acx_pthread.m4)
 sinclude(acx_urbi_resolve_dir.m4)
 
 # Display pakage and version number
@@ -93,6 +95,23 @@ AC_FUNC_FSEEKO
 # Set the data directory to a true absolute path
 datadir2=$(URBI_RESOLVE_DIR([$datadir]))
 
+# Provide a special option for PlPLOT
+AC_ARG_WITH(plplot,
+	[AC_HELP_STRING([--with-plplot@<:@=<PLPlot dir>@:>@],
+	[Provide an alternative path to the PLPlot library])],
+    use_plplot="yes"
+    if test "$withval" != "yes"; then
+      plplot_dir=$withval
+    fi,
+    use_plplot="yes"
+    )
+AC_ARG_WITH(plplot,
+	[AC_HELP_STRING([--without-plplot],
+	[Link without the PLPlot library (with is the default)])],
+    use_plplot="no",
+    use_plplot="yes"
+    [ACX_PTHREAD]
+    )
 # Provide special options for ATLAS
 AC_ARG_WITH(atlas,
 	[AC_HELP_STRING([--with-atlas=<ATLAS library path>],
@@ -131,6 +150,20 @@ AC_ARG_WITH(xsl_url,
 
 AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
 
+# Set flags for multithreading
+AC_ARG_ENABLE(threads,
+	[AC_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
+	[Enable multhreading (off by default)])],
+    if test "$enableval" = "yes"; then
+      n_pthreads=16
+    else
+      n_pthreads=$enableval
+    fi
+    use_pthreads=yes,
+    n_pthreads=1
+    use_pthreads=no
+    )
+
 # Provide special option for gprof profiling
 AC_MSG_CHECKING([for gprof profiler mode])
 AC_ARG_ENABLE(gprof,
@@ -160,6 +193,20 @@ else
   AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
 fi
 
+################# Actions to complete in case of multhreading ################
+AC_DEFINE_UNQUOTED(THREADS_NMAX, $n_pthreads,[Maximum number of POSIX threads])
+if test "$use_pthreads" = "yes"; then
+  AC_MSG_CHECKING([for multithreading])
+  AC_MSG_RESULT([maximum of $n_pthreads thread(s)])
+  AC_DEFINE(USE_THREADS, 1, [Triggers multhreading])
+# CC, CFLAGS and LIBS are system and compiler-dependent
+  ACX_PTHREAD
+  CC="$PTHREAD_CC"
+  [CFLAGS="$CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
+  LIBS="$PTHREAD_LIBS $LIBS"
+fi
+AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
+
 ################ handle the FFTW library (Fourier transforms) ################
 ACX_FFTW($fftw_libdir,$fftw_incdir,no,yes,[use_fftw=yes],[use_fftw=no])
 if test "$use_fftw" = "yes"; then
@@ -168,10 +215,24 @@ else
   AC_MSG_ERROR([$FFTW_ERROR Exiting.])
 fi
 
+################# handle the PLPlot library (graphic plots) ##################
+if test "$use_plplot" = "yes"; then
+  ACX_PLPLOT(,,[use_plplot=no])
+  if test "$use_plplot" = "no"; then
+    AC_MSG_WARN(PLPlot library not found! Plotting deactivated.)
+  fi
+fi
 
-# Special optimization options for the INTEL C compiler
+if test "$use_plplot" = "yes"; then
+  AC_SUBST(PLPLOT_CFLAGS)
+  [CFLAGS="$CFLAGS $PLPLOT_CFLAGS"]
+  [LIBS="$PLPLOT_LIBS $PTHREAD_LIBS $LIBS"]
+  fi
+AM_CONDITIONAL(USE_PLPLOT, test $use_plplot = "yes")
+
+############################### INTEL C compiler ##############################
 if test $use_icc = "yes" -a $CC = "icc"; then
-  CFLAGS="-O -axWP -ip -unroll"
+  CFLAGS="$CFLAGS -O -axWP -ip -unroll"
 fi
 
 if test "$use_gprof" = "yes"; then
@@ -208,6 +269,7 @@ man/Makefile
 src/Makefile
 src/fits/Makefile
 src/levmar/Makefile
+src/wcs/Makefile
 psfex.spec
 man/psfex.1])
 AC_OUTPUT

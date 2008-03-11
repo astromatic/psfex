@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	19/02/2008
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -31,6 +31,8 @@
 
 /*----------------------------- Internal constants --------------------------*/
 
+#define	PSF_NODIAG	0	/* Don't do diagnostics */
+#define	PSF_DIAG	1	/* Do diagnostics */
 #define	PSF_FREEDFACTOR	1.0	/* Margin against overfitting */
 #define	PSF_NMASKDIM	3	/* Number of dimensions for PSF data */
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
@@ -64,7 +66,7 @@ typedef struct psf
   int		dim;		/* Dimensionality of the tabulated data */
   int		*size;		/* PSF  dimensions */
   int		npix;		/* Total number of involved PSF pixels */
-  float		*comp; 		/* Complete pix. data (principal components) */
+  float		*comp; 		/* Complete pix. data (PSF components) */
   float		*loc;		/* Local PSF */
   float		*resi;		/* Map of residuals */
   char		**contextname;	/* Array of context key-names */
@@ -103,6 +105,12 @@ typedef struct psf
   int		homobasis_number;	/* nb of supersampled pixels */
   }	psfstruct;
 
+typedef struct psfmef
+  {
+  int		next;		/* Number of extensions */
+  psfstruct	**psf;		/* Array of PSFs */
+  }	psfmefstruct;
+
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_build(psfstruct *psf, double *pos),
@@ -115,7 +123,9 @@ extern void	psf_build(psfstruct *psf, double *pos),
 			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set),
-		psf_save(psfstruct *psf,  char *filename, int ext, int next);
+		psf_save(psfstruct *psf,  char *filename, int ext, int next),
+		psfmef_end(psfmefstruct *psfmef),
+		psfmef_save(psfmefstruct *psfmef, char *filename);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 			double beta),
@@ -124,10 +134,16 @@ extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);
 
-extern psfstruct	*psf_init(contextstruct *context, int *size,
+extern psfmefstruct	*psfmef_init(int next);
+
+extern psfstruct	*psf_copy(psfstruct *psf),
+			*psf_init(contextstruct *context, int *size,
 				float psfstep,int nsample),
 			*psf_load(char *filename);
 
+void		context_apply(contextstruct *context, psfstruct *psf,
+			psfmefstruct **psfmefs, int ext, int ncat),
+		context_end(contextstruct *context);
 
 #endif
 

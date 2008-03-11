@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	12/11/2007
+*	Last modify:	11/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -69,12 +69,12 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
 
   {
    FILE          *infile;
-   char          *cp, str[MAXCHAR], *keyword, *value, **dp;
+   char          *cp, str[MAXCHARL], *keyword, *value, **dp;
    int           i, ival, nkey, warn, argi, flagc, flagd, flage, flagz;
    float         dval;
-#ifndef	NO_ENVVAR
-   static char	value2[MAXCHAR],envname[MAXCHAR];
-   char		*dolpos;
+#ifdef	HAVE_GETENV
+   static char	value2[MAXCHARL],envname[MAXCHAR];
+   char		*dolpos, *listbuf;
 #endif
 
 
@@ -114,7 +114,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
         flagd = 0;
       }
     if (!flagc && !flagd)
-      if (flage || !fgets(str, MAXCHAR, infile))
+      if (flage || !fgets(str, MAXCHARL, infile))
         flagc=1;
 
     if (flagc)
@@ -137,7 +137,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
       if (nkey!=RETURN_ERROR)
         {
         value = strtok((char *)NULL, notokstr);
-#ifndef	NO_ENVVAR
+#ifdef	HAVE_GETENV
 /*------ Expansion of environment variables (preceded by '$') */
         if (value && (dolpos=strchr(value, '$')))
           {
@@ -172,7 +172,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
               }
 	    }
 
-          value = value2;
+          value = strtok(value2, notokstr);
           }
 #endif
         switch(key[nkey].type)
@@ -180,6 +180,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
           case P_FLOAT:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," keyword has no value!");
+            if (*value=='@')
+              value = listbuf = list_to_str(value+1);
             dval = atof(value);
             if (dval>=key[nkey].dmin && dval<=key[nkey].dmax)
               *(double *)(key[nkey].ptr) = dval;
@@ -190,6 +192,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
           case P_INT:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," keyword has no value!");
+            if (*value=='@')
+              value = listbuf = list_to_str(value+1);
             ival = (int)strtol(value, (char **)NULL, 0);
             if (ival>=key[nkey].imin && ival<=key[nkey].imax)
               *(int *)(key[nkey].ptr) = ival;
@@ -200,12 +204,16 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
           case P_STRING:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," string is empty!");
+            if (*value=='@')
+              value = listbuf = list_to_str(value+1);
             strcpy((char *)key[nkey].ptr, value);
             break;
 
           case P_BOOL:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," keyword has no value!");
+            if (*value=='@')
+              value = listbuf = list_to_str(value+1);
             if ((cp = strchr("yYnN", (int)value[0])))
               *(int *)(key[nkey].ptr) = (tolower((int)*cp)=='y')?1:0;
             else
@@ -215,6 +223,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
           case P_KEY:
             if (!value || value[0]==(char)'#')
               error(EXIT_FAILURE, keyword," keyword has no value!");
+            if (*value=='@')
+              value = listbuf = list_to_str(value+1);
             if ((ival = findkeys(value, key[nkey].keylist,FIND_STRICT))
 			!= RETURN_ERROR)
               *(int *)(key[nkey].ptr) = ival;
@@ -223,6 +233,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
             break;
 
           case P_BOOLLIST:
+            if (value && *value=='@')
+              value = strtok(listbuf = list_to_str(value+1), notokstr);
             for (i=0; i<MAXLIST&&value&&value[0]!=(char)'#'; i++)
               {
               if (i>=key[nkey].nlistmax)
@@ -239,6 +251,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
             break;
 
           case P_INTLIST:
+            if (value && *value=='@')
+              value = strtok(listbuf = list_to_str(value+1), notokstr);
             for (i=0; i<MAXLIST&&value&&value[0]!=(char)'#'; i++)
               {
               if (i>=key[nkey].nlistmax)
@@ -256,6 +270,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
             break;
 
           case P_FLOATLIST:
+            if (value && *value=='@')
+              value = strtok(listbuf = list_to_str(value+1), notokstr);
             for (i=0; i<MAXLIST&&value&&value[0]!=(char)'#'; i++)
               {
               if (i>=key[nkey].nlistmax)
@@ -273,6 +289,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
             break;
 
           case P_KEYLIST:
+            if (value && *value=='@')
+              value = strtok(listbuf = list_to_str(value+1), notokstr);
             for (i=0; i<MAXLIST && value && value[0]!=(char)'#'; i++)
               {
               if (i>=key[nkey].nlistmax)
@@ -290,6 +308,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
             break;
 
           case P_STRINGLIST:
+            if (value && *value=='@')
+              value = strtok(listbuf = list_to_str(value+1), notokstr);
             if (!value || value[0]==(char)'#')
               {
               value = "";
@@ -376,6 +396,48 @@ int     cistrcmp(char *cs, char *ct, int mode)
     }
 
   return 0;
+  }
+
+
+/****** list_to_str **********************************************************
+PROTO	char    *list_to_str(char *listname)
+PURPOSE	Read the content of a file and convert it to a long string.
+INPUT	File name.
+OUTPUT	Pointer to an allocated string, or NULL if something went wrong.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	06/02/2008
+ ***/
+char	*list_to_str(char *listname)
+  {
+   FILE		*fp;
+   char		liststr[MAXCHAR],
+		*listbuf, *str;
+   int		l, bufpos, bufsize;
+
+  if (!(fp=fopen(listname,"r")))
+    error(EXIT_FAILURE, "*Error*: File not found: ", listname);
+  bufsize = 8*MAXCHAR;
+  QMALLOC(listbuf, char, bufsize);
+  for (bufpos=0; fgets(liststr,MAXCHAR,fp);)
+    for (str=NULL; (str=strtok(str? NULL: liststr, "\n\r\t "));)
+      {
+      if (bufpos>MAXLISTSIZE)
+        error(EXIT_FAILURE, "*Error*: Too many parameters in ", listname);
+      l = strlen(str)+1;
+      if (bufpos+l > bufsize)
+        {
+        bufsize += 8*MAXCHAR;
+        QREALLOC(listbuf, char, bufsize);
+        }
+      if (bufpos)
+        listbuf[bufpos-1] = ' ';
+      strcpy(listbuf+bufpos, str);
+      bufpos += l;
+      }
+  fclose(fp);
+
+  return listbuf;
   }
 
 
