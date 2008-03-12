@@ -227,11 +227,12 @@ void	makeit(void)
     if (context->npc)
 /*---- Derive principal components of PSF components */
       {
-      psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
       QMALLOC(cpsf, psfstruct *, ncat);
       for (c=0; c<ncat; c++)
         {
         set = load_samples(&incatnames[c], 1, ext, next, context);
+        if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
+          psfstep = (float)((set->fwhm/2.35)*0.5);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
         cpsf[c] = make_psf(set, psfstep, basis, nbasis, PSF_NODIAG, context);

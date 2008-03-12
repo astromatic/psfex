@@ -120,7 +120,7 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 11/03/2008
+VERSION 12/03/2008
  ***/
 double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
@@ -153,7 +153,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     }
 
 /* Do recursive PCA */
-  QMALLOC(vector, float, npc);
+  QMALLOC(vector, float, ncat);
   QMALLOC(pc, double, ncat*npc);
   for (p=0; p<npc; p++)
     {

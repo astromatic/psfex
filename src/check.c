@@ -50,7 +50,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/11/2007
+VERSION 12/03/2008
  ***/
 void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -65,7 +65,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,x,y, w,h,n, npc,nt,nr, nw,nh, step, ival1,ival2, npix;
+   int			i,x,y, w,h,n, npc,nt,nr, nw,nh,np,
+			step, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
   if (!ext)
@@ -344,40 +345,75 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 
     case PSF_SNAPSHOTS:
 /*----  View reconstructed PSFs as small vignets */
+      dstep = 1.0/prefs.context_nsnap;
+      dstart = (1.0-dstep)/2.0;
       npc = prefs.ncontext_group;
       nw = npc? prefs.context_nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
         nt *= prefs.context_nsnap;
-      nh = nt/nw;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
-      tab->naxisn[0] = nw*w;
-      tab->naxisn[1] = nh*h;
-      step = (nw-1)*w;
-      tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-      QCALLOC(pix0, float, tab->tabsize);
-      tab->bodybuf = (char *)pix0; 
-      dstep = 1.0/prefs.context_nsnap;
-      dstart = (1.0-dstep)/2.0;
       memset(dpos, 0, POLY_MAXDIM*sizeof(double));
       for (i=0; i<npc; i++)
         dpos[i] = -dstart;
-      for (n=0; n<nt; n++)
+      w = set->retisize[0];
+      h = set->retidim>1? set->retisize[1] : 1;
+      if (cubeflag)
         {
-        psf_build(psf, dpos);
-        pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-        fpix = psf->loc;
-        for (y=h; y--; pix += step)
-          for (x=w; x--;)
-            *(pix++) = *(fpix++);
-        for (i=0; i<npc; i++)
-          if (dpos[i]<dstart-0.01)
-            {
-            dpos[i] += dstep;
-            break;
-            }
-          else
-            dpos[i] = -dstart;
+        nh = npc>2? prefs.context_nsnap : nt/nw;
+        np = npc>2? nt/(nw*nh) : 1;
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->naxisn[2] = np;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        step = (nw-1)*w;
+        for (n=0; n<nt; n++)
+          {
+          psf_build(psf, dpos);
+          pix = pix0 + ((n%nw) + ((n/nw)%nh)*nw*h)*w + npix*(n/(nw*nh));
+          fpix = psf->loc;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          for (i=0; i<npc; i++)
+            if (dpos[i]<dstart-0.01)
+              {
+              dpos[i] += dstep;
+              break;
+              }
+            else
+              dpos[i] = -dstart;
+          }
+        }
+      else
+        {
+        nh = nt/nw;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        step = (nw-1)*w;
+        for (n=0; n<nt; n++)
+          {
+          psf_build(psf, dpos);
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = psf->loc;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          for (i=0; i<npc; i++)
+            if (dpos[i]<dstart-0.01)
+              {
+              dpos[i] += dstep;
+              break;
+              }
+            else
+              dpos[i] = -dstart;
+          }
         }
       break;
 
