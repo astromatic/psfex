@@ -9,14 +9,10 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	13/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
-
-#ifndef _CONTEXT_H_
-#include "context.h"
-#endif
 
 #ifndef _POLY_H_
 #include "poly.h"
@@ -105,12 +101,6 @@ typedef struct psf
   int		homobasis_number;	/* nb of supersampled pixels */
   }	psfstruct;
 
-typedef struct psfmef
-  {
-  int		next;		/* Number of extensions */
-  psfstruct	**psf;		/* Array of PSFs */
-  }	psfmefstruct;
-
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_build(psfstruct *psf, double *pos),
@@ -123,9 +113,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 			float psf_extraccu),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set),
-		psf_save(psfstruct *psf,  char *filename, int ext, int next),
-		psfmef_end(psfmefstruct *psfmef),
-		psfmef_save(psfmefstruct *psfmef, char *filename);
+		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 			double beta),
@@ -134,16 +122,10 @@ extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);
 
-extern psfmefstruct	*psfmef_init(int next);
-
 extern psfstruct	*psf_copy(psfstruct *psf),
 			*psf_init(contextstruct *context, int *size,
 				float psfstep,int nsample),
 			*psf_load(char *filename);
-
-void		context_apply(contextstruct *context, psfstruct *psf,
-			psfmefstruct **psfmefs, int ext, int ncat),
-		context_end(contextstruct *context);
 
 #endif
 

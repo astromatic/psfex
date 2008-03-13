@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	13/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -35,6 +35,7 @@
 #include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
+#include	"psfmef.h"
 #include	"sample.h"
 #include	"xml.h"
 
@@ -53,8 +54,6 @@ void	makeit(void)
    psfstruct		**cpsf,
 			*psf;
    setstruct		*set;
-   catstruct		*cat;
-   tabstruct		*tab;
    contextstruct	*context, *fullcontext;
    struct tm		*tm;
    static char		str[MAXCHAR];
@@ -62,7 +61,7 @@ void	makeit(void)
 			*pstr;
    float		*psfsteps, *basis,
 			psfstep;
-   int			c,i, ncat, ntab, ext, next, nmed, nbasis;
+   int			c,i, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -111,23 +110,13 @@ void	makeit(void)
     return;
     }
 
-/* Compute the number of valid input extensions */
-  if (!(cat = read_cat(incatnames[0])))
-    error(EXIT_FAILURE, "*Error*: cannot open ", incatnames[0]);
-  tab = cat->tab;
-  next = 0;
-  for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab)
-    {
-/*--  Check for the next valid image extension */
-    if ((tab->naxis != 2)
-        || (strncmp(tab->xtension, "BINTABLE", 8)
-		&& strncmp(tab->xtension, "ASCTABLE", 8))
-	|| (strncmp(tab->extname, "LDAC_OBJECTS", 8)
-		&& strncmp(tab->extname, "OBJECTS", 8)))
-      continue;
-    next++;
-    }
-  free_cat(&cat, 1);
+/* Create an array of PSFs (one PSF for each extension) */
+  QMALLOC(psfmefs, psfmefstruct *, ncat);
+  for (c=0; c<ncat; c++)
+    psfmefs[c] = psfmef_init(incatnames[c]);
+
+  next = psfmefs[0]->next;
+
   if (prefs.xml_flag)
     init_xml(next);  
 
@@ -195,10 +184,6 @@ void	makeit(void)
 	"----- Second pass for Principal Component Analysis (single):\n\n");
     }
 
-/* Create an array of PSFs (one PSF for each extension) */
-  QMALLOC(psfmefs, psfmefstruct *, ncat);
-  for (c=0; c<ncat; c++)
-    psfmefs[c] = psfmef_init(next);
   QIPRINTF(OUTPUT,
         " extension accepted/total sampling chi2/dof FWHM(pix) elong."
 	" residuals asymmetry");
@@ -304,6 +289,14 @@ void	makeit(void)
         psf_homo(psfmefs[c]->psf[ext], str, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
       }
+#ifdef HAVE_PLPLOT
+/* Plot FWHM maps for all catalogs */
+/*
+  for (c=0; c<ncat; c++)
+    cplot_fwhm(psfmef[c]);
+*/
+#endif
+
     }
 
 /* Processing end date and time */

@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	22/02/2008
+*	Last modify:	13/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -31,6 +31,7 @@
 #include "context.h"
 #include "poly.h"
 #include "psf.h"
+#include "psfmef.h"
 
 /****** context_init *********************************************************
 PROTO   contextstruct *context_init(char **names, int *group, int ngroup,
