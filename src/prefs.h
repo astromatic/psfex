@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	14/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -104,7 +104,6 @@ typedef struct
   char		*(cplot_name[MAXCHECK]);	/* check-plot names */
   int		ncplot_name;			/* nb of params */
   int		cplot_flag;			/* = 0 if no check-plot */
-  char		cplot_colourkey[72];		/* FITS keyword for colour */
   int		cplot_res[2];			/* X,Y check-plot resolution */
   int		ncplot_res;			/* nb of params */
   int		cplot_antialiasflag;		/* Anti-aliasing on/off */

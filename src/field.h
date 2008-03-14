@@ -1,5 +1,5 @@
  /*
- 				psfmef.h
+ 				field.h
 
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -7,9 +7,9 @@
 *
 *	Author:		E.BERTIN (IAP)
 *
-*	Contents:	Include for psfmef.c.
+*	Contents:	Include for field.c.
 *
-*	Last modify:	13/03/2008
+*	Last modify:	14/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -34,25 +34,30 @@
 /*------------------------------ Type definitions ---------------------------*/
 /*--------------------------- structure definitions -------------------------*/
 
-typedef struct psfmef
+typedef struct field
   {
   char		catname[MAXCHAR];	/* Input catalog filename */
   char		*rcatname;		/* "Reduced" catalog name */
   int		next;			/* Number of extensions */
   psfstruct	**psf;			/* Array of PSFs */
   wcsstruct	**wcs;			/* Array of WCS structures */
-  }	psfmefstruct;
+  double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
+  double	meanwcsscale[NAXIS];	/* Mean pixel scale */
+  double	maxradius;		/* Maxium radius */
+  }	fieldstruct;
 
 /*---------------------------------- protos --------------------------------*/
-extern void	psfmef_end(psfmefstruct *psfmef),
-		psfmef_save(psfmefstruct *psfmef, char *filename);
+extern fieldstruct	*field_init(char *catname);
 
-extern psfmefstruct	*psfmef_init(char *catname);
+extern double		dhmedian(double *ra, int n);
 
+extern void		field_end(fieldstruct *field),
+			field_locate(fieldstruct *field),
+			field_psfsave(fieldstruct *field, char *filename);
 
-void		context_apply(contextstruct *context, psfstruct *psf,
-			psfmefstruct **psfmefs, int ext, int ncat),
-		context_end(contextstruct *context);
+void			context_apply(contextstruct *context, psfstruct *psf,
+				fieldstruct **fields, int ext, int ncat),
+			context_end(contextstruct *context);
 
 #endif
 

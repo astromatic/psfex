@@ -297,11 +297,23 @@ psfstruct	*psf_init(contextstruct *context, int *size,
     QMALLOC(psf->contextoffset, double, ndim2);
     QMALLOC(psf->contextscale, double, ndim2);
     QMALLOC(psf->contextname, char *, ndim2);
+    psf->cx = psf->cy = -1;
     for (names2t=names2, d=0; d<ndim2; d++)
       {
       nsnap *= psf->nsnap;
       QMALLOC(psf->contextname[d], char, 80);
       strcpy(psf->contextname[d], *(names2t++));
+/*---- Identify first spatial coordinates among contexts */
+      if (!strcmp(psf->contextname[d], "X_IMAGE")
+		|| !strcmp(psf->contextname[d], "XWIN_IMAGE")
+		|| !strcmp(psf->contextname[d], "XPSF_IMAGE")
+		|| !strcmp(psf->contextname[d], "XPEAK_IMAGE"))
+        psf->cx = d;
+      else if (!strcmp(psf->contextname[d], "Y_IMAGE")
+		|| !strcmp(psf->contextname[d], "YWIN_IMAGE")
+		|| !strcmp(psf->contextname[d], "YPSF_IMAGE")
+		|| !strcmp(psf->contextname[d], "YPEAK_IMAGE"))
+        psf->cy = d;
       }
     }
 

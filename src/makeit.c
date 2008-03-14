@@ -31,11 +31,11 @@
 #include	"check.h"
 #include	"context.h"
 #include	"diagnostic.h"
+#include	"field.h"
 #include	"homo.h"
 #include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
-#include	"psfmef.h"
 #include	"sample.h"
 #include	"xml.h"
 
@@ -50,7 +50,7 @@ time_t		thetime, thetime2;
 void	makeit(void)
 
   {
-   psfmefstruct		**psfmefs;
+   fieldstruct		**fields;
    psfstruct		**cpsf,
 			*psf;
    setstruct		*set;
@@ -111,11 +111,11 @@ void	makeit(void)
     }
 
 /* Create an array of PSFs (one PSF for each extension) */
-  QMALLOC(psfmefs, psfmefstruct *, ncat);
+  QMALLOC(fields, fieldstruct *, ncat);
   for (c=0; c<ncat; c++)
-    psfmefs[c] = psfmef_init(incatnames[c]);
+    fields[c] = field_init(incatnames[c]);
 
-  next = psfmefs[0]->next;
+  next = fields[0]->next;
 
   if (prefs.xml_flag)
     init_xml(next);  
@@ -236,7 +236,7 @@ void	makeit(void)
       psfstep = (float)((set->fwhm/2.35)*0.5);
     psf = make_psf(set, psfstep, basis, nbasis, PSF_DIAG, fullcontext);
     NFPRINTF(OUTPUT, "Computing final model...");
-    context_apply(fullcontext, psf, psfmefs, ext, ncat);
+    context_apply(fullcontext, psf, fields, ext, ncat);
     nmed = psf->nmed;
     QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
@@ -259,7 +259,7 @@ void	makeit(void)
         }
 /*-- Update XML */
     if (prefs.xml_flag)
-      update_xml(psfmefs[0]->psf[ext], ncat);
+      update_xml(fields[0]->psf[ext], ncat);
 /*-- Free memory */
     end_set(set);
     psf_end(psf);
@@ -276,7 +276,7 @@ void	makeit(void)
     if (!(pstr = strrchr(str, '.')))
       pstr = str+strlen(str);
     sprintf(pstr, "%s", prefs.psf_suffix);
-    psfmef_save(psfmefs[c], str);
+    field_psfsave(fields[c], str);
 /* Create homogenisation kernels */
     if (prefs.homobasis_type != HOMOBASIS_NONE)
       {
@@ -286,15 +286,13 @@ void	makeit(void)
         pstr = str+strlen(str);
         sprintf(pstr, "%s", prefs.homokernel_suffix);
       for (ext=0; ext<next; ext++)
-        psf_homo(psfmefs[c]->psf[ext], str, prefs.homopsf_params,
+        psf_homo(fields[c]->psf[ext], str, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
       }
 #ifdef HAVE_PLPLOT
 /* Plot FWHM maps for all catalogs */
-/*
   for (c=0; c<ncat; c++)
-    cplot_fwhm(psfmef[c]);
-*/
+    cplot_fwhm(fields[c]);
 #endif
 
     }
@@ -318,7 +316,7 @@ void	makeit(void)
 
 /* Free memory */
   for (c=0; c<ncat; c++)
-    psfmef_end(psfmefs[c]);
+    field_end(fields[c]);
 
   if (context->npc)
     context_end(fullcontext);   

@@ -31,7 +31,7 @@
 #include "context.h"
 #include "poly.h"
 #include "psf.h"
-#include "psfmef.h"
+#include "field.h"
 
 /****** context_init *********************************************************
 PROTO   contextstruct *context_init(char **names, int *group, int ngroup,
@@ -118,7 +118,7 @@ AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
 VERSION 11/03/2008
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
-		psfmefstruct **psfmefs, int ext, int ncat)
+		fieldstruct **fields, int ext, int ncat)
   {
    psfstruct		*psf2;
    polystruct		*poly, *poly2;
@@ -132,7 +132,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
 			c,c2, i, n,n2, p, npc, npix,comp2size,ncontext2;
 
   for (p=0; p<ncat; p++)
-    psfmefs[p]->psf[ext] = psf_copy(psf);
+    fields[p]->psf[ext] = psf_copy(psf);
 
 /* No PC dependency: the PSF is simply duplicated */
   if (!context->npc)
@@ -205,7 +205,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
             *(comp2t++) += *(comp++);
           }
 /*-- Replace the new PSF components; 1000000 is just a big number */
-    psfmefs[p]->psf[ext] = psf2
+    fields[p]->psf[ext] = psf2
 			= psf_init(context2, psf->size, psf->pixstep, 1000000);
     free(psf2->comp);
     psf2->comp = comp2;    

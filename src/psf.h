@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	13/03/2008
+*	Last modify:	14/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -68,6 +68,7 @@ typedef struct psf
   char		**contextname;	/* Array of context key-names */
   double	*contextoffset;	/* Offset to apply to context data */
   double	*contextscale;	/* Scaling to apply to context data */
+  int		cx,cy;		/* Indices of X and Y mapping contexts */
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */
   int		samples_loaded;	/* Number of detections loaded */

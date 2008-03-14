@@ -1,5 +1,5 @@
   /*
- 				psfmef.c
+ 				field.c
 
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	13/03/2008
+*	Last modify:	14/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,26 +30,26 @@
 #include	"fitswcs.h"
 #include	"prefs.h"
 #include	"psf.h"
-#include	"psfmef.h"
+#include	"field.h"
 
-/****** psfmef_init ***********************************************************
-PROTO	psfmefstruct *psfmef_init(char *catname, int next)
+/****** field_init ***********************************************************
+PROTO	fieldstruct *field_init(char *catname, int next)
 PURPOSE	Allocate and initialize a PSF MEF structure (groups of PSFs).
 INPUT	Catalog filename.
-OUTPUT  psfmefstruct pointer.
+OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
 VERSION 13/03/2008
  ***/
-psfmefstruct	*psfmef_init(char *catname)
+fieldstruct	*field_init(char *catname)
   {
-   psfmefstruct	*psfmef;
+   fieldstruct	*field;
    catstruct	*cat;
    tabstruct	*tab, *imatab;
    keystruct	*key;
    int		next, ntab;
 
-  QCALLOC(psfmef, psfmefstruct, 1);
+  QCALLOC(field, fieldstruct, 1);
 /* Compute the number of valid input extensions */
   if (!(cat = read_cat(catname)))
     error(EXIT_FAILURE, "*Error*: cannot open ", catname);
@@ -66,16 +66,16 @@ psfmefstruct	*psfmef_init(char *catname)
       continue;
     next++;
     }
-  psfmef->next = next;
-  QMALLOC(psfmef->psf, psfstruct *, next);
-  strcpy(psfmef->catname, catname);
+  field->next = next;
+  QMALLOC(field->psf, psfstruct *, next);
+  strcpy(field->catname, catname);
 /* A short, "relative" version of the filename */
-  if (!(psfmef->rcatname = strrchr(psfmef->catname, '/')))
-    psfmef->rcatname = psfmef->catname;
+  if (!(field->rcatname = strrchr(field->catname, '/')))
+    field->rcatname = field->catname;
   else
-    psfmef->rcatname++;
+    field->rcatname++;
 
-  QMALLOC(psfmef->wcs, wcsstruct *, next);
+  QMALLOC(field->wcs, wcsstruct *, next);
 /* Compute the number of valid input extensions */
   tab = cat->tab;
   next = 0;
@@ -93,7 +93,7 @@ psfmefstruct	*psfmef_init(char *catname)
       memcpy(imatab->headbuf, key->ptr, key->nbytes);
       imatab->cat = cat;
       readbasic_head(imatab);
-      psfmef->wcs[next++] = read_wcs(imatab);
+      field->wcs[next++] = read_wcs(imatab);
       free_tab(imatab);
       }
       continue;
@@ -101,38 +101,183 @@ psfmefstruct	*psfmef_init(char *catname)
 
   free_cat(&cat, 1);
 
-  return psfmef;
+  field_locate(field);
+
+  return field;
   }
 
 
-/****** psfmef_end ***********************************************************
-PROTO	void psfmef_end(psfmefstruct *psfmef)
+/****** field_end ***********************************************************
+PROTO	void field_end(fieldstruct *field)
 PURPOSE	Free a PSF MEF structure (groups of PSFs).
-INPUT	Pointer to the psfmefstruct.
+INPUT	Pointer to the fieldstruct.
 OUTPUT  -.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
 VERSION 13/03/2008
  ***/
-void	psfmef_end(psfmefstruct *psfmef)
+void	field_end(fieldstruct *field)
   {
    int	ext;
 
-  for (ext=0; ext<psfmef->next; ext++)
+  for (ext=0; ext<field->next; ext++)
     {
-    psf_end(psfmef->psf[ext]);
-    end_wcs(psfmef->wcs[ext]);
+    psf_end(field->psf[ext]);
+    end_wcs(field->wcs[ext]);
     }
-  free(psfmef->psf);
-  free(psfmef->wcs);
-  free(psfmef);
+  free(field->psf);
+  free(field->wcs);
+  free(field);
 
   return;
   }
 
 
-/****** psfmef_save ***********************************************************
-PROTO   void	psfmef_save(psfmefstruct *psfmef, char *filename)
+/****** field_locate *********************************************************
+PROTO   void field_locate(fieldstruct *field)
+PURPOSE Compute field position, scale and footprint.
+INPUT   Pointer to field structure.
+OUTPUT  A pointer to the created field structure.
+NOTES   Global preferences are used.
+AUTHOR  E. Bertin (IAP)
+VERSION 14/03/2008
+*/
+void	field_locate(fieldstruct *field)
+  {
+   wcsstruct		*wcs;
+   double		*scale[NAXIS],*scalet[NAXIS],
+			*wcsmean,
+			cosalpha,sinalpha, sindelta, dist, maxradius;
+   int			i, e, lat,lng, naxis;
+
+/* Some initializations */
+  cosalpha = sinalpha = sindelta = 0.0;
+  wcs = field->wcs[0];
+  naxis = wcs->naxis;
+  wcsmean = field->meanwcspos;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(scale[i], double, field->next);
+    scalet[i] = scale[i];
+    wcsmean[i] = 0.0;
+    }
+
+/* Go through each extension */
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    lng = wcs->lng;
+    lat = wcs->lat;
+/*-- Locate set */
+    if (lat != lng)
+      {
+      cosalpha += cos(wcs->wcsscalepos[lng]*DEG);
+      sinalpha += sin(wcs->wcsscalepos[lng]*DEG);
+      sindelta += sin(wcs->wcsscalepos[lat]*DEG);
+      }
+    for (i=0; i<naxis; i++)
+      {
+      if (lat==lng || (i!=lng && i!=lat))
+        wcsmean[i] += wcs->wcsscalepos[i];
+      *(scalet[i]++) = wcs->wcsscale[i];
+      }
+    }
+
+/* Now make the stats on each axis */
+  lng = field->wcs[0]->lng;
+  lat = field->wcs[0]->lat;
+  for (i=0; i<naxis; i++)
+    {
+    if (lat!=lng && (i==lng))
+      {
+      wcsmean[i] = atan2(sinalpha/field->next,cosalpha/field->next)/DEG;
+      wcsmean[i] = fmod(wcsmean[i]+360.0, 360.0);
+      }
+    else if (lat!=lng && (i==lat))
+      wcsmean[i] = asin(sindelta/field->next)/DEG;
+    else
+      wcsmean[i] /= field->next;
+    field->meanwcsscale[i] = dhmedian(scale[i], field->next);
+    }
+
+/* Compute the radius of the field and mean airmass */
+  maxradius = 0.0;
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+/*-- The distance is the distance to the center + the diagonal of the image */
+    dist = wcs_dist(wcs, wcs->wcsscalepos, field->meanwcspos)
+		+ wcs->wcsmaxradius;
+    if (dist>maxradius)
+      maxradius = dist;
+    }
+
+  field->maxradius = maxradius;
+
+/* Free memory */
+  for (i=0; i<naxis; i++)
+    free(scale[i]);
+
+  return;
+  }
+
+
+/****** dhmedian ******************************************************
+PROTO	double   dhmedian(double *ra, int n)
+PURPOSE	Compute the median of an array of doubles, using the Heapsort
+	algorithm (based on Num.Rec algo.).
+INPUT	Pointer to the array,
+	Number of array elements.
+OUTPUT	Median of the array.
+NOTES	Warning: the order of input data is modified!.
+AUTHOR	E. Bertin (IAP)
+VERSION	22/07/2002
+ ***/
+double   dhmedian(double *ra, int n)
+
+  {
+   int		l, j, ir, i;
+   double	rra;
+
+
+  if (n<2)
+    return *ra;
+  ra--;
+  for (l = ((ir=n)>>1)+1;;)
+    {
+    if (l>1)
+      rra = ra[--l];
+    else
+      {
+      rra = ra[ir];
+      ra[ir] = ra[1];
+      if (--ir == 1)
+        {
+        ra[1] = rra;
+        return n&1? ra[n/2+1] : (ra[n/2]+ra[n/2+1])/2.0;
+        }
+      }
+    for (j = (i=l)<<1; j <= ir;)
+      {
+      if (j < ir && ra[j] < ra[j+1])
+        ++j;
+      if (rra < ra[j])
+        {
+        ra[i] = ra[j];
+        j += (i=j);
+        }
+      else
+        j = ir + 1;
+      }
+    ra[i] = rra;
+    }
+
+/* (the 'return' is inside the loop!!) */
+  }
+
+
+/****** field_psfsave *********************************************************
+PROTO   void	field_psfsave(fieldstruct *field, char *filename)
 PURPOSE Save PSF data as a Multi-extension FITS file.
 INPUT   Pointer to the PSF structure,
 	Filename,
@@ -141,9 +286,9 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 11/03/2008
+VERSION 14/03/2008
  ***/
-void	psfmef_save(psfmefstruct *psfmef, char *filename)
+void	field_psfsave(fieldstruct *field, char *filename)
   {
    catstruct	*cat;
    tabstruct	*tab;
@@ -161,9 +306,9 @@ void	psfmef_save(psfmefstruct *psfmef, char *filename)
 /* Write primary HDU */
   save_tab(cat, cat->tab);
 
-  for (ext=0; ext<psfmef->next; ext++)
+  for (ext=0; ext<field->next; ext++)
     {
-    psf = psfmef->psf[ext];
+    psf = field->psf[ext];
     tab = new_tab("PSF_DATA");
 
     head = tab->headbuf;
