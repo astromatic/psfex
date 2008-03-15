@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	13/03/2008
+*	Last modify:	15/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -115,7 +115,7 @@ INPUT	Covariance matrix,
 OUTPUT  Eigenvalue (variance) of the PC.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 11/03/2008
+VERSION 15/03/2008
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
 		fieldstruct **fields, int ext, int ncat)
@@ -137,7 +137,6 @@ void context_apply(contextstruct *context, psfstruct *psf,
 /* No PC dependency: the PSF is simply duplicated */
   if (!context->npc)
     return;
-
 
   if (sizeof(prime)/sizeof(double) < context->ncontext)
     error(EXIT_FAILURE, "*Internal Error*: ",
@@ -161,9 +160,9 @@ void context_apply(contextstruct *context, psfstruct *psf,
   c2 = 0;
   for (c=0; c<context->ncontext; c++)
     if (context->pcflag[c])
-      dpos[c] = prime[c2++];
-    else
       dpos[c] = 1.0;
+    else
+      dpos[c] = prime[c2++];
   poly_func(poly, dpos);
   for (c=0; c<context2->ncontext; c++)
     dpos[c] = prime[c];
@@ -201,20 +200,17 @@ void context_apply(contextstruct *context, psfstruct *psf,
           {
           comp = psf->comp + n*npix;
           comp2t = comp2 + n2*npix;
+          dval = poly->basis[n];
           for (i=npix; i--;)
-            *(comp2t++) += *(comp++);
+            *(comp2t++) += dval**(comp++);
           }
 /*-- Replace the new PSF components; 1000000 is just a big number */
-    fields[p]->psf[ext] = psf2
-			= psf_init(context2, psf->size, psf->pixstep, 1000000);
+    fields[p]->psf[ext] = psf2 = psf_inherit(context2, psf);
     free(psf2->comp);
     psf2->comp = comp2;    
-    if (psf->pixmask)
-      QMEMCPY(psf->pixmask, psf2->pixmask, int, npix);
-    if (psf->basis)
-      QMEMCPY(psf->basis, psf2->basis, float, psf->nbasis*npix);
-    } 
+    }
 
+  return;
   }
 
 

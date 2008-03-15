@@ -120,19 +120,30 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 12/03/2008
+VERSION 15/03/2008
  ***/
 double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
    char		str[MAXCHAR];
-   double	*covmat, *covmatt, *pc,
-		dval;
+   double	*covmat, *covmatt, *meancomp, *pc,
+		dval, mean1,mean2;
    float	*comp1, *comp2, *vector;
    int		i,c,c1,c2,p, npix;
 
   NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
 
-  npix = psfs[0]->size[0]*psfs[0]->size[1];
+  npix = psfs[0]->npix;
+/* Compute the average pixel values */
+  QCALLOC(meancomp, double, ncat);
+  for (c=0; c<ncat; c++)
+    {
+    comp1=psfs[c]->comp;
+    dval = 0.0;
+    for (i=npix; i--;)
+        dval += (double)*(comp1++);
+    meancomp[c] = dval/npix;
+    }
+
 /* Set-up the covariance/correlation matrix */
   QCALLOC(covmat, double, ncat*ncat);
   covmatt = covmat;
@@ -141,16 +152,20 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		100.0*((float)c1)/ncat);
     NFPRINTF(OUTPUT, str);
-    dval = 0.0;
+    mean1 = meancomp[c1];
     for (c2=0; c2<ncat; c2++)
       {
+      mean2 = meancomp[c2];
       comp1 = psfs[c1]->comp;
       comp2 = psfs[c2]->comp;
+      dval = 0.0;
       for (i=npix; i--;)
-        dval += (double)*(comp1++)**(comp2++);
-        }
-    *(covmatt++) = dval;
+        dval += ((double)*(comp1++)-mean1)*(*(comp2++)-mean2);
+      *(covmatt++) = dval;
+      }
     }
+
+  free(meancomp);
 
 /* Do recursive PCA */
   QMALLOC(vector, float, ncat);
@@ -161,7 +176,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     NFPRINTF(OUTPUT, str);
     pca_findpc(covmat, vector, ncat);
     for (c=0; c<ncat; c++)
-      pc[c*npc+p] = vector[c];     
+      pc[c*npc+p] = vector[c];
     }
 
   free(covmat);

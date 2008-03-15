@@ -388,7 +388,12 @@ setstruct *read_samples(setstruct *set, char *filename,
   kstr = context->name;
   pc = 0;
   for (i=0; i<set->ncontext; i++, kstr++)
-    if (**kstr==(char)':')
+    if (context->pcflag[i])
+      {
+      contextvalp[i] = &pcval[pc++];
+      contexttyp[i] = T_DOUBLE;
+      }
+    else if (**kstr==(char)':')
       {
       contextvalp[i] = &contextval[i];
       contexttyp[i] = T_DOUBLE;
@@ -399,11 +404,6 @@ setstruct *read_samples(setstruct *set, char *filename,
 		*kstr+1);
         error(EXIT_FAILURE, str, filename);
         }
-      }
-    else if (!wstrncmp(*kstr, "PC?", 80))
-      {
-      contextvalp[i] = &pcval[pc++];
-      contexttyp[i] = T_DOUBLE;
       }
     else
       {

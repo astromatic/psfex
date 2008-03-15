@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	14/03/2008
+*	Last modify:	15/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -124,6 +124,7 @@ extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set);
 
 extern psfstruct	*psf_copy(psfstruct *psf),
+			*psf_inherit(contextstruct *context, psfstruct *psf),
 			*psf_init(contextstruct *context, int *size,
 				float psfstep,int nsample),
 			*psf_load(char *filename);

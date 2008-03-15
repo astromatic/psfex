@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	15/11/2007
+*	Last modify:	15/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/03/2008
+VERSION 15/03/2008
  ***/
 void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -347,10 +347,10 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 /*----  View reconstructed PSFs as small vignets */
       dstep = 1.0/prefs.context_nsnap;
       dstart = (1.0-dstep)/2.0;
-      npc = prefs.ncontext_group;
-      nw = npc? prefs.context_nsnap : 1;
+      npc = psf->poly->ndim;
+      nw = npc? psf->nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
-        nt *= prefs.context_nsnap;
+        nt *= psf->nsnap;
       memset(dpos, 0, POLY_MAXDIM*sizeof(double));
       for (i=0; i<npc; i++)
         dpos[i] = -dstart;
@@ -358,7 +358,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       h = set->retidim>1? set->retisize[1] : 1;
       if (cubeflag)
         {
-        nh = npc>2? prefs.context_nsnap : nt/nw;
+        nh = npc>2? psf->nsnap : nt/nw;
         np = npc>2? nt/(nw*nh) : 1;
         tab->naxis = 3;
         QREALLOC(tab->naxisn, int, tab->naxis);
@@ -419,10 +419,10 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 
     case PSF_SNAPSHOTS_IMRES:
 /*----  View reconstructed PSFs as small vignets */
-      npc = prefs.ncontext_group;
-      nw = npc? prefs.context_nsnap : 1;
+      npc = psf->poly->ndim;
+      nw = npc? psf->nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
-        nt *= prefs.context_nsnap;
+        nt *= psf->nsnap;
       nh = nt/nw;
       w = set->vigsize[0];
       h = set->vigdim>1? set->vigsize[1] : 1;
@@ -433,7 +433,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       QMALLOC(vig0, float, w*h);
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      dstep = 1.0/prefs.context_nsnap;
+      dstep = 1.0/psf->nsnap;
       dstart = (1.0-dstep)/2.0;
       memset(dpos, 0, POLY_MAXDIM*sizeof(double));
       for (i=0; i<npc; i++)
@@ -509,10 +509,10 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
-      npc = prefs.ncontext_group;
-      nw = npc? prefs.context_nsnap : 1;
+      npc = psf->poly->ndim;
+      nw = npc? psf->nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
-        nt *= prefs.context_nsnap;
+        nt *= psf->nsnap;
       nh = nt/nw;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
@@ -522,8 +522,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      for (nr=1, i=psf->poly->ndim; (i--)>0;)
-        nr *= prefs.context_nsnap;	/* nr is the true number of Moffats */
+      for (nr=1, i=npc; (i--)>0;)
+        nr *= psf->nsnap;	/* nr is the true number of Moffats */
       for (n=0; n<nt; n++)
         {
         psf_moffat(psf, &psf->moffat[n%nr]);
@@ -537,10 +537,10 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
  
    case PSF_SUBMOFFAT:
 /*----  View the difference between reconstructed PSFs and Moffat fits */
-      npc = prefs.ncontext_group;
-      nw = npc? prefs.context_nsnap : 1;
+      npc = psf->poly->ndim;
+      nw = npc? psf->nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
-        nt *= prefs.context_nsnap;
+        nt *= psf->nsnap;
       nh = nt/nw;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;
@@ -550,8 +550,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      for (nr=1, i=psf->poly->ndim; (i--)>0;)
-        nr *= prefs.context_nsnap;	/* nr is the true number of Moffats */
+      for (nr=1, i=npc; (i--)>0;)
+        nr *= psf->nsnap;	/* nr is the true number of Moffats */
       for (n=0; n<nt; n++)
         {
         psf_build(psf, dpos);
@@ -570,10 +570,10 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       break;
    case PSF_SUBSYM:
 /*----  View the difference between reconstructed PSFs and their symmetrical */
-      npc = prefs.ncontext_group;
-      nw = npc? prefs.context_nsnap : 1;
+      npc = psf->poly->ndim;
+      nw = npc? psf->nsnap : 1;
       for (nt=1, i=npc; (i--)>0;)
-        nt *= prefs.context_nsnap;
+        nt *= psf->nsnap;
       nh = nt/nw;
       w = set->retisize[0];
       h = set->retidim>1? set->retisize[1] : 1;

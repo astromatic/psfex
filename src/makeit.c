@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	13/03/2008
+*	Last modify:	15/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,6 +30,7 @@
 #include	"fits/fitscat.h"
 #include	"check.h"
 #include	"context.h"
+#include	"cplot.h"
 #include	"diagnostic.h"
 #include	"field.h"
 #include	"homo.h"
@@ -40,8 +41,7 @@
 #include	"xml.h"
 
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, int diagflag,
-			contextstruct *context);
+			float *basis, int nbasis, contextstruct *context);
 time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
@@ -171,7 +171,7 @@ void	makeit(void)
         set = load_samples(&incatnames[c], 1, ext, next, context);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, PSF_NODIAG, context);
+        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context);
         end_set(set);
         }
     nbasis = prefs.newbasis_number;
@@ -199,7 +199,7 @@ void	makeit(void)
         set = load_samples(&incatnames[c], 1, ext, next, context);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, NULL, 0, PSF_NODIAG, context);
+        cpsf[c] = make_psf(set, psfstep, NULL, 0, context);
         end_set(set);
         }
       nbasis = prefs.newbasis_number;
@@ -220,7 +220,7 @@ void	makeit(void)
           psfstep = (float)((set->fwhm/2.35)*0.5);
         sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
         NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, basis, nbasis, PSF_NODIAG, context);
+        cpsf[c] = make_psf(set, psfstep, basis, nbasis, context);
         end_set(set);
         }
       free(fullcontext->pc);
@@ -234,11 +234,18 @@ void	makeit(void)
     set = load_samples(incatnames, ncat, ext, next, fullcontext);
     if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
       psfstep = (float)((set->fwhm/2.35)*0.5);
-    psf = make_psf(set, psfstep, basis, nbasis, PSF_DIAG, fullcontext);
+    psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
     NFPRINTF(OUTPUT, "Computing final model...");
     context_apply(fullcontext, psf, fields, ext, ncat);
     nmed = psf->nmed;
-    QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
+    psf_end(psf);
+    for (c=0; c<ncat; c++)
+      {
+      psf = fields[c]->psf[ext];
+/*---- Compute diagnostics */
+      NFPRINTF(OUTPUT,"Computing diagnostics...");
+      psf_diagnostic(psf);
+      QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
 	"    %5.2f     %5.2f\n",
 	ext+1, next,
 	psf->samples_accepted, psf->samples_loaded,
@@ -247,6 +254,7 @@ void	makeit(void)
 	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
 	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
 	psf->moffat[nmed].residuals, psf->moffat[nmed].symresiduals);
+      }
 
 /*-- Save "Check-images" */
     for (i=0; i<prefs.ncheck_type; i++)
@@ -254,7 +262,7 @@ void	makeit(void)
         {
         sprintf(str, "Saving CHECK-image #%d...", i+1);
         NFPRINTF(OUTPUT, str);
-        psf_writecheck(psf, set, prefs.check_name[i],
+        psf_writecheck(fields[0]->psf[ext], set, prefs.check_name[i],
 		prefs.check_type[i], ext, next, prefs.check_cubeflag);
         }
 /*-- Update XML */
@@ -262,7 +270,6 @@ void	makeit(void)
       update_xml(fields[0]->psf[ext], ncat);
 /*-- Free memory */
     end_set(set);
-    psf_end(psf);
     }
 
   free(psfsteps);
@@ -291,7 +298,6 @@ void	makeit(void)
       }
 #ifdef HAVE_PLPLOT
 /* Plot FWHM maps for all catalogs */
-  for (c=0; c<ncat; c++)
     cplot_fwhm(fields[c]);
 #endif
 
@@ -327,23 +333,21 @@ void	makeit(void)
 
 
 /****** make_psf *************************************************************
-PROTO	psfstruct	*make_psf(setstruct *set, float psfstep,
-				float *basis, int nbasis, int diagflag)
+PROTO	psfstruct *make_psf(setstruct *set, float psfstep,
+			float *basis, int nbasis, contextstruct *context)
 PURPOSE	Make PSFs from a set of FITS binary catalogs.
 INPUT	Pointer to a sample set,
 	PSF sampling step,
 	Pointer to basis image vectors,
 	Number of basis vectors,
-	Diagnostic flag,
 	Pointer to context structure.
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/02/2008
+VERSION 15/03/2008
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, int diagflag,
-			contextstruct *context)
+			float *basis, int nbasis, contextstruct *context)
   {
    psfstruct		*psf;
    basistypenum		basistype;
@@ -390,6 +394,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   psf->samples_accepted = set->nsample;
 
 /* Refine the PSF-model */
+  psf_make(psf, set);
   psf_refine(psf, set);
 
 /* Clip the PSF-model */
@@ -397,13 +402,6 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 
 /*-- Just check the Chi2 */
   psf->chi2 = set->nsample? psf_chi2(psf, set) : 0.0;
-
-/* Make a diagnostic of the PSF */
-  if (diagflag)
-    {
-    NFPRINTF(OUTPUT,"Computing diagnostics...");
-    psf_diagnostic(psf);
-    }
 
   return psf;
   }
