@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	14/03/2008
+*	Last modify:	18/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -581,8 +581,8 @@ static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
       rawpos[i]= wcs[0]->naxisn[i]/2.0 + 0.5;
   lng = wcs[0]->lng;
   lat = wcs[0]->lat;
-  rawpos[lng] = (x+0.5)*wcs[0]->naxisn[lng]/prefs.context_nsnap + 0.5;
-  rawpos[lat] = (y+0.5)*wcs[0]->naxisn[lat]/prefs.context_nsnap + 0.5;
+  rawpos[lng] = x*wcs[0]->naxisn[lng]/(prefs.context_nsnap-1) + 0.5;
+  rawpos[lat] = y*wcs[0]->naxisn[lat]/(prefs.context_nsnap-1) + 0.5;
   raw_to_wcs(wcs[0], rawpos, wcspos);
   wcspos2[wcs[1]->lng] = wcspos[lng];
   wcspos2[wcs[1]->lat] = wcspos[lat];
@@ -592,6 +592,7 @@ static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
 
   return;
   }
+
 
 /****** cplot_fwhm ***********************************************************
 PROTO	int cplot_fwhm(fieldstruct *field)
@@ -690,7 +691,7 @@ int	cplot_fwhm(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in pixel scale is 1e-6 */
+/* Lower bound to variability in FWHM is 1e-6 */
   if ((mfwhm=(fwhmmin+fwhmmax)/2.0) < 1.0e-10*ARCSEC/DEG
        || (dfwhm=(fwhmmax-fwhmmin))/mfwhm < 1.0e-6)
     dfwhm = 1.0e-6;
@@ -718,12 +719,12 @@ int	cplot_fwhm(fieldstruct *field)
     plAlloc2dGrid(&fwhm, psf->nsnap, psf->nsnap);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-    xstep = wcs->naxisn[0] / psf->nsnap;
-    ystep = wcs->naxisn[1] / psf->nsnap;
-    raw[1] = ystep / 2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (psf->nsnap-1);
+    ystep = wcs->naxisn[1] / (psf->nsnap-1);
+    raw[1] = 0.5;
     for (j=0; j<psf->nsnap; j++)
       {
-      raw[0] = xstep / 2.0 + 0.5;
+      raw[0] = 0.5;
       for (i=0; i<psf->nsnap; i++)
         {
         dval = 0.0;
@@ -747,7 +748,7 @@ int	cplot_fwhm(fieldstruct *field)
     plshades(fwhm, psf->nsnap, psf->nsnap, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
-	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, distort_map, wcsptr);
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
     plcol(7);
     plwid(lwid);
     cplot_drawbounds(wcs, wcsout);
@@ -792,6 +793,206 @@ int	cplot_fwhm(fieldstruct *field)
     free(ctype[i]);
 
   cplot_fwhm(field);	/* Recursive stuff */
+
+  return RETURN_OK;
+  }
+
+
+/****** cplot_ellipticity *****************************************************
+PROTO	int cplot_ellipticity(fieldstruct *field)
+PURPOSE	Plot a map of the PSF ellipticity in the instrument field.
+INPUT	Pointer to the PSF MEF.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	18/03/2008
+ ***/
+int	cplot_ellipticity(fieldstruct *field)
+  {
+   wcsstruct	*wcsptr[2],
+		*wcs, *wcsout;
+   psfstruct	*psf;
+   PLFLT	**ellip,
+		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		aellip,ellipmin,ellipmax, mellip,dellip;
+   PLINT	lwid;
+   char		*ctype[NAXIS],
+		str[64];
+   double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
+		xmin,ymin,xmax,ymax, xstep,ystep, dval;
+   int		naxisn[NAXIS],
+		i,j, e, n,ncx,ncy,nt, nellip, naxis;
+
+  if (cplot_init(1,1, CPLOT_ELLIPTICITY) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_ELLIPTICITY);
+    return RETURN_OK;
+    }
+
+  wcs = field->wcs[0];
+  if (!wcs || wcs->naxis<2)
+    return RETURN_ERROR;
+  naxis = wcs->naxis;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(ctype[i], char, 16); 
+    strncpy(ctype[i],wcs->ctype[i], 16);
+    crpix[i] = 50.0;
+    cdelt[i] = field->maxradius/50.0;
+    if (i==wcs->lng)
+      cdelt[i] = -cdelt[i];	/* Put East to the left */
+    naxisn[i] = 100;
+    }
+
+  wcsout = create_wcs(ctype,field->meanwcspos,crpix,cdelt,naxisn, naxis);
+
+  xmin = 0.5;
+  xmax = 100.5;
+  ymin = 0.5;
+  ymax = 100.5;
+  lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+  plwid(lwid);
+  plfont(2);
+  plcol(15);
+  plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
+  sprintf(str, "#uField %s: ellipticity map", field->rcatname);
+  pllab("","", str);
+  plwid(0);
+  plcol(7);
+  cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
+
+  pllsty(1);
+  plcol(15);
+  plscmap1n(256);
+
+  ellipmin = BIG;
+  ellipmax = -BIG;
+
+/* First pass through the data to find min and max ellipticities */
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    psf = field->psf[e];
+/*-- Compute total number of snapshots */
+    for (nt=1, n=psf->poly->ndim; (n--)>0;)
+      nt *= psf->nsnap;
+    for (n=0; n<nt; n++)
+      {
+      for (i=0; i<naxis; i++)
+        raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+      if (psf->cx >= 0)
+        raw[0] = (psf->moffat[n].context[psf->cx]-psf->contextoffset[psf->cx])
+		/ psf->contextscale[psf->cx];
+      if (psf->cy >= 0)
+        raw[1] = (psf->moffat[n].context[psf->cy]-psf->contextoffset[psf->cy])
+		/ psf->contextscale[psf->cy];
+      aellip = (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
+		/ (psf->moffat[n].fwhm_max + psf->moffat[n].fwhm_min);
+      if (aellip<ellipmin)
+        ellipmin = aellip;
+      if (aellip>ellipmax)
+        ellipmax = aellip;
+      }
+    }
+
+/* Lower bound to variability in ellipticity is 1e-6 */
+  if ((mellip=(ellipmin+ellipmax)/2.0) < 1.0e-10
+       || (dellip=(ellipmax-ellipmin))/mellip < 1.0e-6)
+    dellip = 1.0e-6;
+  for (i=0; i<CPLOT_NSHADES; i++)
+    clevel[i] = ellipmin + (i-0.5) * dellip / (CPLOT_NSHADES-2);
+  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
+  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
+  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+
+/* Now the real 2D ellipticity mapping */
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    psf = field->psf[e];
+    ncx = ncy = nt = 1;
+    for (n=0; n<psf->poly->ndim; n++)
+      {
+      nt *= psf->nsnap;
+      if (psf->cx>=0 && n<psf->cx)
+        ncx *= psf->nsnap;
+      if (psf->cy>=0 && n<psf->cy)
+        ncy *= psf->nsnap;
+      }
+    plAlloc2dGrid(&ellip, psf->nsnap, psf->nsnap);
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (psf->nsnap-1);
+    ystep = wcs->naxisn[1] / (psf->nsnap-1);
+    raw[1] = 0.5;
+    for (j=0; j<psf->nsnap; j++)
+      {
+      raw[0] = 0.5;
+      for (i=0; i<psf->nsnap; i++)
+        {
+        dval = 0.0;
+        nellip = 0;
+/*------ We average all PSF ellips at a given X and Y set of coordinates */
+        for (n=0; n<nt; n++)
+          if ((n/ncx)%psf->nsnap == i && (n/ncy)%psf->nsnap == j)
+            {
+            dval += (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
+		/ (psf->moffat[n].fwhm_max + psf->moffat[n].fwhm_min);
+            nellip++;
+            }
+        ellip[i][j] = dval / nellip ;
+        raw[0] += xstep;
+        }
+      raw[1] += ystep;
+      }
+
+    wcsptr[0] = wcs;
+    wcsptr[1] = wcsout;
+    plshades(ellip, psf->nsnap, psf->nsnap, NULL,
+	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
+             ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
+    plcol(7);
+    plwid(lwid);
+    cplot_drawbounds(wcs, wcsout);
+    plFree2dGrid(ellip, psf->nsnap, psf->nsnap);
+    }
+
+/* Draw left colour scale */
+  plAlloc2dGrid(&ellip, 2, CPLOT_NSHADES);
+  for (j=0; j<CPLOT_NSHADES; j++)
+    ellip[0][j] = ellip[1][j] = ellipmin + j * dellip/(CPLOT_NSHADES-1);
+
+  plvpor(0.91,0.935,0.115,0.885);
+  plwind(0.0,1.0,ellipmin,ellipmax);
+  plshades(ellip, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   ellipmin,ellipmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plcol(15);
+  plschr(0.0, 0.5);
+  plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
+  sprintf(str, "(a-b)/(a+b)");
+  plschr(0.0, 0.5);
+  plmtex("l", 5.0, 0.5, 0.0, str);
+  plmtex("b", 2.0, 0.5, 0.5, "PSF ellipticity");
+
+/* Draw right colour scale */
+  ellipmin = ellipmin*100.0;	/* convert to percentage */
+  ellipmax = ellipmax*100.0;
+  plwind(0.0,1.0,ellipmin,ellipmax);
+  plschr(0.0, 0.5);
+  plbox("", 0.0, 0, "cmstv", 0.0, 0);
+  plschr(0.0, 0.5);
+  plmtex("r", 5.0, 0.5, 0.0, "%");
+
+  plFree2dGrid(ellip, 2, CPLOT_NSHADES);
+  plend();
+  end_wcs(wcsout);
+  for (i=0; i<naxis; i++)
+    free(ctype[i]);
+
+  cplot_ellipticity(field);	/* Recursive stuff */
 
   return RETURN_OK;
   }

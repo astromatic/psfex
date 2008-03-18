@@ -297,7 +297,8 @@ void	makeit(void)
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
       }
 #ifdef HAVE_PLPLOT
-/* Plot FWHM maps for all catalogs */
+/* Plot diagnostic maps for all catalogs */
+    cplot_ellipticity (fields[c]);
     cplot_fwhm(fields[c]);
 #endif
 

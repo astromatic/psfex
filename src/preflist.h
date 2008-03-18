@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	14/03/2008
+*	Last modify:	18/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -67,7 +67,7 @@ pkeystruct key[] =
   {"CHECKPLOT_RES", P_INTLIST, prefs.cplot_res, 0,16384,0.0,0.0,
     {""}, 1, 2, &prefs.ncplot_res},
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
-    {"NONE", "FWHM", ""},
+    {"NONE", "FWHM", "ELLIPTICITY"},
     0, MAXCHECK, &prefs.ncplot_type},
   {"HOMOBASIS_NUMBER", P_INT, &prefs.homobasis_number, 0,10000},
   {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
@@ -162,8 +162,8 @@ char *default_prefs[] =
 "                                       # or JPEG",
 "*CHECKPLOT_RES          0               # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS    Y               # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE         FWHM            # NONE or FWHM",
-"CHECKPLOT_NAME         fwhm",
+"CHECKPLOT_TYPE         FWHM,ELLIPTICITY            # NONE, FWHM or ELLIPTICITY",
+"CHECKPLOT_NAME         fwhm, ellipticity",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

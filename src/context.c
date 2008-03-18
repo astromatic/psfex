@@ -188,7 +188,8 @@ void context_apply(contextstruct *context, psfstruct *psf,
     c2 = 0;
     for (c=0; c<context->ncontext; c++)
       if (context->pcflag[c])
-        dpos[c] = context->pc[p*npc+c2++];
+        dpos[c] = (context->pc[p*npc+c2++]-psf->contextoffset[c])
+		/psf->contextscale[c];
       else
         dpos[c] = 1.0;
     poly_func(poly, dpos);

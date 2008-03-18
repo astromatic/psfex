@@ -26,7 +26,7 @@
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
 #define		PSF_FWHMMIN	0.1	/* Minimum FWHM for fit (model pixels)*/
 #define		PSF_FWHMMAX	100.0	/* Maximum FWHM for fit (model pixels)*/
-#define		PSF_BETAMIN	0.1	/* Minimum Moffat beta for fit */
+#define		PSF_BETAMIN	0.5	/* Minimum Moffat beta for fit */
 /*----------------------------- Global variables ---------------------------*/
 
 double	moffat_parammin[PSF_DIAGNPARAM], moffat_parammax[PSF_DIAGNPARAM];

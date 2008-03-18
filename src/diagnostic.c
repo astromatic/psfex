@@ -98,18 +98,18 @@ void	psf_diagnostic(psfstruct *psf)
     moffat_parammax[2] = h - 1.0;
 /*-- Major axis FWHM (pixels) */
     param[3] = fwhm;
-    moffat_parammin[3] = PSF_FWHMMIN;
+    moffat_parammin[3] = fwhm/3.0;
     moffat_parammax[3] = fwhm*3.0;
 /*-- Major axis FWHM (pixels) */
     param[4] = fwhm;
-    moffat_parammin[4] = PSF_FWHMMIN;
+    moffat_parammin[4] = fwhm/3.0;
     moffat_parammax[4] = fwhm*3.0;
 /*-- Position angle (deg)  */
     param[5] = 0.0;
     moffat_parammin[5] = -3600.0;
     moffat_parammax[5] = 3600.0;
 /*-- Moffat beta */
-    param[6] = 2.0;
+    param[6] = 3.0;
     moffat_parammin[6] = PSF_BETAMIN;
     moffat_parammax[6] = 10.0;
     psf_boundtounbound(param);
