@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	15/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -53,7 +53,7 @@ void	makeit(void)
    fieldstruct		**fields;
    psfstruct		**cpsf,
 			*psf;
-   setstruct		*set;
+   setstruct		*set, *set2;
    contextstruct	*context, *fullcontext;
    struct tm		*tm;
    static char		str[MAXCHAR];
@@ -242,6 +242,18 @@ void	makeit(void)
     for (c=0; c<ncat; c++)
       {
       psf = fields[c]->psf[ext];
+/*---- Check PSF with individual datasets */
+      set2 = load_samples(&incatnames[c], 1, ext, next, context);
+      psf->samples_loaded = set2->nsample;
+      if (set2->nsample>1)
+        {
+/*------ Remove bad PSF candidates */
+        psf_clean(psf, set2);
+        psf->chi2 = set2->nsample? psf_chi2(psf, set2) : 0.0;
+        }
+      psf->samples_accepted = set2->nsample;
+      end_set(set2);
+
 /*---- Compute diagnostics */
       NFPRINTF(OUTPUT,"Computing diagnostics...");
       psf_diagnostic(psf);

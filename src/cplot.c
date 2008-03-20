@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	18/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -82,18 +82,19 @@ int	 cplot_check(cplotenum cplottype)
 
 
 /****** cplot_init ***********************************************************
-PROTO	int cplot_init(int nx, int ny, cplotenum cplottype)
+PROTO	int cplot_init(char *name, int nx, int ny, cplotenum cplottype)
 PURPOSE	Initialize a check plot.
-INPUT	Number of plots along the x axis,
+INPUT	Input name,
+	Number of plots along the x axis,
 	number of plots along the y axis,
 	plot type,
 	device number.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/01/2005
+VERSION	20/03/2008
  ***/
-int	cplot_init(int nx, int ny, cplotenum cplottype)
+int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
   {
    char		str[MAXCHAR],
 		*pstr;
@@ -122,9 +123,9 @@ int	cplot_init(int nx, int ny, cplotenum cplottype)
   num = plotnum[cval]+1;
 
 /* Provide the right extension to the output filename */
-  strcpy(plotfilename, prefs.cplot_name[cval]);
-  if (!(pstr = strrchr(plotfilename, '.')))
-    pstr = plotfilename+strlen(plotfilename);
+  strcpy(str, name);
+  if (!(pstr = strrchr(str, '.')))
+    pstr = str+strlen(str);
 
   for (j=0; *(cplot_device[j].devname); j++)
     if (prefs.cplot_device[dev]==cplot_device[j].device)
@@ -132,7 +133,8 @@ int	cplot_init(int nx, int ny, cplotenum cplottype)
 
   if (cplot_device[j].device != CPLOT_XWIN)
     {
-    sprintf(pstr, "_%d%s", num, cplot_device[j].extension);
+    sprintf(plotfilename, "%s_%s%s", prefs.cplot_name[cval], str,
+			cplot_device[j].extension);
     plsfnam(plotfilename);		/* file name */
     }
   plssub(nx, ny);
@@ -601,7 +603,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	14/03/2008
+VERSION	20/03/2008
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -619,7 +621,7 @@ int	cplot_fwhm(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,ncx,ncy,nt, nfwhm, naxis;
 
-  if (cplot_init(1,1, CPLOT_FWHM) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, 1,1, CPLOT_FWHM) == RETURN_ERROR)
     {
     cplot_end(CPLOT_FWHM);
     return RETURN_OK;
@@ -805,7 +807,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/03/2008
+VERSION	20/03/2008
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -823,7 +825,7 @@ int	cplot_ellipticity(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,ncx,ncy,nt, nellip, naxis;
 
-  if (cplot_init(1,1, CPLOT_ELLIPTICITY) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, 1,1, CPLOT_ELLIPTICITY) == RETURN_ERROR)
     {
     cplot_end(CPLOT_ELLIPTICITY);
     return RETURN_OK;

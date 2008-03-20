@@ -93,8 +93,8 @@ double	psf_clean(psfstruct *psf, setstruct *set)
 
     chimean /= (double)nsample;
     chisig = sqrt((chivar-chimean*chimean*nsample)/(nsample-(nsample>1?1:0)));
-    locut = chimed - 4.0*chisig;
-    hicut = chimed + 4.0*chisig;
+    locut = chimed - 3.0*chisig;
+    hicut = chimed + 3.0*chisig;
     }
 
   free(chi);
@@ -572,7 +572,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 20/03/2008
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		float psf_extraccu)
@@ -584,7 +584,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			nm1, chi2, dx,dy, ddx,ddy, dval,dvalx,dvaly,dwval,
 			radmin2,radmax2, hcw,hch, yb, mx2,my2,mxy,
 			xc,yc,rmax2,x,y, mse, xi2, xyi;
-   float		*vigresi, *vig, *vigw, *fresi,*fresit,
+   float		*vigresi, *vig, *vigw, *fresi,*fresit, *vigchi,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
 			norm, fval, vigstep, psf_extraccu2, wval;
    int			i,j,n,ix,iy, ndim,npix,nsample, cw,ch,ncpix, okflag,
@@ -748,21 +748,24 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     vig = sample->vig;
     vigw = sample->vigweight;
     vigresi=sample->vigresi;
+    vigchi = sample->vigchi;
     mse = 0.0;
     for (iy=set->vigsize[1]; iy--; y+=1.0)
       {
       x = -xc;
-      for (ix=set->vigsize[0]; ix--; x+=1.0, vig++, vigresi++, dresit++)
+      for (ix=set->vigsize[0]; ix--; x+=1.0, vig++, vigresi++, dresit++,
+						vigchi++)
         if ((wval=*(vigw++))>0.0)
           {
           if (accuflag)
             wval = 1.0/(1.0 / wval + psf_extraccu2**vigresi**vigresi);
           *vigresi = fval = (*vig-*vigresi*norm);
+          *vigchi = 0;
           if (x*x+y*y<rmax2)
             {
             mse += fval*fval;
             nchi2++;
-            chi2 += (double)(wval*fval*fval);
+            chi2 += (double)(*vigchi=wval*fval*fval);
             *dresit += fval;
             }
           }

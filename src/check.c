@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	15/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/03/2008
+VERSION 20/03/2008
  ***/
 void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -138,7 +138,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         }
       break;
     case PSF_CHI:
-/*---- sqrt(chi2) map in PSF pixel-space */
+/*---- sqrt(chi2) map in PSF pixel-space 
       nw = 1;
       nh = 1;
       w = psf->size[0];
@@ -152,6 +152,51 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       fpix = psf->resi;
       for (i=w*h; i--;)
         *(pix++) = *(fpix++);
+      break;
+*/
+      if (cubeflag)
+        {
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = set->vigsize[0];
+        tab->naxisn[1] = set->vigsize[1];
+        tab->naxisn[2] = set->nsample;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          fpix = (sample++)->vigchi;
+          for (i=npix; i--;)
+            *(pix++) = *(fpix++);
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)set->nsample);
+        nw = ((nw-1)/10+1)*10;
+        nh = (set->nsample-1)/nw + 1;
+        w = set->vigsize[0];
+        h = set->vigdim>1? set->vigsize[1] : 1;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        step = (nw-1)*w;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        sample = set->sample;
+        for (n=0; n<set->nsample; n++)
+          {
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          fpix = (sample++)->vigchi;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(fpix++);
+          }
+        }
       break;
 
     case PSF_PROTO:

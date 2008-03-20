@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,6 +32,9 @@
 #include "sample.h"
 #include "vignet.h"
 
+static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
+		float minin, float maxin, float *minout, float *maxout);
+
 /******************************** load_samples *******************************/
 /*
 Examine and load PSF candidates.
@@ -47,23 +50,28 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 					"ELONGATION"};
    char			str[MAXCHAR];
    char			*head, *(pkeynames[4]);
-   float		*fwhm,*fwhmt,*fwhmt2, *hl, *fmax, *elong,
-			backnoise, df,dfmin,fmin, minsn, maxelong, fwhmmin,
-			fwhmmax, fval;
+   float		*fwhmmin,*fwhmmax,*fwhmmode,
+			*fwhm,*fwhmt,*fwhmt2, *hl, *fmax, *elong,
+			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
-   int			i,j,n, nobj,nobjmax, imin, nw, ldflag, ext2;
+   int			*fwhmindex,
+			i,j,n, nobj,nobjmax, imin, nw, ldflag, ext2;
 
   NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
   maxelong = (float)prefs.maxelong;
-  fwhmmin = prefs.fwhmrange[0];
-  fwhmmax = prefs.fwhmrange[1];
+  min = (float)prefs.fwhmrange[0];
+  max = (float)prefs.fwhmrange[1];
   fwhm = NULL;	/* To avoid gcc -Wall warnings */
 
   if (prefs.autoselect_flag)
     {
 /*-- Allocate memory */
-    nobj = 0;
+    QMALLOC(fwhmmin, float, ncat);
+    QMALLOC(fwhmmax, float, ncat);
+    QMALLOC(fwhmmode, float, ncat);
+    QMALLOC(fwhmindex, int, ncat+1);
+    fwhmindex[0] = nobj = 0;
     nobjmax = LSAMPLE_DEFSIZE;
     QMALLOC(fwhm, float, nobjmax);
     fwhmt=fwhm;
@@ -137,8 +145,8 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
         if (*fmax/backnoise>minsn
 		&& !(*flags&prefs.flag_mask)
 		&& *elong<maxelong
-		&& (fval=2.0**hl)>=fwhmmin
-		&& fval<fwhmmax)
+		&& (fval=2.0**hl)>=min
+		&& fval<max)
           {
           if (++nobj>nobjmax)
             {
@@ -150,71 +158,135 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
           }
 	}
       free_cat(&cat, 1);
+      fwhmindex[i+1] = nobj;
       }
 
-    if (nobj)
+    if (prefs.var_type == VAR_NONE)
       {
-/*---- Sort FWHMs */
-      hmedian(fwhm, nobj);
-
-/*---- Find the mode */
-      nw = nobj/4;
-      if (nw<4)
-        nw = 1;
-      dfmin = BIG;
-      fmin = 0.0;
-      imin = 0;
-      fwhmt = fwhm;
-      fwhmt2 = fwhm+nw;
-      for (i=nobj-nw; i--; fwhmt++,fwhmt2++)
-        {  
-        if ((df = *fwhmt2 - *fwhmt) < dfmin)
-          {
-          dfmin = df;
-          fmin = (*fwhmt2 + *fwhmt)/2.0;
-          imin++;
-          }
+      if (nobj)
+        mode = compute_fwhmrange(fwhm, nobj, prefs.maxvar,
+		prefs.fwhmrange[0],prefs.fwhmrange[1], &min, &max);
+      else
+        {
+        warning("No source with appropriate FWHM found!!","");
+        mode = min = max = 2.35/(1.0-1.0/INTERPFAC);
         }
-
-      if (nobj<2)
-        fmin = *fwhm;
-
-      dfmin = (float)pow((double)prefs.maxvar+1.0, 0.3333333);
-      fwhmmin = dfmin>0.0?fmin/dfmin:0.0;
-      if (fwhmmin<prefs.fwhmrange[0])
-        fwhmmin = prefs.fwhmrange[0];
-      fwhmmax = fmin*dfmin*dfmin;
-      if (fwhmmax>prefs.fwhmrange[1])
-        fwhmmax = prefs.fwhmrange[1];
+      for (i=0; i<ncat; i++)
+        {
+        fwhmmin[i] = min;
+        fwhmmax[i] = max;
+        fwhmmode[i] = mode;
+        }
       }
     else
-      fmin = 2.35/(1.0-1.0/INTERPFAC);
+      for (i=0; i<ncat; i++)
+        {
+        nobj = fwhmindex[i+1] - fwhmindex[i];
+        if (nobj)
+          {
+          fwhmmode[i] = compute_fwhmrange(&fwhm[fwhmindex[i]],
+		fwhmindex[i+1]-fwhmindex[i], prefs.maxvar,
+		prefs.fwhmrange[0],prefs.fwhmrange[1], &fwhmmin[i],&fwhmmax[i]);
+          }
+        else
+          {
+          warning("No source with appropriate FWHM found!!","");
+          fwhmmode[i] = fwhmmin[i] = fwhmmax[i] = 2.35/(1.0-1.0/INTERPFAC);
+          }
+        }
     }
   else
     {
-    warning("No source with appropriate FWHM found!!","");
-    fmin = fwhmmin = fwhmmax = 0.0;
+    fwhmmin[i] = (float)prefs.fwhmrange[0];
+    fwhmmax[i] = (float)prefs.fwhmrange[1];
+    fwhmmode[i] = (fwhmmin[i] + fwhmmax[i]) / 2.0;
     }
 
   free(fwhm);
-/*
-  NFPRINTF(OUTPUT, "");
-  NPRINTF(OUTPUT, "Selected FWHM range: %.2f - %.2f pixels\n",
-		fwhmmin, fwhmmax);
-*/
+  free(fwhmindex);
+
 /* Load the samples */
   set = NULL;
+  mode = BIG;
   for (i=0; i<ncat; i++)
-    set = read_samples(set, filename[i], fwhmmin/2.0, fwhmmax/2.0, ext, next,
-			context, context->pc + i*context->npc);
+    {
+    set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
+			next, context, context->pc + i*context->npc);
+    if (fwhmmode[i]<mode)
+      mode = fwhmmode[i];
+    }
 
-  set->fwhm = fmin;
+  set->fwhm = mode;
+
   sprintf(str, "%d samples loaded.", set->nsample);
   NFPRINTF(OUTPUT, str);
+
   if (!set->nsample)
     warning("No appropriate source found!!","");
 
+  free(fwhmmin);
+  free(fwhmmax);
+  free(fwhmmode);
+
   return set;
+  }
+
+
+/****** compute_fwhmrange *****************************************************
+PROTO   float compute_fwhmrange(float *fwhm, int nfwhm,
+		float minin, float maxin, float *minout, float *maxout)
+PURPOSE Compute the FWHM range associated to a series of FWHM measurements.
+INPUT   Pointer to an array of FWHMs,
+	number of FWHMs,
+	maximum allowed FWHM variation,
+	minimum allowed FWHM,
+	maximum allowed FWHM,
+	pointer to the lower FWHM range (output),
+	pointer to the upper FWHM range (output).
+OUTPUT  FWHM mode.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 20/03/2008
+*/
+static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
+		float minin, float maxin, float *minout, float *maxout)
+  {
+   float	*fwhmt,*fwhmt2,
+		df, dfmin,fmin;
+   int		i, nw;
+
+/* Sort FWHMs */
+   hmedian(fwhm, nfwhm);
+
+/* Find the mode */
+   nw = nfwhm/4;
+   if (nw<4)
+     nw = 1;
+  dfmin = BIG;
+  fmin = 0.0;
+  fwhmt = fwhm;
+  fwhmt2 = fwhm+nw;
+  for (i=nfwhm-nw; i--; fwhmt++,fwhmt2++)
+    {  
+    if ((df = *fwhmt2 - *fwhmt) < dfmin)
+      {
+      dfmin = df;
+      fmin = (*fwhmt2 + *fwhmt)/2.0;
+      }
+    }
+
+  if (nfwhm<2)
+    fmin = *fwhm;
+
+  dfmin = (float)pow((double)maxvar+1.0, 0.3333333);
+  *minout = dfmin>0.0?fmin/dfmin:0.0;
+  if (*minout<minin)
+    *minout = minin;
+  *maxout = fmin*dfmin*dfmin;
+  if (*maxout>maxin)
+    *maxout = maxin;
+
+  return fmin;
   }
 
 
@@ -557,6 +629,7 @@ void	malloc_samples(setstruct *set, int nsample)
     QMALLOC(sample->vig, float, set->nvig);
     QMALLOC(sample->vigresi, float, set->nvig);
     QMALLOC(sample->vigweight, float, set->nvig);
+    QMALLOC(sample->vigchi, float, set->nvig);
     QMALLOC(sample->retina, float, set->nreti);
     QMALLOC(sample->retiweight, float, set->nreti);
     if (set->ncontext)
@@ -577,7 +650,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 02/03/99
+VERSION 20/03/2008
 */
 void	realloc_samples(setstruct *set, int nsample)
 
@@ -598,6 +671,7 @@ void	realloc_samples(setstruct *set, int nsample)
       {
       QMALLOC(sample->vig, float, set->nvig);
       QMALLOC(sample->vigresi, float, set->nvig);
+      QMALLOC(sample->vigchi, float, set->nvig);
       QMALLOC(sample->vigweight, float, set->nvig);
       QMALLOC(sample->retina, float, set->nreti);
       QMALLOC(sample->retiweight, float, set->nreti);
@@ -612,6 +686,7 @@ void	realloc_samples(setstruct *set, int nsample)
       {
       free(sample->vig);
       free(sample->vigresi);
+      free(sample->vigchi);
       free(sample->vigweight);
       free(sample->retina);
       free(sample->retiweight);
@@ -635,7 +710,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 02/03/99
+VERSION 20/03/2008
 */
 void	free_samples(setstruct *set)
 
@@ -649,6 +724,7 @@ void	free_samples(setstruct *set)
     free(sample->vig);
     free(sample->vigresi);
     free(sample->vigweight);
+    free(sample->vigchi);
     free(sample->retina);
     free(sample->retiweight);
     if (set->ncontext)

@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	18/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -77,7 +77,7 @@ pkeystruct key[] =
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
-	{"NONE", "PCA_PIXEL", "PCA_PSFVAR", ""}},
+	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
@@ -100,6 +100,8 @@ pkeystruct key[] =
   {"SAMPLE_MAXELONG", P_FLOAT, &prefs.maxelong, 0,0, 1.0, BIG},
   {"SAMPLE_MINSN", P_FLOAT, &prefs.minsn, 0,0, 1e-6,1e15},
   {"SAMPLE_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
+  {"SAMPLEVAR_TYPE", P_KEY, &prefs.var_type, 0,0, 0.0,0.0,
+	{"NONE", "SEEING",""}},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","LOG","FULL",""}},
   {"XML_NAME", P_STRING, prefs.xml_name},
@@ -123,7 +125,7 @@ char *default_prefs[] =
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
-"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_PIXEL or PCA_PSFVAR",
+"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_MULTI or PCA_SINGLE",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
@@ -140,6 +142,7 @@ char *default_prefs[] =
 "#----------------------------- Sample selection ------------------------------",
 " ",
 "SAMPLE_AUTOSELECT  Y            # Automatically select the FWHM (Y/N) ?",
+"SAMPLEVAR_TYPE     SEEING       # File-to-file PSF variability: NONE or SEEING",
 "SAMPLE_FWHMRANGE   2.0,10.0     # Allowed FWHM range",
 "SAMPLE_VARIABILITY 0.2          # Allowed FWHM variability (1.0 = 100%)",
 "SAMPLE_MINSN       20           # Minimum S/N for a source to be used",
@@ -167,9 +170,9 @@ char *default_prefs[] =
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
-"CHECKIMAGE_TYPE PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
+"CHECKIMAGE_TYPE CHI,PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
 "                                # Check-image types",
-"CHECKIMAGE_NAME proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
+"CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
 "                                # Check-image filenames",
 "*CHECKIMAGE_CUBE N               # Save check-images as datacubes (Y/N) ?",
 " ",

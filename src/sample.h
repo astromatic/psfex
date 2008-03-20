@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	11/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,7 +30,8 @@
 typedef struct sample
   {
   float		*vig;			/* Vignette array */
-  float		*vigresi;		/* Chi-map of the PSF-residuals */
+  float		*vigresi;		/* Residual-map of the PSF-residuals */
+  float		*vigchi;		/* Chi-map of the PSF-residuals */
   float		*vigweight;		/* Vignette-weight array */
   float		*retina;		/* Retina array */
   float		*retiweight;		/* Retina-weight array */

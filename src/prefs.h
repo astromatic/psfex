@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	14/03/2008
+*	Last modify:	20/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -66,6 +66,7 @@ typedef struct
   double	psf_step;			/* Oversampling (pixels) */
   int		badpix_flag;			/* Filter bad pixels? */
   int		badpix_nmax;			/* Max number of bad pixels */
+  enum {VAR_NONE, VAR_SEEING}	var_type;	/* PSF variability type */
 /* Vector basis */
   basistypenum	basis_type;			/* PSF vector basis set */
   int		basis_number;			/* nb of supersampled pixels */
