@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	15/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,13 +41,14 @@ static double	psf_laguerre(double x, int p, int q);
 PROTO	double	psf_clean(psfstruct *psf, setstruct *set)
 PURPOSE	Filter out PSF candidates
 INPUT	Pointer to the PSF,
-	Pointer to the sample set.
+	Pointer to the sample set,
+	PSF accuracy.
 OUTPUT	Reduced chi2.
 NOTES	-
 AUTHOR	E. Bertin (IAP)
-VERSION	12/11/2007
+VERSION	25/03/2008
  ***/
-double	psf_clean(psfstruct *psf, setstruct *set)
+double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
 #define	EPS	(1e-4)  /* a small number */
    samplestruct	*sample;
@@ -58,7 +59,7 @@ double	psf_clean(psfstruct *psf, setstruct *set)
 
 /* First compute residuals for each sample (chi^2) */
   NFPRINTF(OUTPUT,"Computing residuals...");
-  psf_makeresi(psf, set, prefs.recenter_flag, 0.2);
+  psf_makeresi(psf, set, prefs.recenter_flag, prof_accuracy);
 
 /* Store the chi's (sqrt(chi2) pdf close to Gaussian) */
   NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
@@ -131,7 +132,7 @@ INPUT	Pointer to the PSF,
 OUTPUT	Reduced chi2.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	12/11/2007
+VERSION	28/03/2008
  ***/
 double	psf_chi2(psfstruct *psf, setstruct *set)
   {
@@ -141,7 +142,7 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
 
 /* First compute residuals for each sample (chi^2) */
   NFPRINTF(OUTPUT,"Computing residuals...");
-  psf_makeresi(psf, set, prefs.recenter_flag, 0.0);
+  psf_makeresi(psf, set, prefs.recenter_flag, prefs.prof_accuracy);
 
 /* Store the chi's (sqrt(chi2) pdf close to gaussian) */
   NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
@@ -452,21 +453,23 @@ psfstruct *psf_copy(psfstruct *psf)
 
 
 /****** psf_make **************************************************************
-PROTO	void	psf_make(psfstruct *psf, setstruct *set)
+PROTO	void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
 PURPOSE	Make the PSF.
 INPUT	Pointer to the PSF,
-	Pointer to the sample set.
+	Pointer to the sample set,
+	PSF accuracy.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 26/03/2008
  ***/
-void	psf_make(psfstruct *psf, setstruct *set)
+void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
    polystruct	*poly;
    samplestruct	*sample;
    double	*pstack,*wstack, *basis, *pix,*wpix, *coeff, *pos, *post;
-   float	*comp;
+   float	*comp,*image,*imaget, *weight,*weightt,
+		backnoise2, gain, norm, norm2, noise2, profaccu2, pixstep, val;
    int		i,c,n, ncoeff,npix,nsample;
 
   poly = psf->poly;
@@ -484,14 +487,37 @@ void	psf_make(psfstruct *psf, setstruct *set)
 
   ncoeff = poly->ncoeff;
   npix = psf->size[0]*psf->size[1];
+  QMALLOC(image, float, nsample*npix);
+  QMALLOC(weight, float, nsample*npix);
   QMALLOC(pstack, double, nsample);
   QMALLOC(wstack, double, nsample);
   QMALLOC(pos, double, poly->ndim?(nsample*poly->ndim):1);
   QMALLOC(basis, double, poly->ncoeff*nsample);
-
-  for (sample=set->sample, post=pos, n=nsample; n--; sample++)
+  pixstep = psf->pixstep>1.0? pixstep : 1.0;
+  post = pos;
+  for (n=0; n<nsample; n++)
     {
-    update_retina(set, sample, psf->pixstep);
+    sample = &set->sample[n];
+/*-- Normalize approximately the image and produce a weight-map */
+    norm = sample->norm;
+    norm2 = norm*norm;
+    profaccu2 = (float)(prof_accuracy*prof_accuracy)*norm2;
+    gain = sample->gain;
+    backnoise2 = sample->backnoise2;
+    imaget = image+n*npix;
+    weightt = weight+n*npix;
+    vignet_resample(sample->vig, set->vigsize[0], set->vigsize[1],
+	imaget, psf->size[0], psf->size[1],
+	sample->dx, sample->dy, psf->pixstep, pixstep);
+    for (i=npix; i--;)
+      {
+      val = (*(imaget++) /= norm);
+      noise2 = backnoise2 + profaccu2*val*val;
+      if (val>0.0 && gain>0.0)
+        noise2 += val/gain;
+      *(weightt++) = norm2/noise2;      
+      }
+
     for (i=0; i<poly->ndim; i++)
       *(post++) = (sample->context[i]-set->contextoffset[i])
 		/set->contextscale[i];
@@ -500,11 +526,17 @@ void	psf_make(psfstruct *psf, setstruct *set)
 /* Make a polynomial fit to each pixel */
   for (i=0; i<npix; i++)
     {
+    imaget = image+i;
+    weightt = weight+i;
+    pix=pstack;
+    wpix=wstack;
 /*-- Stack ith pixel from each PSF candidate */
-    for (sample=set->sample, pix=pstack,wpix=wstack, n=nsample; n--; sample++)
+    for (n=nsample; n--;)
       {
-      *(pix++) = (double)*(sample->retina+i);
-      *(wpix++) = (double)*(sample->retiweight+i);
+      *(pix++) = (double)*imaget;
+      *(wpix++) = (double)*weightt;
+      imaget += npix; 
+      weightt += npix;     
       }
 
 /*-- Polynomial fitting */
@@ -515,6 +547,8 @@ void	psf_make(psfstruct *psf, setstruct *set)
       *comp = *(coeff++);
     }
 
+  free(image);
+  free(weight);
   free(pstack);
   free(wstack);
   free(basis);
@@ -563,7 +597,7 @@ void	psf_build(psfstruct *psf, double *pos)
 
 /****** psf_makeresi **********************************************************
 PROTO	void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
-		float psf_extraccu)
+		double prof_accuracy)
 PURPOSE	Compute PSF residuals.
 INPUT	Pointer to the PSF,
 	Pointer to the sample set,
@@ -572,10 +606,10 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/03/2008
+VERSION 26/03/2008
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
-		float psf_extraccu)
+		double prof_accuracy)
   {
    samplestruct		*sample;
    static double	pos[MAXCONTEXT], amat[9], bmat[3];
@@ -590,7 +624,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
    int			i,j,n,ix,iy, ndim,npix,nsample, cw,ch,ncpix, okflag,
 			accuflag, nchi2;
 
-  accuflag = (psf_extraccu > 1.0/BIG);
+  accuflag = (prof_accuracy > 1.0/BIG);
   vigstep = 1/psf->pixstep;
   nsample = set->nsample;
   npix = set->vigsize[0]*set->vigsize[1];
@@ -737,7 +771,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 /*-- Subtract the PSF model and compute Chi2 */
     chi2 = 0.0;
     dresit = dresi;
-    psf_extraccu2 = psf_extraccu*psf_extraccu*norm*norm;
+    psf_extraccu2 = prof_accuracy*prof_accuracy*norm*norm;
     xc = (double)(set->vigsize[0]/2)+sample->dx;
     yc = (double)(set->vigsize[1]/2)+sample->dy;
     y = -yc;
@@ -755,12 +789,13 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
       x = -xc;
       for (ix=set->vigsize[0]; ix--; x+=1.0, vig++, vigresi++, dresit++,
 						vigchi++)
+        {
+        *vigchi = 0;
         if ((wval=*(vigw++))>0.0)
           {
           if (accuflag)
             wval = 1.0/(1.0 / wval + psf_extraccu2**vigresi**vigresi);
           *vigresi = fval = (*vig-*vigresi*norm);
-          *vigchi = 0;
           if (x*x+y*y<rmax2)
             {
             mse += fval*fval;
@@ -769,6 +804,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
             *dresit += fval;
             }
           }
+        }
       }
 
     sample->chi2 = (nchi2> 1)? chi2/(nchi2-1) : chi2;

@@ -499,8 +499,8 @@ void	useprefs()
     }
 #endif
 
-  if (prefs.nretisize<2)
-    prefs.retisize[1] = prefs.retisize[0];
+  if (prefs.psf_size<2)
+    prefs.psf_size[1] = prefs.psf_size[0];
 
   if (!prefs.autoselect_flag && !prefs.psf_step)
     warning("PSF_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",

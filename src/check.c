@@ -294,7 +294,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         }
       break;
 
-    case PSF_RAWDATA:
+    case PSF_SAMPLES:
 /*----  View original samples as small vignets */
       if (cubeflag)
         {
@@ -341,14 +341,14 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         }
       break;
 
-    case PSF_SAMPLES:
-/*----  View all training samples as small vignets */
+    case PSF_WEIGHTS:
+/*----  View original weights as small vignets */
       if (cubeflag)
         {
         tab->naxis = 3;
         QREALLOC(tab->naxisn, int, tab->naxis);
-        tab->naxisn[0] = set->retisize[0];
-        tab->naxisn[1] = set->retisize[1];
+        tab->naxisn[0] = set->vigsize[0];
+        tab->naxisn[1] = set->vigsize[1];
         tab->naxisn[2] = set->nsample;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
@@ -358,7 +358,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
-          fpix = (sample++)->retina;
+          fpix = (sample++)->vigweight;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
           }
@@ -368,8 +368,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         nw = (int)sqrt((double)set->nsample);
         nw = ((nw-1)/10+1)*10;
         nh = (set->nsample-1)/nw + 1;
-        w = set->retisize[0];
-        h = set->retidim>1? set->retisize[1] : 1;
+        w = set->vigsize[0];
+        h = set->vigdim>1? set->vigsize[1] : 1;
         tab->naxisn[0] = nw*w;
         tab->naxisn[1] = nh*h;
         step = (nw-1)*w;
@@ -380,7 +380,7 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
         for (n=0; n<set->nsample; n++)
           {
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->retina;
+          fpix = (sample++)->vigweight;
           for (y=h; y--; pix += step)
             for (x=w; x--;)
               *(pix++) = *(fpix++);
@@ -399,8 +399,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       memset(dpos, 0, POLY_MAXDIM*sizeof(double));
       for (i=0; i<npc; i++)
         dpos[i] = -dstart;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
+      w = psf->size[0];
+      h = psf->dim>1? psf->size[1] : 1;
       if (cubeflag)
         {
         nh = npc>2? psf->nsnap : nt/nw;
@@ -505,53 +505,6 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       free(vig0);
       break;
 
-    case PSF_WEIGHTS:
-/*----  View all training sample weights as small vignets */
-      if (cubeflag)
-        {
-        tab->naxis = 3;
-        QREALLOC(tab->naxisn, int, tab->naxis);
-        tab->naxisn[0] = set->retisize[0];
-        tab->naxisn[1] = set->retisize[1];
-        tab->naxisn[2] = set->nsample;
-        npix = tab->naxisn[0]*tab->naxisn[1];
-        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
-        QCALLOC(pix0, float, tab->tabsize);
-        tab->bodybuf = (char *)pix0; 
-        pix = pix0;
-        sample = set->sample;
-        for (n=0; n<set->nsample; n++)
-          {
-          fpix = (sample++)->retiweight;
-          for (i=npix; i--;)
-            *(pix++) = *(fpix++);
-          }
-        }
-      else
-        {
-        nw = (int)sqrt((double)set->nsample);
-        nw = ((nw-1)/10+1)*10;
-        nh = (set->nsample-1)/nw + 1;
-        w = set->retisize[0];
-        h = set->retidim>1? set->retisize[1] : 1;
-        tab->naxisn[0] = nw*w;
-        tab->naxisn[1] = nh*h;
-        step = (nw-1)*w;
-        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
-        QCALLOC(pix0, float, tab->tabsize);
-        tab->bodybuf = (char *)pix0; 
-        sample = set->sample;
-        for (n=0; n<set->nsample; n++)
-          {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->retiweight;
-          for (y=h; y--; pix += step)
-            for (x=w; x--;)
-              *(pix++) = *(fpix++);
-          }
-        }
-      break;
-
     case PSF_MOFFAT:
 /*----  View reconstructed PSFs as Moffat fits */
       npc = psf->poly->ndim;
@@ -559,8 +512,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       for (nt=1, i=npc; (i--)>0;)
         nt *= psf->nsnap;
       nh = nt/nw;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
+      w = psf->size[0];
+      h = psf->dim>1? psf->size[1] : 1;
       tab->naxisn[0] = nw*w;
       tab->naxisn[1] = nh*h;
       step = (nw-1)*w;
@@ -587,8 +540,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       for (nt=1, i=npc; (i--)>0;)
         nt *= psf->nsnap;
       nh = nt/nw;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
+      w = psf->size[0];
+      h = psf->dim>1? psf->size[1] : 1;
       tab->naxisn[0] = nw*w;
       tab->naxisn[1] = nh*h;
       step = (nw-1)*w;
@@ -620,8 +573,8 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
       for (nt=1, i=npc; (i--)>0;)
         nt *= psf->nsnap;
       nh = nt/nw;
-      w = set->retisize[0];
-      h = set->retidim>1? set->retisize[1] : 1;
+      w = psf->size[0];
+      h = psf->dim>1? psf->size[1] : 1;
       tab->naxisn[0] = nw*w;
       tab->naxisn[1] = nh*h;
       step = (nw-1)*w;

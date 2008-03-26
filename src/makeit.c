@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	20/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -248,7 +248,7 @@ void	makeit(void)
       if (set2->nsample>1)
         {
 /*------ Remove bad PSF candidates */
-        psf_clean(psf, set2);
+        psf_clean(psf, set2, prefs.prof_accuracy);
         psf->chi2 = set2->nsample? psf_chi2(psf, set2) : 0.0;
         }
       psf->samples_accepted = set2->nsample;
@@ -357,7 +357,7 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/03/2008
+VERSION 26/03/2008
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, contextstruct *context)
@@ -366,14 +366,14 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
    basistypenum		basistype;
 
   NFPRINTF(OUTPUT,"Initializing PSF modules...");
-  psf = psf_init(context, set->retisize, psfstep, set->nsample);
+  psf = psf_init(context, prefs.psf_size, psfstep, set->nsample);
 
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;
   
 /* Make the basic PSF-model (1st pass) */
   NFPRINTF(OUTPUT,"Modeling the PSF.");
-  psf_make(psf, set);
+  psf_make(psf, set, 0.2);
   if (basis && nbasis)
     {
     QMEMCPY(basis, psf->basis, float, nbasis*psf->size[0]*psf->size[1]);
@@ -392,22 +392,33 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 /* Remove bad PSF candidates */
   if (set->nsample>1)
     {
-    psf_clean(psf, set);
+    psf_clean(psf, set, 0.2);
 
 /*-- Make the basic PSF-model (2nd pass) */
     NFPRINTF(OUTPUT,"Modeling the PSF...");
-    psf_make(psf, set);
+    psf_make(psf, set, 0.1);
     psf_refine(psf, set);
     }
 
 /* Remove bad PSF candidates */
   if (set->nsample>1)
-    psf_clean(psf, set);
+    {
+    psf_clean(psf, set, 0.1);
+
+/*-- Make the basic PSF-model (3rd pass) */
+    NFPRINTF(OUTPUT,"Modeling the PSF...");
+    psf_make(psf, set, 0.05);
+    psf_refine(psf, set);
+    }
+
+/* Remove bad PSF candidates */
+  if (set->nsample>1)
+    psf_clean(psf, set, 0.05);
 
   psf->samples_accepted = set->nsample;
 
 /* Refine the PSF-model */
-  psf_make(psf, set);
+  psf_make(psf, set, prefs.prof_accuracy);
   psf_refine(psf, set);
 
 /* Clip the PSF-model */

@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	20/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -51,7 +51,7 @@ typedef struct
   char		*(incat_name[MAXFILE]);		/* Filename(s) of input cats */
   int		ncat;				/* Number of input images */
   char		psf_suffix[MAXCHAR];		/* Suffix for PSF filenames */
-  int		retisize[2], nretisize;		/* Retina size */
+  int		psf_size[2], npsf_size;		/* PSF size */
   enum {NEWBASIS_NONE, NEWBASIS_PCAMULTI, NEWBASIS_PCASINGLE}
 		newbasis_type;			/* Type of new basis */
   int		newbasis_number;		/* Number of PCs */

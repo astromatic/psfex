@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	20/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,12 +29,11 @@
 
 typedef struct sample
   {
+  int		catindex;		/* Catalogue index */
   float		*vig;			/* Vignette array */
   float		*vigresi;		/* Residual-map of the PSF-residuals */
   float		*vigchi;		/* Chi-map of the PSF-residuals */
   float		*vigweight;		/* Vignette-weight array */
-  float		*retina;		/* Retina array */
-  float		*retiweight;		/* Retina-weight array */
   float		*pos;			/* Extra parameters array */
   float		norm;			/* Normalisation */
   double	x,y;			/* x,y position estimate in frame */
@@ -54,9 +53,6 @@ typedef struct set
   int		*vigsize;		/* Dimensions of vignette frames */
   int		vigdim;			/* Dimensionality of the vignette */
   int		nvig;			/* Number of pixels of the vignette */
-  int		retidim;		/* Dimensionality of the retina */
-  int		nreti;			/* Number of pixels of the retina */
-  int		*retisize;		/* Dimensions of retina frames */
   int		ncontext;		/* Number of contexts */
   char		**contextname;		/* List of context keywords used */
   double	*contextoffset;		/* Offset to apply to context data */
@@ -72,15 +68,14 @@ setstruct	*init_set(contextstruct *context),
 		*load_samples(char **filename, int ncat, int ext, int next,
 			contextstruct *context),
 		*read_samples(setstruct *set, char *filename,
-			float frmin, float frmax, int ext, int next,
+			float frmin, float frmax,
+			int ext, int next, int catindex,
 			contextstruct *context, double *pcval);
 
 void		end_set(setstruct *set),
 		free_samples(setstruct *set),
  		malloc_samples(setstruct *set, int nsample),
 		make_weights(setstruct *set, samplestruct *sample),
-		realloc_samples(setstruct *set, int nsample),
-		update_retina(setstruct *set, samplestruct *sample,
-			float pixstep);
+		realloc_samples(setstruct *set, int nsample);
 
 #endif

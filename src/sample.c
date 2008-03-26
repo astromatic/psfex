@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	20/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -211,7 +211,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   for (i=0; i<ncat; i++)
     {
     set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
-			next, context, context->pc + i*context->npc);
+			next, i, context, context->pc + i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];
     }
@@ -294,7 +294,8 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 /*
 */
 setstruct *read_samples(setstruct *set, char *filename,
-			float frmin, float frmax, int ext, int next,
+			float frmin, float frmax,
+			int ext, int next, int catindex,
 			contextstruct *context, double *pcval)
 
   {
@@ -523,13 +524,6 @@ setstruct *read_samples(setstruct *set, char *filename,
 /*---- Allocate memory for the first shipment */
       if (!set->sample)
         {
-/*------ The retina cannot be larger than the input images! */
-/*
-        if (prefs.retisize[0]*prefs.psf_step>(double)vigw
-	 || prefs.retisize[1]*prefs.psf_step>(double)vigh)
-          error(EXIT_FAILURE, "*Error*: Vignets smaller than the retina in ",
-		filename);
-*/
         nsample = 0;
         nsamplemax = LSAMPLE_DEFSIZE;
         malloc_samples(set, nsamplemax);
@@ -550,6 +544,7 @@ setstruct *read_samples(setstruct *set, char *filename,
         }
 
       sample = set->sample + nsample;
+      sample->catindex = catindex;
 
 /*---- Copy the vignet to the training set */
       memcpy(sample->vig, vignet, vigsize*sizeof(float));
@@ -557,7 +552,6 @@ setstruct *read_samples(setstruct *set, char *filename,
       sample->norm = *flux;
       sample->backnoise2 = backnoise2;
       sample->gain = gain;
-/*---- Use a first approximation of the center for feeding the retina */
       sample->x = *xm;
       sample->y = *ym;
       sample->dx = sample->x - (int)(sample->x+0.49999);
@@ -614,7 +608,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 02/03/99
+VERSION 26/03/2008
 */
 void	malloc_samples(setstruct *set, int nsample)
 
@@ -630,8 +624,6 @@ void	malloc_samples(setstruct *set, int nsample)
     QMALLOC(sample->vigresi, float, set->nvig);
     QMALLOC(sample->vigweight, float, set->nvig);
     QMALLOC(sample->vigchi, float, set->nvig);
-    QMALLOC(sample->retina, float, set->nreti);
-    QMALLOC(sample->retiweight, float, set->nreti);
     if (set->ncontext)
       QMALLOC(sample->context, double, set->ncontext);
     }
@@ -650,7 +642,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/03/2008
+VERSION 26/03/2008
 */
 void	realloc_samples(setstruct *set, int nsample)
 
@@ -673,8 +665,6 @@ void	realloc_samples(setstruct *set, int nsample)
       QMALLOC(sample->vigresi, float, set->nvig);
       QMALLOC(sample->vigchi, float, set->nvig);
       QMALLOC(sample->vigweight, float, set->nvig);
-      QMALLOC(sample->retina, float, set->nreti);
-      QMALLOC(sample->retiweight, float, set->nreti);
       if (set->ncontext)
         QMALLOC(sample->context, double, set->ncontext);
       }
@@ -688,8 +678,6 @@ void	realloc_samples(setstruct *set, int nsample)
       free(sample->vigresi);
       free(sample->vigchi);
       free(sample->vigweight);
-      free(sample->retina);
-      free(sample->retiweight);
       if (set->ncontext)
         free(sample->context);
       }
@@ -710,7 +698,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/03/2008
+VERSION 26/03/2008
 */
 void	free_samples(setstruct *set)
 
@@ -725,8 +713,6 @@ void	free_samples(setstruct *set)
     free(sample->vigresi);
     free(sample->vigweight);
     free(sample->vigchi);
-    free(sample->retina);
-    free(sample->retiweight);
     if (set->ncontext)
       free(sample->context);
     }
@@ -781,7 +767,7 @@ INPUT   -.
 OUTPUT  -.
 NOTES   See prefs.h.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/02/2008
+VERSION 26/03/2008
 */
 setstruct	*init_set(contextstruct *context)
 
@@ -791,12 +777,8 @@ setstruct	*init_set(contextstruct *context)
 
   QCALLOC(set, setstruct, 1);
   set->nsample = set->nsamplemax = 0;
-  set->vigdim = set->retidim = 2;
-  QMALLOC(set->retisize, int, set->retidim);
+  set->vigdim = 2;
   QMALLOC(set->vigsize, int, set->vigdim);
-  set->retisize[0] = prefs.retisize[0];
-  set->retisize[1] = prefs.retisize[1];
-  set->nreti = set->retisize[0]*set->retisize[1];/* Temporary solution (?) */
   set->ncontext = context->ncontext;
   if (set->ncontext)
     {
@@ -818,7 +800,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 10/07/2003
+VERSION 26/03/2008
 */
 void	end_set(setstruct *set)
 
@@ -827,7 +809,6 @@ void	end_set(setstruct *set)
 
   free_samples(set);
   free(set->vigsize);
-  free(set->retisize);
   if (set->ncontext)
     {
     for (i=0; i<set->ncontext; i++)
@@ -880,49 +861,4 @@ void make_weights(setstruct *set, samplestruct *sample)
 
   return;
   }
-
-
-/****** update_retina ********************************************************
-PROTO   void update_retina(setstruct *set, samplestruct *sample,
-                           float dx, float dy, float pixstep)
-PURPOSE Update the retina content, copying data from the vignet, normalizing
-        it and producing a weight-map.
-INPUT   set structure pointer,
-        sample structure pointer.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP,Leiden observatory & ESO)
-VERSION 05/08/99
-*/
-void update_retina(setstruct *set, samplestruct *sample, float pixstep)
-
-  {
-   float	*retina, *retiweight,
-		backnoise2, gain, norm, norm2, noise2, profaccu2, pix;
-   int		i;
-
-  vignet_resample(sample->vig, set->vigsize[0], set->vigsize[1],
-	sample->retina, set->retisize[0], set->retisize[1],
-	sample->dx, sample->dy, pixstep, pixstep>1.0?pixstep:1.0);
-	  
-/* Normalize approximately the retina and produce a weight-map */
-  norm = sample->norm;
-  norm2 = norm*norm;
-  profaccu2 = prefs.prof_accuracy*prefs.prof_accuracy*norm2;
-  gain = sample->gain;
-  backnoise2 = sample->backnoise2;
-  retina = sample->retina;
-  retiweight = sample->retiweight;
-  for (i=set->nreti; i--;)
-    {
-    pix = (*(retina++) /= norm);
-    noise2 = backnoise2 + profaccu2*pix*pix;
-    if (pix>0.0 && gain>0.0)
-      noise2 += pix/gain;
-    *(retiweight++) = norm2/noise2;      
-    }
-
-  return;
-  }
-
 

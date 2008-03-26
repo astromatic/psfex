@@ -9,7 +9,7 @@
 *
 *	Contents:	Polynomial fitting
 *
-*	Last modify:	11/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -22,6 +22,7 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#include	ATLAS_LAPACK_H
 
 #include	"poly.h"
 
@@ -279,7 +280,7 @@ NOTES   If different from NULL, extbasis can be provided to store the
         precomputed basis functions stored in extbasis are used (which saves
         CPU). If w is NULL, all points are given identical weight.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 08/03/2005
+VERSION 26/03/2008
  ***/
 void	poly_fit(polystruct *poly, double *x, double *y, double *w, int ndata,
 		double *extbasis)
@@ -352,7 +353,8 @@ void	poly_fit(polystruct *poly, double *x, double *y, double *w, int ndata,
     }
 
 /* Solve the system */
-  poly_solve(alpha,beta,ncoeff);
+  clapack_dpotrf(CblasRowMajor,CblasUpper,ncoeff,alpha,ncoeff);
+  clapack_dpotrs(CblasRowMajor,CblasUpper,ncoeff,1,alpha,ncoeff,beta,ncoeff);
 
   free(alpha);
 

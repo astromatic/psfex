@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	20/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -53,7 +53,7 @@ pkeystruct key[] =
   {"CHECKIMAGE_NAME", P_STRINGLIST, prefs.check_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
   {"CHECKIMAGE_TYPE", P_KEYLIST, prefs.check_type, 0,0, 0.0,0.0,
-   {"NONE", "BASIS", "CHI", "PROTOTYPES", "RESIDUALS", "RAWDATA", "SAMPLES",
+   {"NONE", "BASIS", "CHI", "PROTOTYPES", "RESIDUALS", "SAMPLES",
 	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS",
 	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
    0, MAXCHECK, &prefs.ncheck_type},
@@ -90,8 +90,8 @@ pkeystruct key[] =
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
-  {"PSF_SIZE", P_INTLIST, prefs.retisize, 1,1024, 0.0,0.0, {""},
-     1,2, &prefs.nretisize},
+  {"PSF_SIZE", P_INTLIST, prefs.psf_size, 1,1024, 0.0,0.0, {""},
+     1,2, &prefs.npsf_size},
   {"PSF_SUFFIX", P_STRING, prefs.psf_suffix},
   {"SAMPLE_AUTOSELECT", P_BOOL, &prefs.autoselect_flag},
   {"SAMPLE_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
@@ -137,7 +137,7 @@ char *default_prefs[] =
 "PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params",
 "PSFVAR_GROUPS  1,1              # Group tag for each context key",
 "PSFVAR_DEGREES   1              # Polynom degree for each group",
-"*PSFVAR_NSNAP   7                # Number of PSF snapshots per axis",
+"*PSFVAR_NSNAP   9                # Number of PSF snapshots per axis",
 " ",
 "#----------------------------- Sample selection ------------------------------",
 " ",
@@ -170,9 +170,9 @@ char *default_prefs[] =
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
-"CHECKIMAGE_TYPE CHI,PROTOTYPES,SAMPLES,RESIDUALS,RAWDATA,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
+"CHECKIMAGE_TYPE CHI,PROTOTYPES,SAMPLES,RESIDUALS,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
 "                                # Check-image types",
-"CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,raw.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
+"CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
 "                                # Check-image filenames",
 "*CHECKIMAGE_CUBE N               # Save check-images as datacubes (Y/N) ?",
 " ",

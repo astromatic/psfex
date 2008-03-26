@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	15/03/2008
+*	Last modify:	26/03/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -107,11 +107,11 @@ typedef struct psf
 extern void	psf_build(psfstruct *psf, double *pos),
 		psf_clip(psfstruct *psf),
 		psf_end(psfstruct *psf),
-		psf_make(psfstruct *psf, setstruct *set),
+		psf_make(psfstruct *psf, setstruct *set, double prof_accuracy),
 		psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type,  int nvec),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
-			float psf_extraccu),
+			double prof_accuracy),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_refine(psfstruct *psf, setstruct *set),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
@@ -121,7 +121,7 @@ extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 		psf_readbasis(psfstruct *psf, char *filename, int ext);
 
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
-		psf_clean(psfstruct *psf, setstruct *set);
+		psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy);
 
 extern psfstruct	*psf_copy(psfstruct *psf),
 			*psf_inherit(contextstruct *context, psfstruct *psf),
