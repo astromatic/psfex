@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.0.0, [bertin@iap.fr])
+AC_INIT(psfex, 3.0.1, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -232,7 +232,7 @@ AM_CONDITIONAL(USE_PLPLOT, test $use_plplot = "yes")
 
 ############################### INTEL C compiler ##############################
 if test $use_icc = "yes" -a $CC = "icc"; then
-  CFLAGS="$CFLAGS -O -axWP -ip -unroll"
+  CFLAGS="$CFLAGS -axWPT -ip -unroll"
 fi
 
 if test "$use_gprof" = "yes"; then
@@ -244,8 +244,9 @@ if test "$use_gprof" = "yes"; then
   use_static="no"
 fi
 
+# Static linking option
 if test "$use_static" = "yes"; then
-  LDFLAGS="$LDFLAGS -all-static"
+  LDFLAGS="-static -shared-libgcc $LDFLAGS"
 fi
 
 # Override automatic CFLAGS and LDFLAGS with those of user

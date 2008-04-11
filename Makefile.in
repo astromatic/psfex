@@ -208,7 +208,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 # Main Makefile for PSFEx
-# Copyright (C) 2002-2007 Emmanuel Bertin.
+# Copyright (C) 2002-2008 Emmanuel Bertin.
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = man src
 dist_pkgdata_DATA = xsl/psfex.xsl
@@ -689,66 +689,78 @@ rpm:	dist
 
 rpm-opteron:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall \
-		-march=opteron" TPXLIBS="-lfftw3 -llapack -lcblas -latlas -lm" \
+	TPXCC="gcc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
+		-fomit-frame-pointer -Wall -march=opteron" \
+		TPXLDFLAGS="-static -shared-libgcc" \
+		TPXLIBS="-lfftw3 -llapack -lcblas -latlas -lm" \
 		rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
 
 rpm-athlon:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall \
-	-m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" \
+	TPXCC="gcc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
+	-fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse \
+	-mtune=athlon" \
+	TPXLDFLAGS="-static -shared-libgcc" \
 	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -fftw3 -llapack -lcblas \
 	-latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
 
 rpm-pentium:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="gcc" TPXFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall \
-	-m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" \
+	TPXCC="gcc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
+	-fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse \
+	-mno-3dnow" \
+	TPXLDFLAGS="-static -shared-libgcc" \
 	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas \
 	-latlas -L/usr/local/lib/ -lm -lfftw3" rpmbuild -ba --target=i686 \
 	--clean $(PACKAGE_NAME).spec
 
 rpm-opteron-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc" TPXFLAGS="-O3 -axWP -ip -unroll" TPXLIBS="-lfftw3 \
+	TPXCC="icc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axWPT -ip -unroll" \
+	TPXLDFLAGS="-static -shared-libgcc" \
+	TPXLIBS="-lfftw3 \
 	-llapack -lcblas -latlas -lm" rpmbuild -ba --target=x86_64 \
 	--clean $(PACKAGE_NAME).spec
 
 rpm-athlon-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc32" TPXFLAGS="-O3 -axKWNPB -ip -unroll" \
+	TPXCC="icc32" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
+	TPXLDFLAGS="-static -shared-libgcc" \
 	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas \
 	-latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
 
 rpm-pentium-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	TPXCC="icc32" TPXFLAGS="-O3 -axKWNPB -ip -unroll" \
+	TPXCC="icc32" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
+	TPXLDFLAGS="-static -shared-libgcc" \
 	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas \
 	-latlas -L/usr/local/lib/ -lm -lfftw3" rpmbuild -ba --target=i686 \
 	--clean $(PACKAGE_NAME).spec
 
 athlon:
-	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall \
-	-m32 -march=athlon -msse -mfpmath=sse -mtune=athlon" \
+	$(MAKE) CFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
+	-fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse \
+	-mtune=athlon" \
 	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
 	-lm"
 
 pentium:
-	$(MAKE) CFLAGS="-O3 -g -funroll-loops -fomit-frame-pointer -Wall \
-	-m32 -march=i686 -msse -mfpmath=sse -mno-3dnow" \
+	$(MAKE) CFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
+	-fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse \
+	-mno-3dnow" \
 	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
 	-lm"
 
 icc:
-	$(MAKE) CC="icc" CFLAGS="-O3 -axKNPB -ip -unroll"
+	$(MAKE) CC="icc" CFLAGS="@PLPLOT_CFLAGS@ -O3 -axWPT -ip -unroll"
 
 athlon-icc:
-	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" \
+	$(MAKE) CC="icc32" CFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
 	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
 	-lm"
 
 pentium-icc:
-	$(MAKE) CC="icc32" CFLAGS="-O3 -axKWNPB -ip -unroll" \
+	$(MAKE) CC="icc32" CFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
 	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
 	-lm"
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

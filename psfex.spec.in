@@ -23,7 +23,7 @@ use with the SExtractor program.
 %build
 if test "$TPXFLAGS"; then
 ./configure --enable-static --prefix=$RPM_BUILD_ROOT/usr/local/ --mandir=$RPM_BUILD_ROOT/usr/local/man/ --with-xsl_url=file:///usr/local/share/@PACKAGE_NAME@/@PACKAGE_NAME@.xsl
-make CC="$TPXCC" CFLAGS="$TPXFLAGS"
+make CC="$TPXCC" LDFLAGS="$TPXLDFLAGS" CFLAGS="$TPXFLAGS"
 else
 ./configure --prefix=$RPM_BUILD_ROOT/usr/local/ --mandir=$RPM_BUILD_ROOT/usr/local/man/ --with-xsl_url=file:///usr/local/share/@PACKAGE_NAME@/@PACKAGE_NAME@.xsl
 make

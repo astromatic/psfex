@@ -87,18 +87,18 @@ AUTOCONF = ${SHELL} /home/bertin/sources/psfex/autoconf/missing --run autoconf
 AUTOHEADER = ${SHELL} /home/bertin/sources/psfex/autoconf/missing --run autoheader
 AUTOMAKE = ${SHELL} /home/bertin/sources/psfex/autoconf/missing --run automake-1.9
 AWK = gawk
-CC = icc
+CC = cc
 CCDEPMODE = depmode=gcc3
-CFLAGS =  -O3 -g -funroll-loops -fomit-frame-pointer -Wall -I/usr/local/include/plplot -O -axWP -ip -unroll
-CPP = icc -E
+CFLAGS =  -O3 -g -funroll-loops -fomit-frame-pointer -Wall -I/usr/local/include/plplot
+CPP = cc -E
 CPPFLAGS = 
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
-DATE2 = Fri Mar 14 2008
-DATE3 = March 2008
+DATE2 = Fri Apr 11 2008
+DATE3 = April 2008
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
 ECHO = echo
@@ -115,25 +115,25 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = ${SHELL} $(install_sh) -c -s
-LDFLAGS =  -all-static
-LIBOBJS =  lstat$U.o
+LDFLAGS = 
+LIBOBJS = 
 LIBS = -lplplotd -lpthread -lfftw3f  -llapack -lcblas -latlas -lm 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
-LTLIBOBJS =  lstat$U.lo
+LTLIBOBJS = 
 MAKEINFO = ${SHELL} /home/bertin/sources/psfex/autoconf/missing --run makeinfo
 OBJEXT = o
 PACKAGE = psfex
 PACKAGER = Emmanuel Bertin
 PACKAGE_BUGREPORT = bertin@iap.fr
 PACKAGE_NAME = psfex
-PACKAGE_STRING = psfex 3.0.0
+PACKAGE_STRING = psfex 3.0.1
 PACKAGE_TARNAME = psfex
-PACKAGE_VERSION = 3.0.0
+PACKAGE_VERSION = 3.0.1
 PATH_SEPARATOR = :
 PLPLOT_CFLAGS = -I/usr/local/include/plplot
 PLPLOT_LIBS = -lplplotd
-PTHREAD_CC = icc
+PTHREAD_CC = cc
 PTHREAD_CFLAGS = 
 PTHREAD_LIBS = -lpthread
 RANLIB = ranlib
@@ -144,9 +144,9 @@ USE_PLPLOT_FALSE = #
 USE_PLPLOT_TRUE = 
 USE_THREADS_FALSE = 
 USE_THREADS_TRUE = #
-VERSION = 3.0.0
+VERSION = 3.0.1
 ac_ct_AR = ar
-ac_ct_CC = icc
+ac_ct_CC = cc
 ac_ct_CXX = g++
 ac_ct_F77 = f95
 ac_ct_RANLIB = ranlib
@@ -211,9 +211,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/wcs/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/wcs/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/wcs/Makefile
+	  $(AUTOMAKE) --foreign  src/wcs/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

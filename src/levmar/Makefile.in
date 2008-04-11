@@ -55,7 +55,7 @@ ARFLAGS = cru
 liblevmar_a_AR = $(AR) $(ARFLAGS)
 liblevmar_a_LIBADD =
 am_liblevmar_a_OBJECTS = Axb.$(OBJEXT) lmbc.$(OBJEXT) lm.$(OBJEXT) \
-	lmlec.$(OBJEXT) misc.$(OBJEXT)
+	lmblec.$(OBJEXT) lmlec.$(OBJEXT) misc.$(OBJEXT)
 liblevmar_a_OBJECTS = $(am_liblevmar_a_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
@@ -190,15 +190,15 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
 # Makefile.am for the levmar Levenberg-Marquardt fitting library
-# Copyright (C) 2007 Emmanuel Bertin.
+# Copyright (C) 2008 Emmanuel Bertin.
 # levmar code by Manolis Lourakis <lourakis@ics.forth.gr> 
 # http://www.ics.forth.gr/~lourakis/levmar/
 noinst_LIBRARIES = liblevmar.a
-liblevmar_a_SOURCES = Axb.c lmbc.c lm.c lmlec.c misc.c \
+liblevmar_a_SOURCES = Axb.c lmbc.c lm.c lmblec.c lmlec.c misc.c \
 			  lm.h misc.h
 
 EXTRA_liblevmar_a_SOURCES = Axb_core.c lmbc_core.c lm_core.c \
-			  lmlec_core.c misc_core.c \
+			  lmblec_core.c lmlec_core.c misc_core.c \
 			  LICENSE README README.txt lmdemo.c
 
 all: all-am
@@ -214,9 +214,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/levmar/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/levmar/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/levmar/Makefile
+	  $(AUTOMAKE) --foreign  src/levmar/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -254,6 +254,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lm_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmbc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmbc_core.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmblec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmblec_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmdemo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmlec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lmlec_core.Po@am__quote@

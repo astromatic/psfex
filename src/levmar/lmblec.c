@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 // 
 //  Levenberg - Marquardt non-linear minimization algorithm
-//  Copyright (C) 2004-05  Manolis Lourakis (lourakis@ics.forth.gr)
+//  Copyright (C) 2004-06  Manolis Lourakis (lourakis@ics.forth.gr)
 //  Institute of Computer Science, Foundation for Research & Technology - Hellas
 //  Heraklion, Crete, Greece.
 //
@@ -18,9 +18,9 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 /******************************************************************************** 
- * Box-constrained Levenberg-Marquardt nonlinear minimization. The same core code
- * is used with appropriate #defines to derive single and double precision versions,
- * see also lmbc_core.c
+ * combined box and linear equation constraints Levenberg-Marquardt nonlinear
+ * minimization. The same core code is used with appropriate #defines to derive
+ * single and double precision versions, see also lmblec_core.c
  ********************************************************************************/
 
 #include <stdio.h>
@@ -31,8 +31,17 @@
 #include "lm.h"
 #include "misc.h"
 
-#define EPSILON       1E-12
-#define ONE_THIRD     0.3333333334 /* 1.0/3.0 */
+#ifndef HAVE_LAPACK
+
+/*
+#ifdef _MSC_VER
+#pragma message("Combined box and linearly constrained optimization requires LAPACK and was not compiled!")
+#else
+#warning Combined box and linearly constrained optimization requires LAPACK and was not compiled!
+#endif // _MSC_VER
+*/
+
+#else // LAPACK present
 
 /* single precision (float) definitions */
 #define LM_REAL float
@@ -40,18 +49,15 @@
 
 #define LM_REAL_MAX FLT_MAX
 #define LM_REAL_MIN -FLT_MAX
-
-#define LM_REAL_EPSILON FLT_EPSILON
 #define SUBCNST(x) x##F
 #define CNST(x) SUBCNST(x) // force substitution
 
-#include "lmbc_core.c" // read in core code
+#include "lmblec_core.c" // read in core code
 
 #undef LM_REAL
 #undef LM_PREFIX
 #undef LM_REAL_MAX
 #undef LM_REAL_MIN
-#undef LM_REAL_EPSILON
 #undef SUBCNST
 #undef CNST
 
@@ -61,15 +67,14 @@
 
 #define LM_REAL_MAX DBL_MAX
 #define LM_REAL_MIN -DBL_MAX
-
-#define LM_REAL_EPSILON DBL_EPSILON
 #define CNST(x) (x)
 
-#include "lmbc_core.c" // read in core code
+#include "lmblec_core.c" // read in core code
 
 #undef LM_REAL
 #undef LM_PREFIX
 #undef LM_REAL_MAX
 #undef LM_REAL_MIN
-#undef LM_REAL_EPSILON
 #undef CNST
+
+#endif /* HAVE_LAPACK */
