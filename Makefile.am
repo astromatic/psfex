@@ -20,7 +20,8 @@ rpm-opteron:	dist
 	TPXCC="gcc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
 		-fomit-frame-pointer -Wall -march=opteron" \
 		TPXLDFLAGS="-static -shared-libgcc" \
-		TPXLIBS="-lfftw3 -llapack -lcblas -latlas -lm" \
+		TPXLIBS="-lplplotd -lpthread -lfftw3f \
+		-llapack -lcblas -latlas -lm" \
 		rpmbuild -ba --target=x86_64 --clean $(PACKAGE_NAME).spec
 
 rpm-athlon:	dist
@@ -29,7 +30,8 @@ rpm-athlon:	dist
 	-fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse \
 	-mtune=athlon" \
 	TPXLDFLAGS="-static -shared-libgcc" \
-	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -fftw3 -llapack -lcblas \
+	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-fftw3f -llapack -lcblas \
 	-latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
 
 rpm-pentium:	dist
@@ -38,45 +40,50 @@ rpm-pentium:	dist
 	-fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse \
 	-mno-3dnow" \
 	TPXLDFLAGS="-static -shared-libgcc" \
-	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas \
-	-latlas -L/usr/local/lib/ -lm -lfftw3" rpmbuild -ba --target=i686 \
+	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ \
+	-lplplotd -lpthread- llapack -lcblas \
+	-latlas -L/usr/local/lib/ -lm -lfftw3f" rpmbuild -ba --target=i686 \
 	--clean $(PACKAGE_NAME).spec
 
 rpm-opteron-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	TPXCC="icc" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axWPT -ip -unroll" \
-	TPXLDFLAGS="-static -shared-libgcc" \
-	TPXLIBS="-lfftw3 \
+	TPXLDFLAGS="-lplplotd -lpthread -static -shared-libgcc -static-intel" \
+	TPXLIBS="-lfftw3f \
 	-llapack -lcblas -latlas -lm" rpmbuild -ba --target=x86_64 \
 	--clean $(PACKAGE_NAME).spec
 
 rpm-athlon-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	TPXCC="icc32" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
-	TPXLDFLAGS="-static -shared-libgcc" \
-	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas \
+	TPXLDFLAGS="-static -shared-libgcc -static-intel" \
+	TPXLIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-lfftw3f -llapack -lcblas \
 	-latlas -lm" rpmbuild -ba --target=athlon --clean $(PACKAGE_NAME).spec
 
 rpm-pentium-icc:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	TPXCC="icc32" TPXFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
 	TPXLDFLAGS="-static -shared-libgcc" \
-	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ -llapack -lcblas \
-	-latlas -L/usr/local/lib/ -lm -lfftw3" rpmbuild -ba --target=i686 \
+	TPXLIBS="-L/usr/lib/ -L/usr/local/lib/atlas_pentium/ \
+	-lplplotd -lpthread -llapack -lcblas \
+	-latlas -L/usr/local/lib/ -lm -lfftw3f" rpmbuild -ba --target=i686 \
 	--clean $(PACKAGE_NAME).spec
 
 athlon:
 	$(MAKE) CFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
 	-fomit-frame-pointer -Wall -m32 -march=athlon -msse -mfpmath=sse \
 	-mtune=athlon" \
-	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
+	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-lfftw3f -llapack -lcblas -latlas \
 	-lm"
 
 pentium:
 	$(MAKE) CFLAGS="@PLPLOT_CFLAGS@ -O3 -g -funroll-loops \
 	-fomit-frame-pointer -Wall -m32 -march=i686 -msse -mfpmath=sse \
 	-mno-3dnow" \
-	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
+	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-lfftw3f -llapack -lcblas -latlas \
 	-lm"
 
 icc:
@@ -84,11 +91,13 @@ icc:
 
 athlon-icc:
 	$(MAKE) CC="icc32" CFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
-	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
+	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-lfftw3f -llapack -lcblas -latlas \
 	-lm"
 
 pentium-icc:
 	$(MAKE) CC="icc32" CFLAGS="@PLPLOT_CFLAGS@ -O3 -axKWNPT -ip -unroll" \
-	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lfftw3 -llapack -lcblas -latlas \
+	LIBS="-L/usr/local/lib/ -L/usr/lib/ -lplplotd -lpthread \
+	-lfftw3f -llapack -lcblas -latlas \
 	-lm"
 
