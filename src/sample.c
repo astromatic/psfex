@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	03/06/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -51,11 +51,11 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
    char			str[MAXCHAR];
    char			*head, *(pkeynames[4]);
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt,*fwhmt2, *hl, *fmax, *elong,
+			*fwhm,*fwhmt, *hl, *fmax, *elong,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
    int			*fwhmindex,
-			i,j,n, nobj,nobjmax, imin, nw, ldflag, ext2;
+			i,j,n, nobj,nobjmax, ldflag, ext2;
 
   NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -63,17 +63,18 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   min = (float)prefs.fwhmrange[0];
   max = (float)prefs.fwhmrange[1];
   fwhm = NULL;	/* To avoid gcc -Wall warnings */
+/* Allocate memory */
+  QMALLOC(fwhmmin, float, ncat);
+  QMALLOC(fwhmmax, float, ncat);
+  QMALLOC(fwhmmode, float, ncat);
 
   if (prefs.autoselect_flag)
     {
 /*-- Allocate memory */
-    QMALLOC(fwhmmin, float, ncat);
-    QMALLOC(fwhmmax, float, ncat);
-    QMALLOC(fwhmmode, float, ncat);
-    QMALLOC(fwhmindex, int, ncat+1);
-    fwhmindex[0] = nobj = 0;
     nobjmax = LSAMPLE_DEFSIZE;
     QMALLOC(fwhm, float, nobjmax);
+    QMALLOC(fwhmindex, int, ncat+1);
+    fwhmindex[0] = nobj = 0;
     fwhmt=fwhm;
 
 /*-- Initialize string array */
@@ -194,16 +195,17 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
           fwhmmode[i] = fwhmmin[i] = fwhmmax[i] = 2.35/(1.0-1.0/INTERPFAC);
           }
         }
+    free(fwhm);
+    free(fwhmindex);
     }
   else
-    {
-    fwhmmin[i] = (float)prefs.fwhmrange[0];
-    fwhmmax[i] = (float)prefs.fwhmrange[1];
-    fwhmmode[i] = (fwhmmin[i] + fwhmmax[i]) / 2.0;
-    }
+    for (i=0; i<ncat; i++)
+      {
+      fwhmmin[i] = (float)prefs.fwhmrange[0];
+      fwhmmax[i] = (float)prefs.fwhmrange[1];
+      fwhmmode[i] = (fwhmmin[i] + fwhmmax[i]) / 2.0;
+      }
 
-  free(fwhm);
-  free(fwhmindex);
 
 /* Load the samples */
   set = NULL;

@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	03/06/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -499,7 +499,7 @@ void	useprefs()
     }
 #endif
 
-  if (prefs.psf_size<2)
+  if (prefs.npsf_size<2)
     prefs.psf_size[1] = prefs.psf_size[0];
 
   if (!prefs.autoselect_flag && !prefs.psf_step)
