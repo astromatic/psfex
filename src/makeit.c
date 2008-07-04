@@ -118,7 +118,7 @@ void	makeit(void)
   next = fields[0]->next;
 
   if (prefs.xml_flag)
-    init_xml(next);  
+    init_xml(ncat);  
 
   psfstep = prefs.psf_step;
   psfsteps = NULL;
@@ -277,9 +277,6 @@ void	makeit(void)
         psf_writecheck(fields[0]->psf[ext], set, prefs.check_name[i],
 		prefs.check_type[i], ext, next, prefs.check_cubeflag);
         }
-/*-- Update XML */
-    if (prefs.xml_flag)
-      update_xml(fields[0]->psf[ext], ncat);
 /*-- Free memory */
     end_set(set);
     }
@@ -313,7 +310,9 @@ void	makeit(void)
     cplot_ellipticity (fields[c]);
     cplot_fwhm(fields[c]);
 #endif
-
+/*-- Update XML */
+    if (prefs.xml_flag)
+      update_xml(fields[c]);
     }
 
 /* Processing end date and time */

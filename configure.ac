@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.0.1, [bertin@iap.fr])
+AC_INIT(psfex, 3.1.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -233,6 +233,7 @@ AM_CONDITIONAL(USE_PLPLOT, test $use_plplot = "yes")
 ############################### INTEL C compiler ##############################
 if test $use_icc = "yes" -a $CC = "icc"; then
   CFLAGS="$CFLAGS -axWPT -ip -unroll"
+  LDFLAGS="$LDFLAGS -static-intel"
 fi
 
 if test "$use_gprof" = "yes"; then

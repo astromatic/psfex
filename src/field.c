@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	14/03/2008
+*	Last modify:	04/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,7 +39,7 @@ INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 13/03/2008
+VERSION 04/07/2008
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -47,14 +47,14 @@ fieldstruct	*field_init(char *catname)
    catstruct	*cat;
    tabstruct	*tab, *imatab;
    keystruct	*key;
-   int		next, ntab;
+   int		next, next0, ntab;
 
   QCALLOC(field, fieldstruct, 1);
 /* Compute the number of valid input extensions */
   if (!(cat = read_cat(catname)))
     error(EXIT_FAILURE, "*Error*: cannot open ", catname);
   tab = cat->tab;
-  next = 0;
+  next0 = 0;
   for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab)
     {
 /*--  Check for the next valid image extension */
@@ -64,10 +64,10 @@ fieldstruct	*field_init(char *catname)
 	|| (strncmp(tab->extname, "LDAC_OBJECTS", 8)
 		&& strncmp(tab->extname, "OBJECTS", 8)))
       continue;
-    next++;
+    next0++;
     }
-  field->next = next;
-  QMALLOC(field->psf, psfstruct *, next);
+  field->next = next0;
+  QMALLOC(field->psf, psfstruct *, next0);
   strcpy(field->catname, catname);
 /* A short, "relative" version of the filename */
   if (!(field->rcatname = strrchr(field->catname, '/')))
@@ -75,11 +75,11 @@ fieldstruct	*field_init(char *catname)
   else
     field->rcatname++;
 
-  QMALLOC(field->wcs, wcsstruct *, next);
+  QMALLOC(field->wcs, wcsstruct *, next0);
 /* Compute the number of valid input extensions */
   tab = cat->tab;
   next = 0;
-  for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab)
+  for (ntab = 0 ; next<next0 && ntab<cat->ntab; ntab++, tab = tab->nexttab)
     {
 /*--  Check for the next valid FITS extension */
     if ((!strcmp("LDAC_IMHEAD",tab->extname))
@@ -94,6 +94,10 @@ fieldstruct	*field_init(char *catname)
       imatab->cat = cat;
       readbasic_head(imatab);
       field->wcs[next++] = read_wcs(imatab);
+      if (!imatab->headbuf
+	|| fitsread(imatab->headbuf, "OBJECT  ", field->ident,
+	H_STRING,T_STRING)!= RETURN_OK)
+        strcpy(field->ident, "no ident");
       free_tab(imatab);
       }
       continue;

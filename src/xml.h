@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	02/03/2007
+*	Last modify:	04/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -18,8 +18,8 @@
 #include	"config.h"
 #endif
 
-#ifndef _PSF_H_
-#include "psf.h"
+#ifndef _FIELD_H_
+#include "field.h"
 #endif
 
 /*----------------------------- Internal constants --------------------------*/
@@ -29,8 +29,8 @@
 /*--------------------------------- typedefs --------------------------------*/
 /*------------------------------- functions ---------------------------------*/
 
-extern int	init_xml(int next),
-		update_xml(psfstruct *psf, int nfield),
+extern int	init_xml(int ncat),
+		update_xml(fieldstruct *field),
 		write_xml(char *filename),
 		write_xml_header(FILE *file),
 		write_xml_meta(FILE *file, char *error),
