@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	04/07/2008
+*	Last modify:	05/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,6 +27,7 @@
 #include "define.h"
 #include "globals.h"
 #include "fits/fitscat.h"
+#include "cplot.h"
 #include "key.h"
 #include "field.h"
 #include "prefs.h"
@@ -174,7 +175,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	04/07/2008
+VERSION	05/07/2008
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -194,6 +195,12 @@ int	write_xml_meta(FILE *file, char *error)
    int			d,n,e,
 			nloaded_min,nloaded_max,nloaded_total,
 			naccepted_min,naccepted_max,naccepted_total, neff, next;
+#ifdef HAVE_PLPLOT
+   char			plotfilename[MAXCHAR],
+			*pstr;
+   int			cp[CPLOT_NTYPES],
+			j,t, nplot, pnplot, pngindex, pngflag;
+#endif
 
 /* Processing date and time if msg error present */
   if (error)
@@ -272,6 +279,17 @@ int	write_xml_meta(FILE *file, char *error)
     fprintf(file, "  <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	"!!!!!!!!!!!!!!!!!!!! -->\n\n");
     }
+
+/* Test if PNG plots are being produced */
+#ifdef HAVE_PLPLOT
+  nplot = pnplot = pngflag = 0;
+  for (j=0; j<prefs.ncplot_device; j++)
+    if ((prefs.cplot_device[j] == CPLOT_PNG))
+      {
+      pngflag = 1;
+      break;
+      }
+#endif
 
 /* PSF meta-data per field */
   fprintf(file, "  <TABLE ID=\"PSF_Fields\" name=\"PSF_Fields\">\n");
@@ -373,6 +391,25 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Asymmetry_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
+/*-- Checkplots */
+#ifdef HAVE_PLPLOT
+  if (pngflag)
+    {
+    pnplot = nplot;
+    if ((pngindex=cplot_check(CPLOT_FWHM)) != RETURN_ERROR)
+      {
+      fprintf(file, "   <FIELD name=\"Plot_FWHM\" datatype=\"char\""
+        " arraysize=\"*\" ucd=\"meta.id;meta.file\"/>\n");
+      cp[nplot++] = pngindex;
+      }
+    if ((pngindex=cplot_check(CPLOT_ELLIPTICITY)) != RETURN_ERROR)
+      {
+      fprintf(file, "   <FIELD name=\"Plot_Ellipticity\" datatype=\"char\""
+        " arraysize=\"*\" ucd=\"meta.id;meta.file\"/>\n");
+      cp[nplot++] = pngindex;
+      }
+    }
+#endif
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
   for (n=0; n<nxml; n++)
@@ -480,8 +517,7 @@ int	write_xml_meta(FILE *file, char *error)
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
-	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
-        "    </TR>\n",
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n",
 	field->rcatname, field->ident, field->next,
 	nloaded_total, nloaded_min, nloaded_mean, nloaded_max,
 	naccepted_total, naccepted_min, naccepted_mean, naccepted_max,
@@ -493,6 +529,22 @@ int	write_xml_meta(FILE *file, char *error)
 	beta_min, beta_mean, beta_max,
 	residuals_min, residuals_mean, residuals_max,
 	symresiduals_min, symresiduals_mean, symresiduals_max);
+/*-- Check-plots */
+#ifdef HAVE_PLPLOT
+    if (pngflag)
+      {
+      for (t=pnplot; t<nplot; t++)
+        {
+        strcpy(plotfilename, field->rcatname);
+        if (!(pstr = strrchr(plotfilename, '.')))
+          pstr = plotfilename+strlen(plotfilename);
+        sprintf(pstr, ".png");
+        fprintf(file, "     <TD>%s_%s</TD>\n",
+		prefs.cplot_name[cp[t]], plotfilename);        
+        }
+      }
+#endif
+    fprintf(file, "    </TR>\n");
     }
   fprintf(file, "   </TABLEDATA></DATA>\n");
   fprintf(file, "  </TABLE>\n");

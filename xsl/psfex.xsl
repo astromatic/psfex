@@ -4,13 +4,12 @@
 	<!ENTITY deg "&#176;">
 	<!ENTITY amin "&#180;">
 	<!ENTITY asec "&#168;">
+        <!ENTITY Beta "&#914;">
         <!ENTITY chi "&#967;">
-        <!ENTITY beta "&#946;">
-        <!ENTITY copy "&#169;">
-        <!ENTITY br "&#xD;&#xA;">
+        <!ENTITY br "&#60;&#98;&#115;&#32;&#47;&#62;">
 	]>
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <!-- *********************** Global XSL template ************************** -->
  <xsl:template match="/">
@@ -30,12 +29,14 @@
 
     <style type="text/css">
      p.sansserif {font-family: sans-serif}
+     p.italic {font-style: italic}
      body {background-color: white}
      mono {font-family: monospace}
      elen {font-family: monospace; font-size: 100%; font-weight: bold; color: green }
      elep {font-family: monospace; font-size: 100%; font-weight: bold; color: red }
      el {font-family: monospace; font-size: 100%; color: black}
      a {text-decoration: none}
+
      table.sortable a.sortheader
       {
       background-color:#FFEECC;
@@ -55,7 +56,7 @@
       {
       vertical-align: sub;
       }
-     </style>
+    </style>
 
      <title>
       Processing summary on <xsl:value-of select="$date"/> at <xsl:value-of select="$time"/>
@@ -71,10 +72,10 @@
         <TABLE BORDER="0">
          <TR>
           <TD ALIGN="CENTER">
-           <a href="http://terapix.iap.fr"><IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixLogo.png" ALT="Terapix" title="Terapix" border="0"/></a>
+           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixLogo.png" ALT="Terapix"/>
           </TD>
           <TD ALIGN="CENTER">
-           <a href="http://terapix.iap.fr"><IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixTitle.png" ALT="Logo" title="Terapix" border="0"/></a>
+           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixTitle.png" ALT="Logo"/>
           </TD>
           <TD ALIGN="CENTER" width="2000">
            <FONT color="#669933">
@@ -82,8 +83,7 @@
            </FONT>
           </TD>
           <TD ALIGN="CENTER">
-           <IMG
-     SRC="http://terapix.iap.fr/cplt/xsl/terapixPicture.gif" title="Star Formation Region IC 1396, &copy; 2002 CFHT" alt="Star Formation Region IC 1396, &copy; 2002 CFHT"/>
+           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixPicture.gif" ALT="Terapix banner"/>
           </TD>
          </TR>
         </TABLE>
@@ -116,18 +116,18 @@
   <xsl:for-each select="RESOURCE">
    <xsl:choose>
     <xsl:when test="@ID='PSFEx'">
-     <xsl:call-template name="psfex"/>
+     <xsl:call-template name="PSFEx"/>
     </xsl:when>
    </xsl:choose>
   </xsl:for-each>
  </xsl:template>
 
 <!-- ********************** XSL template for PSFEx *********************** -->
- <xsl:template name="psfex">
+ <xsl:template name="PSFEx">
   <xsl:for-each select="RESOURCE[@ID='MetaData']">
    <xsl:call-template name="RunInfo"/>
-   <xsl:for-each select="TABLE[@ID='PSF']">
-    <xsl:call-template name="PSF"/>
+   <xsl:for-each select="TABLE[@ID='PSF_Fields']">
+    <xsl:call-template name="PSF_Fields"/>
    </xsl:for-each>
    <xsl:for-each select="RESOURCE[@ID='Config']">
     <xsl:call-template name="Config"/>
@@ -189,193 +189,151 @@
    in <b><mono><xsl:value-of select="PARAM[@name='Path']/@value"/></mono></b>
   </p>
   <p>
-  <sans-serif><i>click to expand or hide tables</i></sans-serif>
+   <b style="color: red"><xsl:if test="PARAM[@name='Error_Msg']/@value &gt; 0">
+    An Error occured!!! </xsl:if>
+   <xsl:value-of select="PARAM[@name='Error_Msg']/@value"/></b>
+  </p>
+  <p>
+  <i>click to expand or hide tables</i>
   </p>
  </xsl:template>
 
-<!-- ********************** XSL template for PSF ********************** -->
-  <xsl:template name="PSF">
-   <xsl:variable name="ext" select="count(FIELD[@name='Extension']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="nload" select="count(FIELD[@name='NStars_Loaded']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="naccept" select="count(FIELD[@name='NStars_Accepted']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhmfr" select="count(FIELD[@name='FWHM_FromFluxRadius']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="sampling" select="count(FIELD[@name='Sampling']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="chi2" select="count(FIELD[@name='Chi2']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm_min" select="count(FIELD[@name='FWHM_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm_max" select="count(FIELD[@name='FWHM_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="elong_min" select="count(FIELD[@name='Elongation_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="elong" select="count(FIELD[@name='Elongation']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="elong_max" select="count(FIELD[@name='Elongation_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="beta_min" select="count(FIELD[@name='MoffatBeta_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="beta" select="count(FIELD[@name='MoffatBeta']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="beta_max" select="count(FIELD[@name='MoffatBeta_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="res_min" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="res" select="count(FIELD[@name='Residuals']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="res_max" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="as_min" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="as" select="count(FIELD[@name='Asymmetry']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="as_max" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
+<!-- ********************** XSL template for PSF_Fields ******************* -->
+  <xsl:template name="PSF_Fields">
+   <xsl:variable name="name" select="count(FIELD[@name='Catalog_Name']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="ident" select="count(FIELD[@name='Image_Ident']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="next" select="count(FIELD[@name='NExtensions']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="nloadtot" select="count(FIELD[@name='NStars_Loaded_Total']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="nacceptot" select="count(FIELD[@name='NStars_Accepted_Total']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fluxrad" select="count(FIELD[@name='FWHM_FromFluxRadius_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="sampling" select="count(FIELD[@name='Sampling_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="chi2" select="count(FIELD[@name='Chi2_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="elongation" select="count(FIELD[@name='Elongation_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="beta" select="count(FIELD[@name='MoffatBeta_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="residuals" select="count(FIELD[@name='Residuals_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmplotflag" select="count(FIELD[@name='Plot_FWHM'])"/>
+   <xsl:variable name="fwhmplot" select="count(FIELD[@name='Plot_FWHM']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="ellipplotflag" select="count(FIELD[@name='Plot_Ellipticity'])"/>
+   <xsl:variable name="ellipplot" select="count(FIELD[@name='Plot_Ellipticity']/preceding-sibling::FIELD)+1"/>
    <p>
     <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('psfex')">
-     Summary Table on PSF Model
+     Summary Table on Input Files
     </BUTTON>
     <TABLE class="sortable" id="psfex" BORDER="2" style="display: none">
      <TR>
-      <TH BGCOLOR="#FFEECC">Extension</TH>
-      <TH BGCOLOR="#FFEECC">N. star loaded</TH>
-      <TH BGCOLOR="#FFEECC">N. star accepted</TH>
-      <TH BGCOLOR="#FFEECC">FWHM from Flux Radius &br; (<xsl:value-of select="FIELD[@name='FWHM_FromFluxRadius']/@unit"/>)</TH>
-      <TH BGCOLOR="#FFEECC">Sampling &br; (<xsl:value-of select="FIELD[@name='Sampling']/@unit"/>)</TH>
-      <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup></TH>
-      <TH BGCOLOR="#FFEECC">FWHM min &br; (<xsl:value-of select="FIELD[@name='FWHM_Min']/@unit"/>)</TH>
-      <TH BGCOLOR="#FFEECC">FWHM mean &br; (<xsl:value-of select="FIELD[@name='FWHM']/@unit"/>)</TH>
-      <TH BGCOLOR="#FFEECC">FWHM max &br; (<xsl:value-of select="FIELD[@name='FWHM_Max']/@unit"/>)</TH>
-      <TH BGCOLOR="#FFEECC">Elongation min</TH>
-      <TH BGCOLOR="#FFEECC">Elongation mean</TH>
-      <TH BGCOLOR="#FFEECC">Elongation max</TH>
-      <TH BGCOLOR="#FFEECC">Moffat &beta; min</TH>
-      <TH BGCOLOR="#FFEECC">Moffat &beta; mean</TH>
-      <TH BGCOLOR="#FFEECC">Moffat &beta; max</TH>
-      <TH BGCOLOR="#FFEECC">Residuals min</TH>
-      <TH BGCOLOR="#FFEECC">Residuals mean</TH>
-      <TH BGCOLOR="#FFEECC">Residuals max</TH>
-      <TH BGCOLOR="#FFEECC">Asymmetry min</TH>
-      <TH BGCOLOR="#FFEECC">Asymmetry mean</TH>
-      <TH BGCOLOR="#FFEECC">Asymmetry max</TH>
+      <TH BGCOLOR="#FFEECC">Filename</TH>
+      <TH BGCOLOR="#FFEECC">Identifier</TH>
+      <TH BGCOLOR="#FFEECC">Next</TH>
+      <TH BGCOLOR="#FFEECC">Naccepted/loaded</TH>
+      <TH BGCOLOR="#FFEECC">Half-Light diam.</TH>
+      <TH BGCOLOR="#FFEECC">Sampling</TH>
+      <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup>/<i>d.o.f.</i></TH>
+      <TH BGCOLOR="#FFEECC">FWHM</TH>
+      <xsl:if test="$fwhmplotflag &gt; 0">
+       <TH BGCOLOR="#FFEECC">FWHM map</TH>
+      </xsl:if>
+      <TH BGCOLOR="#FFEECC">Elongation</TH>
+      <xsl:if test="$ellipplotflag &gt; 0">
+       <TH BGCOLOR="#FFEECC">Ellipticity map</TH>
+      </xsl:if> 
+      <TH BGCOLOR="#FFEECC">&Beta;</TH>
+      <TH BGCOLOR="#FFEECC">Residuals</TH>
+      <TH BGCOLOR="#FFEECC">Asymmetry</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
        <tr>
+<!-- Catalog name -->
+        <td  BGCOLOR="#EEEEEE">
+         <el><xsl:value-of select="TD[$name]"/></el>
+        </td>
+<!-- Identifier -->
         <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$ext]"/></el>
+         <el><xsl:value-of select="TD[$ident]"/></el>
         </td>
+<!-- Number of extensions -->
         <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$nload]"/></el>
+         <el><xsl:value-of select="TD[$next]"/></el>
         </td>
+<!-- Number of sources -->
         <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="TD[$naccept]"/></el>
+         <el><xsl:value-of select="TD[$nacceptot]"/></el> / <el><xsl:value-of select="TD[$nloadtot]"/></el>
         </td>
+<!-- Half-light diameter -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhmfr], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$fluxrad],'##0.000')"/></el>
         </td>
+<!-- Sampling -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$sampling], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$sampling],'##0.000')"/></el>
         </td>
+<!-- Chi2 --> 
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$chi2], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$chi2], '######0.0')"/></el>
         </td>
+<!-- FWHM -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhm_min], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$fwhm],'##0.000')"/></el>
         </td>
+<!-- FWHM map -->
+        <xsl:if test="$fwhmplotflag &gt; 0">
+         <td align="center" BGCOLOR="#EEEEEE">
+          <a target="_blank">
+           <xsl:attribute name="href">
+            <xsl:value-of select="TD[$fwhmplot]"/>
+           </xsl:attribute>
+           <img width="80">
+            <xsl:attribute name="src">
+             <xsl:value-of select="TD[$fwhmplot]"/>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+             <xsl:value-of select="TD[$fwhmplot]"/>
+            </xsl:attribute>
+           </img>
+          </a>
+         </td>
+        </xsl:if>
+<!-- Elongation -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhm], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$elongation],'##0.000')"/></el>
         </td>
+<!-- Ellipticity map -->
+        <xsl:if test="$ellipplotflag &gt; 0">
+         <td align="center" BGCOLOR="#EEEEEE">
+          <a target="_blank">
+           <xsl:attribute name="href">
+            <xsl:value-of select="TD[$ellipplot]"/>
+           </xsl:attribute>
+           <img width="80">
+            <xsl:attribute name="src">
+             <xsl:value-of select="TD[$ellipplot]"/>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+             <xsl:value-of select="TD[$ellipplot]"/>
+            </xsl:attribute>
+           </img>
+          </a>
+         </td>
+        </xsl:if>
+<!-- Beta -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$fwhm_max], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$beta],'##0.000')"/></el>
         </td>
+<!-- Residuals -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$elong_min], '#0.000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$residuals],'##0.000')"/></el>
         </td>
+<!-- Asymmetry -->
         <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$elong], '#0.000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$elong_max], '#0.000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$beta_min], '#0.000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$beta], '#0.000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$beta_max], '#0.000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$res_min], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$res], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$res_max], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$as_min], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$as], '#0.0000')"/></el>
-        </td>
-        <td align="right" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$as_max], '#0.0000')"/></el>
+         <el><xsl:value-of select="format-number(TD[$asymmetry],'##0.000')"/></el>
         </td>
        </tr>
       </xsl:for-each>
      </xsl:for-each>
     </TABLE>
    </p>
-   <xsl:if test="PARAM[@name='NExtensions']/@value &gt; 1">
-    <p>
-     <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('avpsfex')">
-      Average Properties of PSF on all Extensions
-     </BUTTON>
-     <TABLE id="avpsfex" class="sortable" BORDER="2" style="display: none">
-      <TR>
-       <TH BGCOLOR="#FFEECC"> </TH>
-       <TH BGCOLOR="#FFEECC">N. star loaded</TH>
-       <TH BGCOLOR="#FFEECC">N. star accepted</TH>
-       <TH BGCOLOR="#FFEECC">FWHM from Flux Radius &br; (<xsl:value-of select="PARAM[@name='FWHM_FromFluxRadius_Mean']/@unit"/>)</TH>
-       <TH BGCOLOR="#FFEECC">Sampling &br; (<xsl:value-of select="PARAM[@name='Sampling_Mean']/@unit"/>)</TH>
-       <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup></TH>
-       <TH BGCOLOR="#FFEECC">FWHM &br; (<xsl:value-of select="PARAM[@name='FWHM_Mean']/@unit"/>)</TH>
-       <TH BGCOLOR="#FFEECC">Elongation</TH>
-       <TH BGCOLOR="#FFEECC">Moffat &beta;</TH>
-       <TH BGCOLOR="#FFEECC">Residuals</TH>
-       <TH BGCOLOR="#FFEECC">Asymmetry</TH>
-      </TR>
-      <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC"><b>min</b></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Min']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Min']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Min']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Min']/@value,'#0.0000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Min']/@value,'#0.0000')"/></el></td>
-      </tr>
-      <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC"><b>mean</b></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Mean']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Mean']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Mean']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Mean']/@value,'#0.0000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Mean']/@value,'#0.0000')"/></el></td>
-      </tr>
-      <tr BGCOLOR="#EEEEEE">
-       <td BGCOLOR="#FFEECC"><b>max</b></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Loaded_Max']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='NStars_Accepted_Max']/@value,'#0.00')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_FromFluxRadius_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Sampling_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Chi2_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='FWHM_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Elongation_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='MoffatBeta_Max']/@value,'#0.000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Residuals_Max']/@value,'#0.0000')"/></el></td>
-       <td align="right"><el><xsl:value-of select="format-number(PARAM[@name='Asymmetry_Max']/@value,'#0.0000')"/></el></td>
-      </tr>
-     </TABLE>
-    </p>
-   </xsl:if>
  </xsl:template>
 
 <!-- ********************** XSL template for Config File ********************** -->
@@ -416,7 +374,7 @@
    <xsl:variable name="msg" select="count(FIELD[@name='Msg']/preceding-sibling::FIELD)+1"/>
    <p>
     <BUTTON type="button" style="background:#CCEECC; font-family: monospace; font-weight: bold: font-size: 80%;" onclick="showhideTable('warnings')">
-     Warnings (limited to the last 100)
+     Warnings (limited to the last 1000)
     </BUTTON>
     <TABLE id="warnings" style="display: none">
      <TR style="font-size: 80%;">
@@ -443,7 +401,7 @@
    </p>
  </xsl:template>
 
-
  <xsl:template name="Rest">
 </xsl:template>
 </xsl:stylesheet>
+

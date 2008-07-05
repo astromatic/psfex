@@ -9,7 +9,7 @@
 *
 *	Contents:	Include file for cplot.c
 *
-*	Last modify:	20/03/2008
+*	Last modify:	05/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -57,7 +57,8 @@ typedef struct {cplotdevenum device; char *devname; char *extension;}
 /*---------------------------------- svgp -----------------------------------*/
 /*------------------------------- functions ---------------------------------*/
 
-extern int		cplot_drawbounds(wcsstruct *wcsin, wcsstruct *wcsout),
+extern int		cplot_check(cplotenum cplottype),
+			cplot_drawbounds(wcsstruct *wcsin, wcsstruct *wcsout),
 			cplot_drawloccoordgrid(wcsstruct *wcs, double xmin,
 					double xmax, double ymin, double ymax),
 			cplot_ellipticity(fieldstruct *field),

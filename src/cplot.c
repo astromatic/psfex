@@ -92,7 +92,7 @@ INPUT	Input name,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/03/2008
+VERSION	05/07/2008
  ***/
 int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
   {
@@ -126,7 +126,7 @@ int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
   strcpy(str, name);
   if (!(pstr = strrchr(str, '.')))
     pstr = str+strlen(str);
-
+  *pstr = '\0';
   for (j=0; *(cplot_device[j].devname); j++)
     if (prefs.cplot_device[dev]==cplot_device[j].device)
       break;

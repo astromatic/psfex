@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	03/06/2008
+*	Last modify:	05/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -508,13 +508,13 @@ void	useprefs()
 
 /*------------------------------- Contexts ---------------------------------*/
   if ((prefs.group_deg[0]!=0) && prefs.ncontext_group != prefs.ncontext_name)
-    error(EXIT_FAILURE, "*Error*: CONTEXT_GROUPS and CONTEXT_KEYS do not ",
+    error(EXIT_FAILURE, "*Error*: PSFVAR_GROUPS and PSFVAR_KEYS do not ",
 			"match");
   if (!prefs.group_deg[0])
     prefs.ncontext_group = 0;
   for (i=0; i<prefs.ncontext_group; i++)
     if (prefs.context_group[i]>prefs.ngroup_deg)
-      error(EXIT_FAILURE, "*Error*: CONTEXT_GROUPS out of range for ",
+      error(EXIT_FAILURE, "*Error*: PSFVAR_GROUPS out of range for ",
 			prefs.context_name[i]);
 
 /* ngroup_deg implicitely states the number of groups (one degree per group) */
