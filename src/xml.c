@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	05/07/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -175,7 +175,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/07/2008
+VERSION	06/07/2008
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -187,7 +187,7 @@ int	write_xml_meta(FILE *file, char *error)
 			sampling_min,sampling_mean,sampling_max,
 			chi2_min,chi2_mean,chi2_max,
 			fwhm_min,fwhm_mean,fwhm_max,
-			elongation_min,elongation_mean,elongation_max,
+			ellipticity_min,ellipticity_mean,ellipticity_max,
 			beta_min,beta_mean,beta_max,
 			residuals_min,residuals_mean,residuals_max,
 			symresiduals_min,symresiduals_mean,symresiduals_max,
@@ -367,12 +367,12 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <FIELD name=\"FWHM_Max\" unit=\"pix\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Min\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Mean\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.mean;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Max\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Min\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Mean\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Max\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta_Min\" datatype=\"float\""
 	" ucd=\"stat.param;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta_Mean\" datatype=\"float\""
@@ -417,12 +417,12 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- Compute min,average and max of Moffat fitted parameters */
     nloaded_min = naccepted_min = 2<<29;
     nloaded_max = naccepted_max = nloaded_total = naccepted_total = 0;
-    minrad_min = sampling_min = chi2_min = fwhm_min = elongation_min
+    minrad_min = sampling_min = chi2_min = fwhm_min = ellipticity_min
 	= beta_min = residuals_min = symresiduals_min = BIG;
-    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = elongation_mean
+    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
 	= beta_mean = residuals_mean = symresiduals_mean
 	= nloaded_mean = naccepted_mean = 0.0;
-    minrad_max = sampling_max = chi2_max = fwhm_max = elongation_max
+    minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
 	= beta_max = residuals_max = symresiduals_max = -BIG;
     neff = 0;
     field = field_xml[n];
@@ -465,11 +465,11 @@ int	write_xml_meta(FILE *file, char *error)
       fwhm_mean += psf->moffat_fwhm;
       if (psf->moffat_fwhm_max > fwhm_max)
         fwhm_max = psf->moffat_fwhm_max;
-      if (psf->moffat_elongation_min < elongation_min)
-        elongation_min = psf->moffat_elongation_min;
-      elongation_mean += psf->moffat_elongation;
-      if (psf->moffat_elongation_max > elongation_max)
-        elongation_max = psf->moffat_elongation_max;
+      if (psf->moffat_ellipticity_min < ellipticity_min)
+        ellipticity_min = psf->moffat_ellipticity_min;
+      ellipticity_mean += psf->moffat_ellipticity;
+      if (psf->moffat_ellipticity_max > ellipticity_max)
+        ellipticity_max = psf->moffat_ellipticity_max;
       if (psf->moffat_beta_min < beta_min)
         beta_min = psf->moffat_beta_min;
       beta_mean += psf->moffat_beta;
@@ -499,7 +499,7 @@ int	write_xml_meta(FILE *file, char *error)
       sampling_mean /= (double)neff;
       chi2_mean /= (double)neff;
       fwhm_mean /= (double)neff;
-      elongation_mean /= (double)neff;
+      ellipticity_mean /= (double)neff;
       beta_mean /= (double)neff;
       residuals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
@@ -525,7 +525,7 @@ int	write_xml_meta(FILE *file, char *error)
 	sampling_min, sampling_mean, sampling_max,
 	chi2_min, chi2_mean, chi2_max,
 	fwhm_min, fwhm_mean, fwhm_max,
-	elongation_min, elongation_mean, elongation_max,
+	ellipticity_min, ellipticity_mean, ellipticity_max,
 	beta_min, beta_mean, beta_max,
 	residuals_min, residuals_mean, residuals_max,
 	symresiduals_min, symresiduals_mean, symresiduals_max);
@@ -609,12 +609,12 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <FIELD name=\"FWHM_Max\" unit=\"pix\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Min\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.min;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Mean\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.mean;instr.det.psf\"/>\n");
-  fprintf(file, "   <FIELD name=\"Elongation_Max\" datatype=\"float\""
-	" ucd=\"phys.size.axisRatio;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Min\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Mean\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Ellipticity_Max\" datatype=\"float\""
+	" ucd=\"src.ellipticity;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta_Min\" datatype=\"float\""
 	" ucd=\"stat.param;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"MoffatBeta_Mean\" datatype=\"float\""
@@ -640,12 +640,12 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- Compute min,average and max of Moffat fitted parameters */
     nloaded_min = naccepted_min = 2<<29;
     nloaded_max = naccepted_max = nloaded_total = naccepted_total = 0;
-    minrad_min = sampling_min = chi2_min = fwhm_min = elongation_min
+    minrad_min = sampling_min = chi2_min = fwhm_min = ellipticity_min
 	= beta_min = residuals_min = symresiduals_min = BIG;
-    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = elongation_mean
+    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
 	= beta_mean = residuals_mean = symresiduals_mean
 	= nloaded_mean = naccepted_mean = 0.0;
-    minrad_max = sampling_max = chi2_max = fwhm_max = elongation_max
+    minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
 	= beta_max = residuals_max = symresiduals_max = -BIG;
     neff = 0;
     for (n=0; n<nxml; n++)
@@ -688,11 +688,11 @@ int	write_xml_meta(FILE *file, char *error)
       fwhm_mean += psf->moffat_fwhm;
       if (psf->moffat_fwhm_max > fwhm_max)
         fwhm_max = psf->moffat_fwhm_max;
-      if (psf->moffat_elongation_min < elongation_min)
-        elongation_min = psf->moffat_elongation_min;
-      elongation_mean += psf->moffat_elongation;
-      if (psf->moffat_elongation_max > elongation_max)
-        elongation_max = psf->moffat_elongation_max;
+      if (psf->moffat_ellipticity_min < ellipticity_min)
+        ellipticity_min = psf->moffat_ellipticity_min;
+      ellipticity_mean += psf->moffat_ellipticity;
+      if (psf->moffat_ellipticity_max > ellipticity_max)
+        ellipticity_max = psf->moffat_ellipticity_max;
       if (psf->moffat_beta_min < beta_min)
         beta_min = psf->moffat_beta_min;
       beta_mean += psf->moffat_beta;
@@ -722,7 +722,7 @@ int	write_xml_meta(FILE *file, char *error)
       sampling_mean /= (double)neff;
       chi2_mean /= (double)neff;
       fwhm_mean /= (double)neff;
-      elongation_mean /= (double)neff;
+      ellipticity_mean /= (double)neff;
       beta_mean /= (double)neff;
       residuals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
@@ -749,7 +749,7 @@ int	write_xml_meta(FILE *file, char *error)
 	sampling_min, sampling_mean, sampling_max,
 	chi2_min, chi2_mean, chi2_max,
 	fwhm_min, fwhm_mean, fwhm_max,
-	elongation_min, elongation_mean, elongation_max,
+	ellipticity_min, ellipticity_mean, ellipticity_max,
 	beta_min, beta_mean, beta_max,
 	residuals_min, residuals_mean, residuals_max,
 	symresiduals_min, symresiduals_mean, symresiduals_max);
@@ -794,62 +794,67 @@ int	write_xml_meta(FILE *file, char *error)
   if (!error)
     {
 /*-- PSF model */
-    write_xmlconfigparam(file, "PSF_Name", "",
-		"meta.id;meta.file","%s");
-    write_xmlconfigparam(file, "Basis_Type", "",
-		"meta.code","%s");
-    write_xmlconfigparam(file, "Basis_Number", "",
-		"meta.number","%d");
-    write_xmlconfigparam(file, "Basis_Name", "",
-		"meta.id;meta.file","%s");
-    write_xmlconfigparam(file, "Basis_Scale", "",
-		"arith.factor","%.6g");
+    write_xmlconfigparam(file, "Basis_Type", "", "meta.code","%s");
+    write_xmlconfigparam(file, "Basis_Number", "", "meta.number","%d");
+    write_xmlconfigparam(file, "Basis_Name", "", "meta.id;meta.file","%s");
+    write_xmlconfigparam(file, "Basis_Scale", "", "arith.factor","%.6g");
+    write_xmlconfigparam(file, "NewBasis_Type", "", "meta.code","%s");
+    write_xmlconfigparam(file, "NewBasis_Number", "", "meta.number","%d");
     write_xmlconfigparam(file, "PSF_Sampling", "pix",
-		"arith.factor;instr.pixel","%.6g");
+		"arith.factor;instr.pixel;inst.det.psf","%.6g");
     write_xmlconfigparam(file, "PSF_Accuracy", "",
-		"obs.param;phot.flux.sb;arith.ratio","%.6g");
+		"obs.param;phot.flux.sb;arith.ratio;instr.det.psf","%.6g");
     write_xmlconfigparam(file, "PSF_Size", "pix",
-		"meta.number;instr.pixel","%d");
-    write_xmlconfigparam(file, "PSF_Recenter", "",
-		"meta.code","%c");
-    write_xmlconfigparam(file, "Combine_Type", "",
-		"meta.code", "%s");
+		"meta.number;instr.pixel;instr.det.psf","%d");
+    write_xmlconfigparam(file, "PSF_Recenter", "", "meta.code","%c");
 
 /*-- PSF dependencies */
     write_xmlconfigparam(file, "PSFVar_Keys", "",
-		"meta.id;src", "%s");
+		"meta.id;src;instr.det.psf", "%s");
     write_xmlconfigparam(file, "PSFVar_Groups", "",
-		"meta.id;stat.fit.param", "%d");
+		"meta.id;stat.fit.param;instr.det.psf", "%d");
     write_xmlconfigparam(file, "PSFVar_Degrees", "",
-		"meta.id;stat.fit.param", "%d");
+		"stat.fit.param;instr.det.psf", "%d");
     write_xmlconfigparam(file, "PSFVar_NSnap", "",
-		"meta.id;stat.fit.param", "%d");
+		"stat.fit.param;instr.det.psf", "%d");
 
 /*-- Sample selection */
-    write_xmlconfigparam(file, "Sample_AutoSelect", "",
-		"meta.code","%c");
+    write_xmlconfigparam(file, "Sample_AutoSelect", "", "meta.code","%c");
     write_xmlconfigparam(file, "Sample_FWHMRange", "pix",
 		"phys.size.diameter;instr.det.psf","%.6g");
     write_xmlconfigparam(file, "Sample_Variability", "",
 		"instr.det.psf;arith.ratio","%.6g");
-    write_xmlconfigparam(file, "Sample_MinSN", "",
-		"stat.snr;stat.min","%.6g");
-    write_xmlconfigparam(file, "Sample_MaxElong", "",
+    write_xmlconfigparam(file, "Sample_MinSN", "", "stat.snr;stat.min","%.6g");
+    write_xmlconfigparam(file, "Sample_MaxEllip", "",
 		"src.ellipticity;stat.max","%.6g");
-    write_xmlconfigparam(file, "Sample_FlagMask", "",
-		"meta.code","%d");
-    write_xmlconfigparam(file, "BadPixel_Filter", "",
-		"meta.code","%c");
+    write_xmlconfigparam(file, "Sample_FlagMask", "", "meta.code","%d");
+    write_xmlconfigparam(file, "BadPixel_Filter", "", "meta.code","%c");
     write_xmlconfigparam(file, "BadPixel_NMax", "",
 		"meta.number;instr.pixel;stat.max","%d");
 
+/*-- Homogenisation kernel */
+    write_xmlconfigparam(file, "HomoBasis_Type", "", "meta.code","%s");
+    write_xmlconfigparam(file, "HomoBasis_Number", "", "meta.number","%d");
+    write_xmlconfigparam(file, "HomoBasis_Scale", "", "arith.factor","%.6g");
+    write_xmlconfigparam(file, "HomoPSF_Params", "", "stat.param","%.6g");
+    write_xmlconfigparam(file, "HomoKernel_Suffix", "",
+		"meta.id;meta.file","%s");
+
+/*-- Check-plots */
+    write_xmlconfigparam(file, "CheckPlot_Dev", "", "meta.code", "%s");
+    write_xmlconfigparam(file, "CheckPlot_Res", "", "meta.number;meta", "%d");
+    write_xmlconfigparam(file, "CheckPlot_AntiAlias", "", "meta.code", "%c");
+    write_xmlconfigparam(file, "CheckPlot_Type", "", "meta.code", "%s");
+    write_xmlconfigparam(file, "CheckPlot_Name", "", "meta.id;meta.file", "%s");
+
 /*-- Check Images --*/
-    write_xmlconfigparam(file, "CheckImage_Type", "",
-		"meta.code", "%s");
+    write_xmlconfigparam(file, "CheckImage_Type", "", "meta.code", "%s");
     write_xmlconfigparam(file, "CheckImage_Name", "",
 		"meta.id;meta.file;meta.fits", "%s");
+    write_xmlconfigparam(file, "CheckImage_Cube", "", "meta.code","%c");
 
 /*-- Miscellaneous */
+    write_xmlconfigparam(file, "PSF_Suffix", "", "meta.id;meta.file","%s");
     write_xmlconfigparam(file, "Verbose_Type", "", "meta.code","%s");
     write_xmlconfigparam(file, "Write_XML", "", "meta.code","%s");
     write_xmlconfigparam(file, "NThreads", "",

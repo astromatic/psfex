@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -57,7 +57,7 @@ typedef struct
   int		newbasis_number;		/* Number of PCs */
 /* Point-source sample */
   double	minsn;				/* Minimum S/N for patterns */
-  double	maxelong;			/* Maximum A/B for patterns */
+  double	maxellip;			/* Maximum (A-B)/(A+B) */
   double	maxvar;				/* Maximum FWHM variability */
   double	fwhmrange[2];			/* Allowed FWHM range */
   int		nfwhmrange;	       		/* nb of params */

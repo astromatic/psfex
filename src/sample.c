@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	03/06/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -59,7 +59,9 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 
   NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
-  maxelong = (float)prefs.maxelong;
+  maxelong = (float)(prefs.maxellip < 1.0?
+	(prefs.maxellip + 1.0)/(1.0 - prefs.maxellip)
+	: 100.0);
   min = (float)prefs.fwhmrange[0];
   max = (float)prefs.fwhmrange[1];
   fwhm = NULL;	/* To avoid gcc -Wall warnings */
@@ -323,7 +325,9 @@ setstruct *read_samples(setstruct *set, char *filename,
 
   maxbad = prefs.badpix_nmax;
   maxbadflag = prefs.badpix_flag;
-  maxelong = prefs.maxelong;
+  maxelong = (float)(prefs.maxellip < 1.0?
+	(prefs.maxellip + 1.0)/(1.0 - prefs.maxellip)
+	: 100.0);
   minsn = prefs.minsn;
 
 /* If a NULL pointer is provided, we allocate a new set */

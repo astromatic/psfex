@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -97,7 +97,7 @@ pkeystruct key[] =
   {"SAMPLE_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
   {"SAMPLE_FWHMRANGE", P_FLOATLIST, prefs.fwhmrange, 0,0, 0.0,1e3, {""},
      2,2, &prefs.nfwhmrange},
-  {"SAMPLE_MAXELONG", P_FLOAT, &prefs.maxelong, 0,0, 1.0, BIG},
+  {"SAMPLE_MAXELLIP", P_FLOAT, &prefs.maxellip, 0,0, 0.0, 1.0},
   {"SAMPLE_MINSN", P_FLOAT, &prefs.minsn, 0,0, 1e-6,1e15},
   {"SAMPLE_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"SAMPLEVAR_TYPE", P_KEY, &prefs.var_type, 0,0, 0.0,0.0,
@@ -136,7 +136,7 @@ char *default_prefs[] =
 " ",
 "PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params",
 "PSFVAR_GROUPS  1,1              # Group tag for each context key",
-"PSFVAR_DEGREES   1              # Polynom degree for each group",
+"PSFVAR_DEGREES   2              # Polynom degree for each group",
 "*PSFVAR_NSNAP   9                # Number of PSF snapshots per axis",
 " ",
 "#----------------------------- Sample selection ------------------------------",
@@ -146,7 +146,7 @@ char *default_prefs[] =
 "SAMPLE_FWHMRANGE   2.0,10.0     # Allowed FWHM range",
 "SAMPLE_VARIABILITY 0.2          # Allowed FWHM variability (1.0 = 100%)",
 "SAMPLE_MINSN       20           # Minimum S/N for a source to be used",
-"SAMPLE_MAXELONG    2.0          # Maximum A/B for a source to be used",
+"SAMPLE_MAXELLIP    0.3          # Maximum (A-B)/(A+B) for a source to be used",
 "*SAMPLE_FLAGMASK    0x00fe       # Rejection mask on SExtractor FLAGS",
 "*BADPIXEL_FILTER    N            # Filter bad-pixels in samples (Y/N) ?",
 "*BADPIXEL_NMAX      0            # Maximum number of bad pixels allowed",

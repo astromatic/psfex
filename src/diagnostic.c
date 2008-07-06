@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	06/03/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 06/03/2008
+VERSION 06/07/2008
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -71,10 +71,10 @@ void	psf_diagnostic(psfstruct *psf)
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
-  psf->moffat_fwhm_min = psf->moffat_elongation_min = psf->moffat_beta_min
+  psf->moffat_fwhm_min = psf->moffat_ellipticity_min = psf->moffat_beta_min
 		= psf->moffat_residuals_min = psf->moffat_symresiduals_min
 		= BIG;
-  psf->moffat_fwhm_max = psf->moffat_elongation_max = psf->moffat_beta_max
+  psf->moffat_fwhm_max = psf->moffat_ellipticity_max = psf->moffat_beta_max
 		= psf->moffat_residuals_max = psf->moffat_residuals_max
 		= -BIG;
 
@@ -145,11 +145,12 @@ void	psf_diagnostic(psfstruct *psf)
       psf->moffat_fwhm_min = temp;
     if (temp > psf->moffat_fwhm_max)
       psf->moffat_fwhm_max = temp;
-    if ((temp=psf->moffat[n].fwhm_max/psf->moffat[n].fwhm_min)
-		< psf->moffat_elongation_min)
-      psf->moffat_elongation_min = temp;
-    if (temp > psf->moffat_elongation_max)
-      psf->moffat_elongation_max = temp;
+    if ((temp=(psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
+		/ (psf->moffat[n].fwhm_max+psf->moffat[n].fwhm_min))
+		< psf->moffat_ellipticity_min)
+      psf->moffat_ellipticity_min = temp;
+    if (temp > psf->moffat_ellipticity_max)
+      psf->moffat_ellipticity_max = temp;
     if (psf->moffat[n].beta < psf->moffat_beta_min)
       psf->moffat_beta_min = psf->moffat[n].beta;
     if (psf->moffat[n].beta > psf->moffat_beta_max)
@@ -175,8 +176,9 @@ void	psf_diagnostic(psfstruct *psf)
 
   psf->moffat_fwhm = sqrt(psf->moffat[nmed].fwhm_min
 		* psf->moffat[nmed].fwhm_max);
-  psf->moffat_elongation = psf->moffat[nmed].fwhm_max
-		/ psf->moffat[nmed].fwhm_min;
+  psf->moffat_ellipticity =
+	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min)
+	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min);
   psf->moffat_beta = psf->moffat[nmed].beta;
   psf->moffat_residuals = psf->moffat[nmed].residuals;
   psf->moffat_symresiduals = psf->moffat[nmed].symresiduals;

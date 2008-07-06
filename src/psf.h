@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -85,9 +85,9 @@ typedef struct psf
   double	moffat_fwhm_min;
   double	moffat_fwhm;	/* Central Moffat FWHM */
   double	moffat_fwhm_max;
-  double	moffat_elongation_min;
-  double	moffat_elongation;/* Central Moffat elongation */
-  double	moffat_elongation_max;
+  double	moffat_ellipticity_min;
+  double	moffat_ellipticity;	/* Central Moffat ellipticity */
+  double	moffat_ellipticity_max;
   double	moffat_beta_min;
   double	moffat_beta;	/* Central Moffat beta */
   double	moffat_beta_max;

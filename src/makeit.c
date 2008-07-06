@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	06/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -185,7 +185,7 @@ void	makeit(void)
     }
 
   QIPRINTF(OUTPUT,
-        " extension accepted/total sampling chi2/dof FWHM(pix) elong."
+        " extension accepted/total sampling chi2/dof FWHM(pix) ellip."
 	" residuals asymmetry");
   for (ext=0 ; ext<next; ext++)
     {
@@ -257,14 +257,15 @@ void	makeit(void)
 /*---- Compute diagnostics */
       NFPRINTF(OUTPUT,"Computing diagnostics...");
       psf_diagnostic(psf);
-      QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f    %5.3f"
+      QPRINTF(OUTPUT, "[%3d/%-3d]     %5d/%-5d  %6.2f    %6.2f %6.2f     %4.2f"
 	"    %5.2f     %5.2f\n",
 	ext+1, next,
 	psf->samples_accepted, psf->samples_loaded,
 	psf->pixstep,
 	psf->chi2,
 	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
-	psf->moffat[nmed].fwhm_max/psf->moffat[nmed].fwhm_min,
+	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min)
+	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min),
 	psf->moffat[nmed].residuals, psf->moffat[nmed].symresiduals);
       }
 
