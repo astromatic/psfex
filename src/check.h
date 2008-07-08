@@ -9,17 +9,13 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	26/03/2008
+*	Last modify:	08/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
-#ifndef	_SAMPLE_H_
-#include "sample.h"
-#endif
-
-#ifndef	_PSF_H_
-#include "psf.h"
+#ifndef	_FIELD_H_
+#include "field.h"
 #endif
 
 #ifndef _CHECK_H_
@@ -36,9 +32,9 @@ typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
 	checkenum;
 
 /*---------------------------------- protos --------------------------------*/
-extern void		psf_writecheck(psfstruct *psf, setstruct *set,
-					char *filename, checkenum checktype,
-				int ext, int next, int cubeflag);
+extern void		check_write(fieldstruct *field,	char *checkname,
+				checkenum checktype, int ext, int next,
+				int cubeflag);
 
 #endif
 

@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	20/03/2008
+*	Last modify:	08/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,18 +30,18 @@
 #include	"fits/fitscat.h"
 #include	"check.h"
 #include	"diagnostic.h"
+#include	"field.h"
 #include	"poly.h"
 #include	"psf.h"
 #include	"sample.h"
 #include	"vignet.h"
 
 
-/****** psf_writecheck ********************************************************
-PROTO	void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
+/****** check_write ********************************************************
+PROTO	void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
 PURPOSE	Write a FITS image for check.
-INPUT	Pointer to the PSF,
-	Pointer to the sample set,
+INPUT	Pointer to the field,
 	Check-image filename,
 	Check-image type,
 	Extension number,
@@ -50,17 +50,18 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/03/2008
+VERSION 08/07/2008
  ***/
-void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
+void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
   {
-   static catstruct	*ccat[MAXCHECK];
+   psfstruct		*psf;
+   setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
    samplestruct		*sample;
-   char			str[82],
-			*head;
+   char			filename[MAXCHAR], str[82],
+			*head, *pstr,*pstr2;
    static double	dpos[POLY_MAXDIM], *dpost;
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
@@ -73,22 +74,31 @@ void	psf_writecheck(psfstruct *psf, setstruct *set, char *filename,
     {
     cat = new_cat(1);
     init_cat(cat);
-    strcpy(cat->filename, filename);
+    strcpy(cat->filename, checkname);
+    if (!(pstr = strrchr(cat->filename, '.')))
+      pstr = cat->filename+strlen(cat->filename);
+    strcpy(filename, field->rcatname);
+    if (!(pstr2 = strrchr(filename, '.')))
+      pstr2 = filename+strlen(filename);
+    *pstr2 = '\0';
+    sprintf(pstr, "_%s.fits", filename);
     if (open_cat(cat, WRITE_ONLY) != RETURN_OK)
-      error(EXIT_FAILURE, "*Error*: cannot open for writing ", filename);
+      error(EXIT_FAILURE, "*Error*: cannot open for writing ", cat->filename);
     if (next>1)
       {
       addkeywordto_head(cat->tab, "NEXTEND ", "Number of extensions");
       fitswrite(cat->tab->headbuf, "NEXTEND", &next, H_INT, T_LONG);
       save_tab(cat, cat->tab);
       }
-    ccat[checktype] = cat;
+    field->ccat[checktype] = cat;
     }
   else
-    cat = ccat[checktype];
+    cat = field->ccat[checktype];
 
   sprintf(str, "chip%02d", ext+1);
 
+  psf = field->psf[ext];
+  set = field->set;
   tab = new_tab(str);
   head = tab->headbuf;
   tab->bitpix =  BP_FLOAT;

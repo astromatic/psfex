@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	06/07/2008
+*	Last modify:	08/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -234,7 +234,9 @@ void	makeit(void)
     set = load_samples(incatnames, ncat, ext, next, fullcontext);
     if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
       psfstep = (float)((set->fwhm/2.35)*0.5);
+printf("%d -- \n", nbasis);
     psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+    end_set(set);
     NFPRINTF(OUTPUT, "Computing final model...");
     context_apply(fullcontext, psf, fields, ext, ncat);
     nmed = psf->nmed;
@@ -252,7 +254,7 @@ void	makeit(void)
         psf->chi2 = set2->nsample? psf_chi2(psf, set2) : 0.0;
         }
       psf->samples_accepted = set2->nsample;
-      end_set(set2);
+      fields[c]->set = set2;
 
 /*---- Compute diagnostics */
       NFPRINTF(OUTPUT,"Computing diagnostics...");
@@ -267,19 +269,19 @@ void	makeit(void)
 	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min)
 	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min),
 	psf->moffat[nmed].residuals, psf->moffat[nmed].symresiduals);
-      }
+/*---- Save "Check-images" */
+      for (i=0; i<prefs.ncheck_type; i++)
+        if (prefs.check_type[i])
+          {
+          sprintf(str, "Saving CHECK-image #%d...", i+1);
+          NFPRINTF(OUTPUT, str);
+          check_write(fields[c], prefs.check_name[i], prefs.check_type[i],
+		ext, next, prefs.check_cubeflag);
+          }
 
-/*-- Save "Check-images" */
-    for (i=0; i<prefs.ncheck_type; i++)
-      if (prefs.check_type[i])
-        {
-        sprintf(str, "Saving CHECK-image #%d...", i+1);
-        NFPRINTF(OUTPUT, str);
-        psf_writecheck(fields[0]->psf[ext], set, prefs.check_name[i],
-		prefs.check_type[i], ext, next, prefs.check_cubeflag);
-        }
-/*-- Free memory */
-    end_set(set);
+/*---- Free memory */
+      end_set(set2);
+      }
     }
 
   free(psfsteps);

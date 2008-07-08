@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	04/07/2008
+*	Last modify:	08/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,6 +27,7 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
+#include	"check.h"
 #include	"fitswcs.h"
 #include	"prefs.h"
 #include	"psf.h"
@@ -39,7 +40,7 @@ INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 04/07/2008
+VERSION 08/07/2008
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -106,6 +107,7 @@ fieldstruct	*field_init(char *catname)
   free_cat(&cat, 1);
 
   field_locate(field);
+  QCALLOC(field->ccat, catstruct *, MAXCHECK);
 
   return field;
   }
@@ -118,7 +120,7 @@ INPUT	Pointer to the fieldstruct.
 OUTPUT  -.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 13/03/2008
+VERSION 08/07/2008
  ***/
 void	field_end(fieldstruct *field)
   {
@@ -131,6 +133,7 @@ void	field_end(fieldstruct *field)
     }
   free(field->psf);
   free(field->wcs);
+  free(field->ccat);
   free(field);
 
   return;

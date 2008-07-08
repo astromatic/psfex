@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	04/07/2008
+*	Last modify:	08/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -43,6 +43,7 @@ typedef struct field
   psfstruct	**psf;			/* Array of PSFs */
   wcsstruct	**wcs;			/* Array of WCS structures */
   setstruct	*set;			/* Array of catalogues */
+  catstruct	**ccat;			/* Pointers to check-image files */
   double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
   double	meanwcsscale[NAXIS];	/* Mean pixel scale */
   double	maxradius;		/* Maxium radius */
