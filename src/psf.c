@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	03/06/2008
+*	Last modify:	11/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -218,7 +218,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 11/03/2008
+VERSION 11/07/2008
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
 			float psfstep, int nsample)
@@ -293,12 +293,12 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 /* Context arrays */
   nsnap = 1;
   psf->nsnap = prefs.context_nsnap;
+  psf->cx = psf->cy = -1;
   if (ndim2)
     {
     QMALLOC(psf->contextoffset, double, ndim2);
     QMALLOC(psf->contextscale, double, ndim2);
     QMALLOC(psf->contextname, char *, ndim2);
-    psf->cx = psf->cy = -1;
     for (names2t=names2, d=0; d<ndim2; d++)
       {
       nsnap *= psf->nsnap;

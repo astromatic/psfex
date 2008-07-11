@@ -9,10 +9,164 @@
 *
 *       Contents:       log of changes made to the PSFEx source
 *
-*       Last modify:    10/01/2008
+*       Last modify:    09/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
+
+------------------------------------------------------------------------
+r727 | bertin | 2008-07-08 22:43:54 +0200 (Tue, 08 Jul 2008) | 2 lines
+
+Made check-plots images depend on each catalogue.
+
+------------------------------------------------------------------------
+r726 | bertin | 2008-07-06 20:25:54 +0200 (Sun, 06 Jul 2008) | 3 lines
+
+Added PSF-per-extension table and min-max display to XSLT filter.
+Replaced all mentions to elongation with ellipticity.
+
+------------------------------------------------------------------------
+r725 | bertin | 2008-07-05 21:44:45 +0200 (Sat, 05 Jul 2008) | 2 lines
+
+Updated XML output and XSLT filter, including FWHM and Ellipticity maps. PSF_Extensions table and min/max stats remain to be in
+cluded.
+
+------------------------------------------------------------------------
+r724 | bertin | 2008-07-04 21:39:00 +0200 (Fri, 04 Jul 2008) | 5 lines
+
+Added missing cplot.h
+Rewrote XML output routine to add support for multiple catalogues (XSLT filter not updated yet).
+Added tracking of FITS OBJECT keyword. 
+Version number pushed to 3.1.0.
+
+------------------------------------------------------------------------
+r723 | bertin | 2008-06-03 19:46:12 +0200 (Tue, 03 Jun 2008) | 2 lines
+
+Fixed issues with RPM builds.
+
+------------------------------------------------------------------------
+r722 | bertin | 2008-06-03 19:18:06 +0200 (Tue, 03 Jun 2008) | 5 lines
+
+Fixed typos in FFTW M4 script (thanks to Peter Nugent).
+Improved portability of ATLAS configure script.
+Upgraded LevMar library to version 2.3.
+Fixed several uninitialized variables.
+
+------------------------------------------------------------------------
+r718 | bertin | 2008-04-11 20:30:08 +0200 (Fri, 11 Apr 2008) | 5 lines
+
+Merged with LevMar V2.2 library.
+Changed RPM compile options to leave libgcc dynamically link (avoid "kernel too old").
+Fixed RPM compile flags.
+Version number pushed to 3.0.1.
+
+------------------------------------------------------------------------
+r713 | bertin | 2008-03-26 20:26:10 +0100 (Wed, 26 Mar 2008) | 8 lines
+
+Added a 3rd rejection step to PSF modeling.
+Added profile accuracy parameters to cleaning and fitting routines.
+Replaced minimisation routine in poly_fit() with LAPACK equivalent.
+Removed "retina" storage and rewrote functions accessing it.
+Removed RAW check-images type.
+SAMPLES check-images are now equivalent to previous RAW check-images
+Rescoped WEIGHTS check-images.
+
+------------------------------------------------------------------------
+r711 | bertin | 2008-03-20 20:10:09 +0100 (Thu, 20 Mar 2008) | 7 lines
+
+Added flexible FWHM clipping for reading groups of catalogs.
+Added SAMPLEVAR_TYPE configuration parameter.
+Changed checkplot naming policy (number->catalog-filename).
+Added new temporary CHI check-images.
+Fixed stats on individual catalogs (temporary fix).
+Changed sample clipping factor.
+
+------------------------------------------------------------------------
+r709 | bertin | 2008-03-18 20:36:31 +0100 (Tue, 18 Mar 2008) | 4 lines
+
+Added ellipticity check-plot.
+Changed fit parameter boundaries.
+Fixed issue with PCA multiplexing.
+
+------------------------------------------------------------------------
+r708 | bertin | 2008-03-16 00:38:54 +0100 (Sun, 16 Mar 2008) | 2 lines
+
+Fixed first round of bugs with the new features.
+
+------------------------------------------------------------------------
+r707 | bertin | 2008-03-14 21:29:27 +0100 (Fri, 14 Mar 2008) | 3 lines
+
+Added FWHM map checkplots.
+Renamed psfmef.x to field.x.
+
+------------------------------------------------------------------------
+r706 | bertin | 2008-03-13 18:38:51 +0100 (Thu, 13 Mar 2008) | 3 lines
+
+Added new specific module for handling PSF MEFs.
+Added storage of WCS information for diagnostic plots.
+
+------------------------------------------------------------------------
+r705 | bertin | 2008-03-12 19:12:37 +0100 (Wed, 12 Mar 2008) | 3 lines
+
+Fixed various issues in PCA mode.
+Added cube output for SNAPSHOTS check-images.
+
+------------------------------------------------------------------------
+r704 | bertin | 2008-03-11 19:43:13 +0100 (Tue, 11 Mar 2008) | 5 lines
+
+First operational rewrited version.
+Added plotting capabilities.
+New PCA features not tested yet.
+Version number pushed to 3.0.0.
+
+------------------------------------------------------------------------
+r703 | bertin | 2008-02-20 20:23:57 +0100 (Wed, 20 Feb 2008) | 4 lines
+
+Added specific module to take care of contexts and to filter out PC dependencies "on demand".
+Brought back in NEWBASIS_TYPE PCA_MULTI.
+
+------------------------------------------------------------------------
+r702 | bertin | 2008-02-18 20:19:01 +0100 (Mon, 18 Feb 2008) | 2 lines
+
+Prepared code for new PCA scheme.
+
+------------------------------------------------------------------------
+r700 | bertin | 2008-02-04 19:34:31 +0100 (Mon, 04 Feb 2008) | 2 lines
+
+Variable homogenising kernel implemented and tested on a few examples; photometric normalisation is still rough.
+
+------------------------------------------------------------------------
+r699 | bertin | 2008-02-01 18:35:34 +0100 (Fri, 01 Feb 2008) | 2 lines
+
+Added variable PSF homogenization (but not functional yet).
+
+------------------------------------------------------------------------
+r698 | bertin | 2008-01-16 19:49:12 +0100 (Wed, 16 Jan 2008) | 2 lines
+
+Added first steps towards variable kernel implementation.
+
+------------------------------------------------------------------------
+r697 | bertin | 2008-01-15 18:09:44 +0100 (Tue, 15 Jan 2008) | 2 lines
+
+Fixed typo in ATLAS m4 script (detection of multithreaded CBLAS).
+
+------------------------------------------------------------------------
+r695 | bertin | 2008-01-15 12:47:41 +0100 (Tue, 15 Jan 2008) | 2 lines
+
+Fixed blunder with basis type.
+
+------------------------------------------------------------------------
+r694 | bertin | 2008-01-15 11:52:16 +0100 (Tue, 15 Jan 2008) | 4 lines
+
+Added new PIXEL_AUTO mode.
+Removed constraints in PSF_SIZE vs vignet size.
+Version number pushed to 2.4.2.
+
+------------------------------------------------------------------------
+r687 | bertin | 2008-01-10 12:05:59 +0100 (Thu, 10 Jan 2008) | 3 lines
+
+Fixed make dist issue with LevMar library.
+Pushed version number to 2.4.1.
 
 ------------------------------------------------------------------------
 r681 | bertin | 2007-12-26 18:26:06 +0100 (Wed, 26 Dec 2007) | 2 lines

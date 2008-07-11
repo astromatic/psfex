@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	20/03/2008
+*	Last modify:	11/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -603,7 +603,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/03/2008
+VERSION	11/07/2008
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -733,7 +733,8 @@ int	cplot_fwhm(fieldstruct *field)
         nfwhm = 0;
 /*------ We average all PSF FWHMs at a given X and Y set of coordinates */
         for (n=0; n<nt; n++)
-          if ((n/ncx)%psf->nsnap == i && (n/ncy)%psf->nsnap == j)
+          if ((ncx==1 || (n/ncx)%psf->nsnap == i)
+		&& (ncy==1 || (n/ncy)%psf->nsnap == j))
             {
             dval += sqrt(psf->moffat[n].fwhm_min*psf->moffat[n].fwhm_max
 			* wcs_scale(wcs, raw));
@@ -807,7 +808,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/03/2008
+VERSION	11/07/2008
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -937,7 +938,8 @@ int	cplot_ellipticity(fieldstruct *field)
         nellip = 0;
 /*------ We average all PSF ellips at a given X and Y set of coordinates */
         for (n=0; n<nt; n++)
-          if ((n/ncx)%psf->nsnap == i && (n/ncy)%psf->nsnap == j)
+          if ((ncx==1 || (n/ncx)%psf->nsnap == i)
+		&& (ncy==1 || (n/ncy)%psf->nsnap == j))
             {
             dval += (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
 		/ (psf->moffat[n].fwhm_max + psf->moffat[n].fwhm_min);

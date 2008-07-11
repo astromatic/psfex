@@ -234,7 +234,6 @@ void	makeit(void)
     set = load_samples(incatnames, ncat, ext, next, fullcontext);
     if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
       psfstep = (float)((set->fwhm/2.35)*0.5);
-printf("%d -- \n", nbasis);
     psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
     end_set(set);
     NFPRINTF(OUTPUT, "Computing final model...");
