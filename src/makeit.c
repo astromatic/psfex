@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	08/07/2008
+*	Last modify:	12/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -311,6 +311,8 @@ void	makeit(void)
 /* Plot diagnostic maps for all catalogs */
     cplot_ellipticity (fields[c]);
     cplot_fwhm(fields[c]);
+    cplot_moffatresi(fields[c]);
+    cplot_asymresi(fields[c]);
 #endif
 /*-- Update XML */
     if (prefs.xml_flag)

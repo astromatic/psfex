@@ -9,7 +9,7 @@
 *
 *	Contents:	Include file for cplot.c
 *
-*	Last modify:	05/07/2008
+*	Last modify:	12/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -44,7 +44,8 @@
 /*---------------------------- return messages ------------------------------*/
 /*-------------------------------- macros -----------------------------------*/
 /*--------------------------------- typedefs --------------------------------*/
-typedef enum {CPLOT_NONE, CPLOT_FWHM, CPLOT_ELLIPTICITY}
+typedef enum {CPLOT_NONE, CPLOT_FWHM, CPLOT_ELLIPTICITY, CPLOT_MOFFATRESI,
+		CPLOT_ASYMRESI}
 		cplotenum;
 
 typedef enum {CPLOT_NULL, CPLOT_XWIN, CPLOT_TK, CPLOT_XTERM, CPLOT_PLMETA,
@@ -65,7 +66,9 @@ extern int		cplot_check(cplotenum cplottype),
 			cplot_end(cplotenum cplottype),
 			cplot_fwhm(fieldstruct *field),
 			cplot_init(char *name, int nx, int ny,
-				cplotenum cplottype);
+				cplotenum cplottype),
+			cplot_moffatresi(fieldstruct *field),
+			cplot_asymresi(fieldstruct *field);
 			
 char			*cplot_degtosexal(char *str, double alpha,double step),
 			*cplot_degtosexde(char *str, double delta,double step);

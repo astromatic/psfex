@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	06/07/2008
+*	Last modify:	12/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -67,7 +67,7 @@ pkeystruct key[] =
   {"CHECKPLOT_RES", P_INTLIST, prefs.cplot_res, 0,16384,0.0,0.0,
     {""}, 1, 2, &prefs.ncplot_res},
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
-    {"NONE", "FWHM", "ELLIPTICITY"},
+    {"NONE", "FWHM", "ELLIPTICITY", "MOFFAT_RESIDUALS", "ASYMMETRY"},
     0, MAXCHECK, &prefs.ncplot_type},
   {"HOMOBASIS_NUMBER", P_INT, &prefs.homobasis_number, 0,10000},
   {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
