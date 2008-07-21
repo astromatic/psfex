@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	20/02/2008
+*	Last modify:	21/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -120,28 +120,62 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 15/03/2008
+VERSION 21/07/2008
  ***/
 double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
+   psfstruct	*psf;
    char		str[MAXCHAR];
-   double	*covmat, *covmatt, *meancomp, *pc,
-		dval, mean1,mean2;
-   float	*comp1, *comp2, *vector;
-   int		i,c,c1,c2,p, npix;
+   double	dpos[POLY_MAXDIM],
+		*comp,*comp1,*comp2,*compt,*comptt,
+		*covmat, *covmatt, *pc,
+		dval, dstep,dstart;
+   float	*pix, *vector;
+   int		d,i,c,c1,c2,n,p, ndim, nt, npix, npixt;
+
+/* Build models of the PSF over a range of dependency parameters */
+  ndim = psfs[0]->poly->ndim;
+  npix = psfs[0]->size[0]*psfs[0]->size[1];
+  nt = 1;
+  for (d=0; d<ndim; d++)
+    nt *= PCA_NSNAP;
+  npixt = npix*nt;
+  dstep = 1.0/PCA_NSNAP;
+  dstart = (1.0-dstep)/2.0;
 
   NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
-
-  npix = psfs[0]->npix;
-/* Compute the average pixel values */
-  QCALLOC(meancomp, double, ncat);
+/* Compute PSF snapshots */
+  QMALLOC(comp, double, ncat*npixt);
+  compt = comp;
   for (c=0; c<ncat; c++)
     {
-    comp1=psfs[c]->comp;
+    sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
+		50.0*(float)c/ncat);
+      NFPRINTF(OUTPUT, str);
+    psf = psfs[c];
+    for (d=0; d<ndim; d++)
+      dpos[d] = -dstart;
+    comptt = compt;
     dval = 0.0;
-    for (i=npix; i--;)
-        dval += (double)*(comp1++);
-    meancomp[c] = dval/npix;
+    for (n=nt; n--;)
+      {
+      psf_build(psf, dpos);
+      pix = psf->loc;
+      for (i=npix; i--;)
+        dval += (*(compt++) = (double)*(pix++));
+      for (d=0; d<ndim; d++)
+        if (dpos[d]<dstart-0.01)
+          {
+          dpos[d] += dstep;
+          break;
+          }
+        else
+          dpos[d] = -dstart;
+      }
+/*-- Substract average value */
+    dval /= (double)npixt;
+    for (i=npixt; i--;)
+      *(comptt++) -= dval;
     }
 
 /* Set-up the covariance/correlation matrix */
@@ -150,22 +184,20 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   for (c1=0; c1<ncat; c1++)
     {
     sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
-		100.0*((float)c1)/ncat);
+		50.0+50.0*((float)c1)/ncat);
     NFPRINTF(OUTPUT, str);
-    mean1 = meancomp[c1];
     for (c2=0; c2<ncat; c2++)
       {
-      mean2 = meancomp[c2];
-      comp1 = psfs[c1]->comp;
-      comp2 = psfs[c2]->comp;
+      comp1 = comp + c1*npixt;
+      comp2 = comp + c2*npixt;
       dval = 0.0;
-      for (i=npix; i--;)
-        dval += ((double)*(comp1++)-mean1)*(*(comp2++)-mean2);
+      for (i=npixt; i--;)
+        dval += *(comp1++)**(comp2++);
       *(covmatt++) = dval;
       }
     }
 
-  free(meancomp);
+  free(comp);
 
 /* Do recursive PCA */
   QMALLOC(vector, float, ncat);
