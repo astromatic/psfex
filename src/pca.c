@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	21/07/2008
+*	Last modify:	23/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -120,7 +120,7 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 21/07/2008
+VERSION 22/07/2008
  ***/
 double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
@@ -155,14 +155,12 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     psf = psfs[c];
     for (d=0; d<ndim; d++)
       dpos[d] = -dstart;
-    comptt = compt;
-    dval = 0.0;
     for (n=nt; n--;)
       {
       psf_build(psf, dpos);
       pix = psf->loc;
       for (i=npix; i--;)
-        dval += (*(compt++) = (double)*(pix++));
+        *(compt++) = (double)*(pix++);
       for (d=0; d<ndim; d++)
         if (dpos[d]<dstart-0.01)
           {
@@ -172,10 +170,19 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
         else
           dpos[d] = -dstart;
       }
-/*-- Substract average value */
-    dval /= (double)npixt;
-    for (i=npixt; i--;)
-      *(comptt++) -= dval;
+    }
+
+/* Center data cloud on origin */
+  for (i=0; i<npixt; i++)
+    {
+    dval = 0;
+    compt = comp + i;
+    for (c=ncat; c--; compt+=npixt)
+      dval += *compt;
+    dval /= (double)ncat;
+    compt = comp + i;
+    for (c=ncat; c--; compt+=npixt)
+      *compt -= dval;
     }
 
 /* Set-up the covariance/correlation matrix */
@@ -229,7 +236,7 @@ INPUT	Covariance matrix,
 OUTPUT  Eigenvalue (variance) of the PC.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 14/11/2007
+VERSION 23/07/2008
  ***/
 double pca_findpc(double *covmat, float *vec, int nmat)
   {
@@ -258,12 +265,12 @@ double pca_findpc(double *covmat, float *vec, int nmat)
       *(x++) = xval;
       }
 /*-- Compute |t> = |x>/||x|| and ||Delta t|| (for testing convergence) */
-    xnorm = sqrt(xnorm);
+    xnorm = 1.0/sqrt(xnorm);
     dtnorm = 0.0;
     for (t=tmat,x=xmat,i=nmat; i--;)
       {
       dtval = *t;
-      dtval -= (*(t++) = *(x++)/xnorm);
+      dtval -= (*(t++) = *(x++)*xnorm);
       dtnorm += dtval*dtval;
       }
     dtnorm = sqrt(dtnorm);

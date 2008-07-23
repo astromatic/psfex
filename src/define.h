@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	22/07/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,7 +29,7 @@
 #define		INSTITUTE	"TERAPIX team at IAP  http://terapix.iap.fr"
 
 /*----------------------------- Internal constants --------------------------*/
-#define		OUTPUT		stdout		/* where all msgs are sent */
+#define		OUTPUT		stderr		/* where all msgs are sent */
 #define		BIG		1e+30		/* a huge number */
 #define		MAXCHAR		512		/* max. number of characters */
 #define		MAXFILE		32768		/* max number of input files */
