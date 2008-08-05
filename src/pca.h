@@ -24,7 +24,7 @@
 /*----------------------------- Internal constants --------------------------*/
 
 #define		PCA_NSNAP	5	/* Number of points per PSFVar dim. */
-#define		PCA_NITER	100	/* Max nb of iter. in pc_find() */
+#define		PCA_NITER	200	/* Max nb of iter. in pc_find() */
 #define		PCA_CONVEPS	1e-6	/* pc_find() converg. criterion */
 
 /*--------------------------- structure definitions -------------------------*/

@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	08/07/2008
+*	Last modify:	05/08/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 08/07/2008
+VERSION 05/08/2008
  ***/
 void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -170,7 +170,7 @@ void	check_write(fieldstruct *field, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample;
+        tab->naxisn[2] = set->nsample? set->nsample : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
@@ -187,7 +187,7 @@ void	check_write(fieldstruct *field, char *checkname,
       else
         {
         nw = (int)sqrt((double)set->nsample);
-        nw = ((nw-1)/10+1)*10;
+        nw = nw? ((nw-1)/10+1)*10 : 1;
         nh = (set->nsample-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
@@ -265,7 +265,7 @@ void	check_write(fieldstruct *field, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample;
+        tab->naxisn[2] = set->nsample? set->nsample : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
@@ -282,7 +282,7 @@ void	check_write(fieldstruct *field, char *checkname,
       else
         {
         nw = (int)sqrt((double)set->nsample);
-        nw = ((nw-1)/10+1)*10;
+        nw = nw? ((nw-1)/10+1)*10 : 1;
         nh = (set->nsample-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
@@ -312,7 +312,7 @@ void	check_write(fieldstruct *field, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample;
+        tab->naxisn[2] = set->nsample? set->nsample : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
@@ -329,7 +329,7 @@ void	check_write(fieldstruct *field, char *checkname,
       else
         {
         nw = (int)sqrt((double)set->nsample);
-        nw = ((nw-1)/10+1)*10;
+        nw = nw? ((nw-1)/10+1)*10 : 1;
         nh = (set->nsample-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
@@ -359,7 +359,7 @@ void	check_write(fieldstruct *field, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample;
+        tab->naxisn[2] = set->nsample? set->nsample : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
@@ -376,7 +376,7 @@ void	check_write(fieldstruct *field, char *checkname,
       else
         {
         nw = (int)sqrt((double)set->nsample);
-        nw = ((nw-1)/10+1)*10;
+        nw = nw? ((nw-1)/10+1)*10 : 1;
         nh = (set->nsample-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
