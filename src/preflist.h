@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	12/07/2008
+*	Last modify:	01/09/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -60,7 +60,8 @@ pkeystruct key[] =
   {"CHECKPLOT_ANTIALIAS", P_BOOL, &prefs.cplot_antialiasflag},
   {"CHECKPLOT_DEV", P_KEYLIST, prefs.cplot_device, 0,0, 0.0,0.0,
     {"NULL", "XWIN", "TK", "XTERM", "PLMETA", "PS", "PSC", "XFIG", "LJIIP",
-	"LJ_HPGL", "IMP", "PBM", "PNG", "JPEG", "PSTEX", ""},
+	"LJ_HPGL", "IMP", "PBM", "PNG", "JPEG", "PSTEX", "AQT", "PDF", "SVG",
+	""},
     0, MAXCHECK, &prefs.ncplot_device},
   {"CHECKPLOT_NAME", P_STRINGLIST, prefs.cplot_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncplot_name},
@@ -162,7 +163,7 @@ char *default_prefs[] =
 "#------------------------------- Check-plots ----------------------------------",
 " ",
 "CHECKPLOT_DEV          PNG             # NULL, XWIN, TK, PS, PSC, XFIG, PNG,",
-"                                       # or JPEG",
+"                                       # JPEG, AQT, PDF or SVG",
 "*CHECKPLOT_RES          0               # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS    Y               # Anti-aliasing using convert (Y/N) ?",
 "CHECKPLOT_TYPE         FWHM,ELLIPTICITY            # NONE, FWHM or ELLIPTICITY",

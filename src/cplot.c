@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	05/08/2008
+*	Last modify:	01/09/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -23,8 +23,8 @@
 #include	<stdlib.h>
 #include	<string.h>
 
-#include	<plplot.h>
-#include	<plplotP.h>
+#include	PLPLOT_H
+#include	PLPLOTP_H
 
 #include	"define.h"
 #include	"globals.h"
@@ -50,6 +50,9 @@ struct {cplotdevenum device; char *devname; char *extension;}
 		{CPLOT_PNG, "png",".png"},
 		{CPLOT_JPEG, "jpeg",".jpg"},
 		{CPLOT_PSTEX, "pstex", ".ps"},
+                {CPLOT_AQT, "aqt", ""},
+                {CPLOT_PDF, "pdf", ".pdf"},
+                {CPLOT_SVG, "svg", ".svg"},
 		{CPLOT_NULL,"",""}};
 
 int	plotnum[CPLOT_NTYPES];
@@ -603,7 +606,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/08/2008
+VERSION	11/08/2008
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -615,7 +618,8 @@ int	cplot_fwhm(fieldstruct *field)
 		afwhm,fwhmmin,fwhmmax, mfwhm,dfwhm;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		name[MAXCHAR], str[64],
+		*pname;
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -653,7 +657,10 @@ int	cplot_fwhm(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: FWHM map", field->rcatname);
+  strcpy(name, field->rcatname);
+  if ((pname=strrchr(name, '.')))
+    *pname = '\0';
+  sprintf(str, "#uField %s: FWHM map", name);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -817,7 +824,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/08/2008
+VERSION	11/08/2008
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -829,7 +836,8 @@ int	cplot_ellipticity(fieldstruct *field)
 		aellip,ellipmin,ellipmax, mellip,dellip;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		name[MAXCHAR], str[64],
+		*pname;
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -867,7 +875,10 @@ int	cplot_ellipticity(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: ellipticity map", field->rcatname);
+  strcpy(name, field->rcatname);
+  if ((pname=strrchr(name, '.')))
+    *pname = '\0';
+  sprintf(str, "#uField %s: ellipticity map", name);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -1027,7 +1038,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/08/2008
+VERSION	11/08/2008
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1039,7 +1050,8 @@ int	cplot_moffatresi(fieldstruct *field)
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		name[MAXCHAR], str[64],
+		*pname;
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1077,7 +1089,10 @@ int	cplot_moffatresi(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: map of Moffat fit residuals", field->rcatname);
+  strcpy(name, field->rcatname);
+  if ((pname=strrchr(name, '.')))
+    *pname = '\0';
+  sprintf(str, "#uField %s: map of Moffat fit residuals", name);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -1233,7 +1248,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/08/2008
+VERSION	11/08/2008
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1245,7 +1260,8 @@ int	cplot_asymresi(fieldstruct *field)
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		name[MAXCHAR], str[64],
+		*pname;
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1283,7 +1299,10 @@ int	cplot_asymresi(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: PSF asymmetry map", field->rcatname);
+  strcpy(name, field->rcatname);
+  if ((pname=strrchr(name, '.')))
+    *pname = '\0';
+  sprintf(str, "#uField %s: PSF asymmetry map", name);
   pllab("","", str);
   plwid(0);
   plcol(7);

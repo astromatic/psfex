@@ -74,6 +74,9 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* Define to 1 if you have the `plplotd' library (-lplplotd). */
+#undef HAVE_LIBPLPLOTD
+
 /* Define to 1 if you have the `ptcblas' library (-lptcblas). */
 #undef HAVE_LIBPTCBLAS
 
@@ -168,6 +171,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* PLPlot private header filename. */
+#undef PLPLOTP_H
+
+/* PLPlot header filename. */
+#undef PLPLOT_H
 
 /* Define to the necessary symbol if this constant uses a non-standard name on
    your system. */

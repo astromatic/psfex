@@ -9,7 +9,7 @@
 *
 *	Contents:	parsing and main loop.
 *
-*	Last modify:	11/03/2008
+*	Last modify:	01/09/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -25,7 +25,7 @@
 #include <unistd.h>
 
 #ifdef HAVE_PLPLOT
-#include <plplot.h>
+#include PLPLOT_H
 #endif
 
 #include "define.h"
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_PLPLOT
   if (argc>2)
-    plParseOpts(&argc, argv, PL_PARSE_SKIP);
+    plParseOpts(&argc, (const char **)argv, PL_PARSE_SKIP);
 #endif
 
   QMALLOC(argkey, char *, argc);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
             fprintf(OUTPUT, "\nSYNTAX: %s", SYNTAX);
 #ifdef HAVE_PLPLOT
             fprintf(OUTPUT, "\nPLPLOT-specific options:\n");
-            plParseOpts(&argc, argv, PL_PARSE_SKIP);
+            plParseOpts(&argc, (const char **)argv, PL_PARSE_SKIP);
 #endif
             exit(EXIT_SUCCESS);
             break;

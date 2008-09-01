@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	05/07/2008
+*	Last modify:	01/09/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -450,6 +450,9 @@ void	useprefs()
   {
    unsigned short	ashort=1;
    int		i, flag;
+#ifdef USE_THREADS
+   int			nproc;
+#endif
 
 /* Test if byteswapping will be needed */
   bswapflag = *((char *)&ashort);

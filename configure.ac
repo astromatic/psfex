@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.1.0, [bertin@iap.fr])
+AC_INIT(psfex, 3.2.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -58,7 +58,9 @@ AC_PROG_CC([$cclist])
 # C Compiler: Check that it is ANSI C
 AM_PROG_CC_STDC
 AC_DISABLE_STATIC
+#AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
+AC_PROG_INSTALL
 
 # C Compiler: Check that it is POSIX-compliant
 AC_ISC_POSIX
@@ -95,23 +97,27 @@ AC_FUNC_FSEEKO
 # Set the data directory to a true absolute path
 datadir2=$(URBI_RESOLVE_DIR([$datadir]))
 
-# Provide a special option for PlPLOT
+# Provide special options for PlPLOT
 AC_ARG_WITH(plplot,
-	[AC_HELP_STRING([--with-plplot@<:@=<PLPlot dir>@:>@],
-	[Provide an alternative path to the PLPlot library])],
-    use_plplot="yes"
-    if test "$withval" != "yes"; then
-      plplot_dir=$withval
+	[AC_HELP_STRING([--with-plplot@<:@=<PLPlot library dir>@:>@],
+	[Activate PLPlot library (default = yes)])],
+    if test "$withval" = "no"; then
+      use_plplot="no"
+    else
+      use_plplot="yes"
+      if test "$withval" != "yes"; then
+        plplot_dir=$withval
+      fi
     fi,
     use_plplot="yes"
     )
-AC_ARG_WITH(plplot,
-	[AC_HELP_STRING([--without-plplot],
-	[Link without the PLPlot library (with is the default)])],
-    use_plplot="no",
-    use_plplot="yes"
-    [ACX_PTHREAD]
+AC_ARG_WITH(plplot-incdir,
+	[AC_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
+	[Provide an alternative path to the PLPlot include directory])],
+    plplot_incdir=$withval,
+    plplot_incdir=""
     )
+
 # Provide special options for ATLAS
 AC_ARG_WITH(atlas,
 	[AC_HELP_STRING([--with-atlas=<ATLAS library path>],
@@ -151,17 +157,19 @@ AC_ARG_WITH(xsl_url,
 AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
 
 # Set flags for multithreading
+n_pthreads=16
 AC_ARG_ENABLE(threads,
 	[AC_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
-	[Enable multhreading (off by default)])],
-    if test "$enableval" = "yes"; then
-      n_pthreads=16
+	[Enable multhreading (on with up to 16 threads by default)])],
+    if test "$enableval" = "no"; then
+      use_pthreads="no"
     else
-      n_pthreads=$enableval
-    fi
-    use_pthreads=yes,
-    n_pthreads=1
-    use_pthreads=no
+      use_pthreads="yes"
+      if test "$enableval" != "yes"; then
+        n_pthreads=$enableval
+      fi
+    fi,
+    use_pthreads=yes
     )
 
 # Provide special option for gprof profiling
@@ -185,14 +193,6 @@ AC_ARG_ENABLE(static,
         use_static="no"
 	AC_MSG_RESULT([no]))
 
-################## handle the ATLAS library(linear algebra) ##################
-ACX_ATLAS($atlas_libdir,$atlas_incdir,no, [use_atlas=yes],[use_atlas=no])
-if test "$use_atlas" = "yes"; then
-  LIBS="$ATLAS_LIB $LIBS"
-else
-  AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
-fi
-
 ################# Actions to complete in case of multhreading ################
 AC_DEFINE_UNQUOTED(THREADS_NMAX, $n_pthreads,[Maximum number of POSIX threads])
 if test "$use_pthreads" = "yes"; then
@@ -207,8 +207,18 @@ if test "$use_pthreads" = "yes"; then
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
+################## handle the ATLAS library(linear algebra) ##################
+ACX_ATLAS($atlas_libdir,$atlas_incdir,$use_pthreads,
+	[use_atlas=yes],[use_atlas=no])
+if test "$use_atlas" = "yes"; then
+  LIBS="$ATLAS_LIB $LIBS"
+else
+  AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
+fi
+
 ################ handle the FFTW library (Fourier transforms) ################
-ACX_FFTW($fftw_libdir,$fftw_incdir,no,yes,[use_fftw=yes],[use_fftw=no])
+ACX_FFTW($fftw_libdir,$fftw_incdir,$use_pthreads,yes,
+	[use_fftw=yes],[use_fftw=no])
 if test "$use_fftw" = "yes"; then
   LIBS="$FFTW_LIBS $LIBS"
 else
@@ -216,26 +226,29 @@ else
 fi
 
 ################# handle the PLPlot library (graphic plots) ##################
+AC_MSG_CHECKING([for PLPlot configure option])
 if test "$use_plplot" = "yes"; then
-  ACX_PLPLOT(,,[use_plplot=no])
-  if test "$use_plplot" = "no"; then
-    AC_MSG_WARN(PLPlot library not found! Plotting deactivated.)
+  AC_MSG_RESULT([yes])
+  ACX_PLPLOT($plplot_dir,$plplot_incdir,,[use_plplot=no])
+  if test "$use_plplot" = "yes"; then
+    [CFLAGS="$CFLAGS $PLPLOT_CFLAGS"]
+    [LIBS="$PLPLOT_LIBS $LIBS"]
+  else
+    AC_MSG_WARN(PLPlot library not found/incomplete! Plotting deactivated.)
   fi
+else
+  AC_MSG_RESULT([no])
+  AC_MSG_WARN(Plotting deactivated.)
 fi
-
-if test "$use_plplot" = "yes"; then
-  AC_SUBST(PLPLOT_CFLAGS)
-  [CFLAGS="$CFLAGS $PLPLOT_CFLAGS"]
-  [LIBS="$PLPLOT_LIBS $PTHREAD_LIBS $LIBS"]
-  fi
 AM_CONDITIONAL(USE_PLPLOT, test $use_plplot = "yes")
 
 ############################### INTEL C compiler ##############################
 if test $use_icc = "yes" -a $CC = "icc"; then
-  CFLAGS="$CFLAGS -axWPT -ip -unroll"
+  CFLAGS="$CFLAGS -axWPTS -ip -unroll"
   LDFLAGS="$LDFLAGS -static-intel"
 fi
 
+# Link with gprof option
 if test "$use_gprof" = "yes"; then
   if test "$use_icc" = "yes"; then
     CFLAGS="$CFLAGS -pq"
@@ -251,12 +264,12 @@ if test "$use_static" = "yes"; then
 fi
 
 # Override automatic CFLAGS and LDFLAGS with those of user
-if test -n "$mycflags"; then
-CFLAGS="$mycflags"
-fi
-if test -n "$myldflags"; then
-LDFLAGS="$myldflags"
-fi
+#if test -n "$mycflags"; then
+#CFLAGS="$mycflags"
+#fi
+#if test -n "$myldflags"; then
+#LDFLAGS="$myldflags"
+#fi
 
 # Display compiler and linker flags
 AC_MSG_RESULT([***************************************************************])
