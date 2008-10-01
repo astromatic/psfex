@@ -11,9 +11,14 @@ RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
+
 rpm:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	rpmbuild -ba --clean $(PACKAGE_NAME).spec
+	rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
+
+rpm-icc:	dist
+	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
 
 rpm-opteron:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)

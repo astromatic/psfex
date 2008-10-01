@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	23/07/2008
+*	Last modify:	17/09/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -120,14 +120,14 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 22/07/2008
+VERSION 17/09/2008
  ***/
 double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   {
    psfstruct	*psf;
    char		str[MAXCHAR];
    double	dpos[POLY_MAXDIM],
-		*comp,*comp1,*comp2,*compt,*comptt,
+		*comp,*comp1,*comp2,*compt,
 		*covmat, *covmatt, *pc,
 		dval, dstep,dstart;
    float	*pix, *vector;

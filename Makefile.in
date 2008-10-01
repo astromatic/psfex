@@ -39,7 +39,7 @@ DIST_COMMON = README $(am__configure_deps) $(dist_pkgdata_DATA) \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL \
 	THANKS autoconf/config.guess autoconf/config.sub \
 	autoconf/depcomp autoconf/install-sh autoconf/ltmain.sh \
-	autoconf/missing
+	autoconf/missing autoconf/mkinstalldirs
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acx_atlas.m4 \
 	$(top_srcdir)/acx_fftw.m4 $(top_srcdir)/acx_plplot.m4 \
@@ -51,7 +51,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
-mkinstalldirs = $(install_sh) -d
+mkinstalldirs = $(SHELL) $(top_srcdir)/autoconf/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = psfex.spec
 depcomp =
@@ -700,9 +700,14 @@ uninstall-am: uninstall-dist_pkgdataDATA
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
+
 rpm:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	rpmbuild -ba --clean $(PACKAGE_NAME).spec
+	rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
+
+rpm-icc:	dist
+	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
+	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_NAME).spec
 
 rpm-opteron:	dist
 	cp -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
