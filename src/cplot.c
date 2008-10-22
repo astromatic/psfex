@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	01/09/2008
+*	Last modify:	22/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -606,7 +606,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	11/08/2008
+VERSION	22/10/2008
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -623,7 +623,7 @@ int	cplot_fwhm(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		i,j, e, n,ncx,ncy,nt, nfwhm, naxis, flag;
+		i,j, e, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_FWHM) == RETURN_ERROR)
     {
@@ -704,12 +704,16 @@ int	cplot_fwhm(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in FWHM is 1e-6 */
+/* Lower bound to variability in FWHM is 1e-5 */
   if (!flag)
     fwhmmin = fwhmmax = ARCSEC/DEG;
   if ((mfwhm=(fwhmmin+fwhmmax)/2.0) < 1.0e-10*ARCSEC/DEG
-       || (dfwhm=(fwhmmax-fwhmmin))/mfwhm < 1.0e-6)
-    dfwhm = 1.0e-6;
+       || (dfwhm=(fwhmmax-fwhmmin))/mfwhm < 1.0e-5)
+    {
+    dfwhm = 1.0e-5;
+    fwhmmin = mfwhm - dfwhm/2.0;
+    fwhmmax = mfwhm + dfwhm/2.0;
+    }
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = fwhmmin + (i-0.5) * dfwhm / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -725,33 +729,35 @@ int	cplot_fwhm(fieldstruct *field)
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
+      nsnap2 = psf->nsnap>1? psf->nsnap : 2;
       for (n=0; n<psf->poly->ndim; n++)
         {
-        nt *= psf->nsnap;
+        nt *= nsnap2;
         if (psf->cx>=0 && n<psf->cx)
-          ncx *= psf->nsnap;
+          ncx *= nsnap2;
         if (psf->cy>=0 && n<psf->cy)
-          ncy *= psf->nsnap;
+          ncy *= nsnap2;
         }
-      plAlloc2dGrid(&fwhm, psf->nsnap, psf->nsnap);
+      plAlloc2dGrid(&fwhm, nsnap2, nsnap2);
       for (i=0; i<naxis; i++)
         raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-      xstep = wcs->naxisn[0] / (psf->nsnap-1);
-      ystep = wcs->naxisn[1] / (psf->nsnap-1);
+      xstep = wcs->naxisn[0] / (nsnap2-1);
+      ystep = wcs->naxisn[1] / (nsnap2-1);
       raw[1] = 0.5;
-      for (j=0; j<psf->nsnap; j++)
+      for (j=0; j<nsnap2; j++)
         {
         raw[0] = 0.5;
-        for (i=0; i<psf->nsnap; i++)
+        for (i=0; i<nsnap2; i++)
           {
           dval = 0.0;
           nfwhm = 0;
 /*-------- We average all PSF FWHMs at a given X and Y set of coordinates */
           for (n=0; n<nt; n++)
-            if ((psf->cx<0 || (n/ncx)%psf->nsnap == i)
-		&& (psf->cy<0 || (n/ncy)%psf->nsnap == j))
+            if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
               {
-              dval += sqrt(psf->moffat[n].fwhm_min*psf->moffat[n].fwhm_max
+              n2 = psf->nsnap>1? n : 0;
+              dval += sqrt(psf->moffat[n2].fwhm_min*psf->moffat[n2].fwhm_max
 			* wcs_scale(wcs, raw));
               nfwhm++;
               }
@@ -763,11 +769,11 @@ int	cplot_fwhm(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(fwhm, psf->nsnap, psf->nsnap, NULL,
+      plshades(fwhm, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-      plFree2dGrid(fwhm, psf->nsnap, psf->nsnap);
+      plFree2dGrid(fwhm, nsnap2, nsnap2);
       }
     plcol(7);
     plwid(lwid);
@@ -824,7 +830,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	11/08/2008
+VERSION	22/10/2008
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -841,7 +847,7 @@ int	cplot_ellipticity(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		i,j, e, n,ncx,ncy,nt, nellip, naxis, flag;
+		i,j, e, n,n2, ncx,ncy,nt, nellip, naxis, nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_ELLIPTICITY) == RETURN_ERROR)
     {
@@ -922,12 +928,16 @@ int	cplot_ellipticity(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in ellipticity is 1e-6 */
+/* Lower bound to variability in ellipticity is 1e-5 */
   if (!flag)
     ellipmin = ellipmax = 0.0;
   if ((mellip=(ellipmin+ellipmax)/2.0) < 1.0e-10
-       || (dellip=(ellipmax-ellipmin))/mellip < 1.0e-6)
-    dellip = 1.0e-6;
+       || (dellip=(ellipmax-ellipmin))/mellip < 1.0e-5)
+    {
+    dellip = 1.0e-5;
+    ellipmin = mellip - dellip/2.0;
+    ellipmax = mellip + dellip/2.0;
+    }
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = ellipmin + (i-0.5) * dellip / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -943,34 +953,36 @@ int	cplot_ellipticity(fieldstruct *field)
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
+      nsnap2 = psf->nsnap>1? psf->nsnap : 2;
       for (n=0; n<psf->poly->ndim; n++)
         {
-        nt *= psf->nsnap;
+        nt *= nsnap2;
         if (psf->cx>=0 && n<psf->cx)
-          ncx *= psf->nsnap;
+          ncx *= nsnap2;
         if (psf->cy>=0 && n<psf->cy)
-          ncy *= psf->nsnap;
+          ncy *= nsnap2;
         }
-      plAlloc2dGrid(&ellip, psf->nsnap, psf->nsnap);
+      plAlloc2dGrid(&ellip, nsnap2, nsnap2);
       for (i=0; i<naxis; i++)
         raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-      xstep = wcs->naxisn[0] / (psf->nsnap-1);
-      ystep = wcs->naxisn[1] / (psf->nsnap-1);
+      xstep = wcs->naxisn[0] / (nsnap2-1);
+      ystep = wcs->naxisn[1] / (nsnap2-1);
       raw[1] = 0.5;
-      for (j=0; j<psf->nsnap; j++)
+      for (j=0; j<nsnap2; j++)
         {
         raw[0] = 0.5;
-        for (i=0; i<psf->nsnap; i++)
+        for (i=0; i<nsnap2; i++)
           {
           dval = 0.0;
           nellip = 0;
 /*-------- We average all PSF ellips at a given X and Y set of coordinates */
           for (n=0; n<nt; n++)
-            if ((psf->cx<0 || (n/ncx)%psf->nsnap == i)
-		&& (psf->cy<0 || (n/ncy)%psf->nsnap == j))
+            if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
               {
-              dval += (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
-		/ (psf->moffat[n].fwhm_max + psf->moffat[n].fwhm_min);
+              n2 = psf->nsnap>1? n : 0;
+              dval += (psf->moffat[n2].fwhm_max-psf->moffat[n2].fwhm_min)
+		/ (psf->moffat[n2].fwhm_max + psf->moffat[n2].fwhm_min);
               nellip++;
               }
           ellip[i][j] = dval / nellip ;
@@ -981,11 +993,11 @@ int	cplot_ellipticity(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(ellip, psf->nsnap, psf->nsnap, NULL,
+      plshades(ellip, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-      plFree2dGrid(ellip, psf->nsnap, psf->nsnap);
+      plFree2dGrid(ellip, nsnap2, nsnap2);
       }
     plcol(7);
     plwid(lwid);
@@ -1038,7 +1050,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	11/08/2008
+VERSION	22/10/2008
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1055,7 +1067,7 @@ int	cplot_moffatresi(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		i,j, e, n,ncx,ncy,nt, nresi, naxis, flag;
+		i,j, e, n,n2,ncx,ncy,nt, nresi, naxis, nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_MOFFATRESI) == RETURN_ERROR)
     {
@@ -1135,12 +1147,16 @@ int	cplot_moffatresi(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in residuals is 1e-6 */
+/* Lower bound to variability in residuals is 1e-5 */
   if (!flag)
     resimin = resimax = 0.0;
   if ((mresi=(resimin+resimax)/2.0) < 1.0e-10
        || (dresi=(resimax-resimin))/mresi < 1.0e-6)
-    dresi = 1.0e-6;
+    {
+    dresi = 1.0e-5;
+    resimin = mresi - dresi/2.0;
+    resimax = mresi + dresi/2.0;
+    }
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1156,33 +1172,35 @@ int	cplot_moffatresi(fieldstruct *field)
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
+      nsnap2 = psf->nsnap>1? psf->nsnap : 2;
       for (n=0; n<psf->poly->ndim; n++)
         {
-        nt *= psf->nsnap;
+        nt *= nsnap2;
         if (psf->cx>=0 && n<psf->cx)
-          ncx *= psf->nsnap;
+          ncx *= nsnap2;
         if (psf->cy>=0 && n<psf->cy)
-          ncy *= psf->nsnap;
+          ncy *= nsnap2;
         }
-      plAlloc2dGrid(&resi, psf->nsnap, psf->nsnap);
+      plAlloc2dGrid(&resi, nsnap2, nsnap2);
       for (i=0; i<naxis; i++)
         raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-      xstep = wcs->naxisn[0] / (psf->nsnap-1);
-      ystep = wcs->naxisn[1] / (psf->nsnap-1);
+      xstep = wcs->naxisn[0] / (nsnap2-1);
+      ystep = wcs->naxisn[1] / (nsnap2-1);
       raw[1] = 0.5;
-      for (j=0; j<psf->nsnap; j++)
+      for (j=0; j<nsnap2; j++)
         {
         raw[0] = 0.5;
-        for (i=0; i<psf->nsnap; i++)
+        for (i=0; i<nsnap2; i++)
           {
           dval = 0.0;
           nresi = 0;
 /*-------- We average all PSF residuals at a given X and Y set of coordinates */
           for (n=0; n<nt; n++)
-            if ((psf->cx<0 || (n/ncx)%psf->nsnap == i)
-		&& (psf->cy<0 || (n/ncy)%psf->nsnap == j))
+            if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
               {
-              dval += psf->moffat[n].residuals;
+              n2 = psf->nsnap>1? n : 0;
+              dval += psf->moffat[n2].residuals;
               nresi++;
               }
           resi[i][j] = dval / nresi ;
@@ -1193,11 +1211,11 @@ int	cplot_moffatresi(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(resi, psf->nsnap, psf->nsnap, NULL,
+      plshades(resi, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-      plFree2dGrid(resi, psf->nsnap, psf->nsnap);
+      plFree2dGrid(resi, nsnap2, nsnap2);
       }
     plcol(7);
     plwid(lwid);
@@ -1248,7 +1266,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	11/08/2008
+VERSION	22/10/2008
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1265,7 +1283,7 @@ int	cplot_asymresi(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		i,j, e, n,ncx,ncy,nt, nresi, naxis, flag;
+		i,j, e, n,n2,ncx,ncy,nt, nresi, naxis, nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_ASYMRESI) == RETURN_ERROR)
     {
@@ -1345,12 +1363,16 @@ int	cplot_asymresi(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in residuals is 1e-6 */
+/* Lower bound to variability in residuals is 1e-5 */
   if (!flag)
     resimin = resimax = 0.0;
   if ((mresi=(resimin+resimax)/2.0) < 1.0e-10
-       || (dresi=(resimax-resimin))/mresi < 1.0e-6)
-    dresi = 1.0e-6;
+       || (dresi=(resimax-resimin))/mresi < 1.0e-5)
+    {
+    dresi = 1.0e-5;
+    resimin = mresi - dresi/2.0;
+    resimax = mresi + dresi/2.0;
+    }
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1366,33 +1388,35 @@ int	cplot_asymresi(fieldstruct *field)
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
+      nsnap2 = psf->nsnap>1? psf->nsnap : 2;
       for (n=0; n<psf->poly->ndim; n++)
         {
-        nt *= psf->nsnap;
+        nt *= nsnap2;
         if (psf->cx>=0 && n<psf->cx)
-          ncx *= psf->nsnap;
+          ncx *= nsnap2;
         if (psf->cy>=0 && n<psf->cy)
-          ncy *= psf->nsnap;
+          ncy *= nsnap2;
         }
-      plAlloc2dGrid(&resi, psf->nsnap, psf->nsnap);
+      plAlloc2dGrid(&resi, nsnap2, nsnap2);
       for (i=0; i<naxis; i++)
         raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-      xstep = wcs->naxisn[0] / (psf->nsnap-1);
-      ystep = wcs->naxisn[1] / (psf->nsnap-1);
+      xstep = wcs->naxisn[0] / (nsnap2-1);
+      ystep = wcs->naxisn[1] / (nsnap2-1);
       raw[1] = 0.5;
-      for (j=0; j<psf->nsnap; j++)
+      for (j=0; j<nsnap2; j++)
         {
         raw[0] = 0.5;
-        for (i=0; i<psf->nsnap; i++)
+        for (i=0; i<nsnap2; i++)
           {
           dval = 0.0;
           nresi = 0;
 /*-------- We average all PSF residuals at a given X and Y set of coordinates */
           for (n=0; n<nt; n++)
-            if ((psf->cx<0 || (n/ncx)%psf->nsnap == i)
-		&& (psf->cy<0 || (n/ncy)%psf->nsnap == j))
+            if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
               {
-              dval += psf->moffat[n].symresiduals;
+              n2 = psf->nsnap>1? n : 0;
+              dval += psf->moffat[n2].symresiduals;
               nresi++;
               }
           resi[i][j] = dval / nresi ;
@@ -1403,11 +1427,11 @@ int	cplot_asymresi(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(resi, psf->nsnap, psf->nsnap, NULL,
+      plshades(resi, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-      plFree2dGrid(resi, psf->nsnap, psf->nsnap);
+      plFree2dGrid(resi, nsnap2, nsnap2);
       }
     plcol(7);
     plwid(lwid);
