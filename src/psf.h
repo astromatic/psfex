@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	06/07/2008
+*	Last modify:	24/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -113,12 +113,12 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			double prof_accuracy),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
-		psf_refine(psfstruct *psf, setstruct *set),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
 			double beta),
-		psf_readbasis(psfstruct *psf, char *filename, int ext);
+		psf_readbasis(psfstruct *psf, char *filename, int ext),
+		psf_refine(psfstruct *psf, setstruct *set);
 
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy);

@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	11/07/2008
+*	Last modify:	24/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -839,16 +839,16 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 
 
 /****** psf_refine ************************************************************
-PROTO	void	psf_refine(psfstruct *psf, setstruct *set)
+PROTO	int	psf_refine(psfstruct *psf, setstruct *set)
 PURPOSE	Refine PSF by solving a system to recover "aliased" components.
 INPUT	Pointer to the PSF,
 	Pointer to the sample set.
-OUTPUT  -.
+OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/11/2007
+VERSION 24/10/2008
  ***/
-void	psf_refine(psfstruct *psf, setstruct *set)
+int	psf_refine(psfstruct *psf, setstruct *set)
   {
    polystruct		*poly;
    samplestruct		*sample;
@@ -869,7 +869,7 @@ void	psf_refine(psfstruct *psf, setstruct *set)
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
   if (!set->nsample || !psf->basis)
-    return;
+    return RETURN_ERROR;
 
   npix = psf->size[0]*psf->size[1];
   nvpix = set->vigsize[0]*set->vigsize[1];
@@ -1044,6 +1044,21 @@ void	psf_refine(psfstruct *psf, setstruct *set)
   clapack_dpotrs(CblasRowMajor, CblasUpper, nunknown, 1, alphamat, nunknown,
 	betamat, nunknown);
 
+/* Check whether the result is coherent or not */
+#if defined(HAVE_ISNAN2) && defined(HAVE_ISINF)
+  if (isnan(*betamat) || isinf(*betamat))
+#else
+  if ((0x7ff00000 & *(unsigned int *)((char *)betamat+4)) == 0x7ff00000)
+#endif
+    {
+/*-- If not, exit without doing anything */
+    warning("Insufficient constraints for deriving/refining PSF", "");
+/*-- Free all */
+    free(alphamat);
+    free(betamat);
+    return RETURN_ERROR;
+    }
+
   NFPRINTF(OUTPUT,"Updating the PSF...");
   if (!psf->pixmask)
     memset(psf->comp, 0, npix*ncoeff*sizeof(float));
@@ -1064,7 +1079,7 @@ void	psf_refine(psfstruct *psf, setstruct *set)
   free(alphamat);
   free(betamat);
 
-  return;
+  return RETURN_OK;
   }
 
 

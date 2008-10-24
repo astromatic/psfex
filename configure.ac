@@ -86,6 +86,10 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([atexit getenv memcpy memmove memset mkdir munmap strstr \
 sysconf])
+AC_CHECK_FUNC([isnan], AC_DEFINE_UNQUOTED([HAVE_ISNAN2], 1,
+                [Second isnan check]))
+AC_CHECK_FUNC([isinf], AC_DEFINE_UNQUOTED([HAVE_ISINF2], 1,
+                [Second isinf check]))
 
 # Check support for large files
 AC_SYS_LARGEFILE
