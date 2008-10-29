@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	22/10/2008
+*	Last modify:	29/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -294,51 +294,64 @@ INPUT	Pointer to the image WCS structure,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	18/10/2002
+VERSION	29/10/2008
  ***/
 int	cplot_drawbounds(wcsstruct *wcsin, wcsstruct *wcsout)
   {
    PLFLT	x[5],y[5];
    double	rawpos[NAXIS],rawpos2[NAXIS], wcspos[NAXIS],wcspos2[NAXIS];
-   int		i;
+   int		i, lngin,latin, lngout,latout;
 
 /* Initialize the input coordinates to an "average" value */
   for (i=0; i<wcsin->naxis; i++)
     rawpos2[i] = wcsin->naxisn[i]/2.0;
 
+  lngin = wcsin->lng;
+  latin = wcsin->lat;
+  if (lngin==-1)
+    lngin = 0;
+  if (latin==-1)
+    latin = 1;
+  lngout = wcsout->lng;
+  latout = wcsout->lat;
+  if (lngout==-1)
+    lngout = 0;
+  if (latout==-1)
+    latout = 1;
+
 /* 1st corner */
-  rawpos2[wcsin->lng] = 0.0;
-  rawpos2[wcsin->lat] = 0.0;
+  rawpos2[lngin] = 0.0;
+  rawpos2[latin] = 0.0;
   raw_to_wcs(wcsin, rawpos2, wcspos2);
-  wcspos[wcsout->lng] = wcspos2[wcsin->lng];
-  wcspos[wcsout->lat] = wcspos2[wcsin->lat];
+  wcspos[lngout] = wcspos2[lngin];
+  wcspos[latout] = wcspos2[latin];
   wcs_to_raw(wcsout, wcspos, rawpos);
-  x[4] = x[0] = rawpos[wcsout->lng];
-  y[4] = y[0] = rawpos[wcsout->lat];
+  x[4] = x[0] = rawpos[lngout];
+  y[4] = y[0] = rawpos[latout];
 /* 2nd corner */
-  rawpos2[wcsin->lng] = wcsin->naxisn[wcsin->lng]-1.0;
+  rawpos2[lngin] = wcsin->naxisn[lngin]-1.0;
   raw_to_wcs(wcsin, rawpos2, wcspos2);
-  wcspos[wcsout->lng] = wcspos2[wcsin->lng];
-  wcspos[wcsout->lat] = wcspos2[wcsin->lat];
+  wcspos[lngout] = wcspos2[lngin];
+  wcspos[latout] = wcspos2[latin];
   wcs_to_raw(wcsout, wcspos, rawpos);
-  x[1] = rawpos[wcsout->lng];
-  y[1] = rawpos[wcsout->lat];
+  x[1] = rawpos[lngout];
+  y[1] = rawpos[latout];
 /* 3rd corner */
-  rawpos2[wcsin->lat] = wcsin->naxisn[wcsin->lat]-1.0;
+  rawpos2[latin] = wcsin->naxisn[latin]-1.0;
   raw_to_wcs(wcsin, rawpos2, wcspos2);
-  wcspos[wcsout->lng] = wcspos2[wcsin->lng];
-  wcspos[wcsout->lat] = wcspos2[wcsin->lat];
+  wcspos[lngout] = wcspos2[lngin];
+  wcspos[latout] = wcspos2[latin];
   wcs_to_raw(wcsout, wcspos, rawpos);
-  x[2] = rawpos[wcsout->lng];
-  y[2] = rawpos[wcsout->lat];
+  x[2] = rawpos[lngout];
+  y[2] = rawpos[latout];
 /* Last corner */
-  rawpos2[wcsin->lng] = 0.0;
+  rawpos2[lngin] = 0.0;
   raw_to_wcs(wcsin, rawpos2, wcspos2);
-  wcspos[wcsout->lng] = wcspos2[wcsin->lng];
-  wcspos[wcsout->lat] = wcspos2[wcsin->lat];
+  wcspos[lngout] = wcspos2[lngin];
+  wcspos[latout] = wcspos2[latin];
   wcs_to_raw(wcsout, wcspos, rawpos);
-  x[3] = rawpos[wcsout->lng];
-  y[3] = rawpos[wcsout->lat];
+  x[3] = rawpos[lngout];
+  y[3] = rawpos[latout];
 /* Draw */
   plline(5, x,y);
 
@@ -571,29 +584,39 @@ OUTPUT  -.
 NOTES   see http://plplot.sourceforge.net/docbook-manual/
             plplot-html-5.5.3/contour-plots.html#contour-plots-c
 AUTHOR  E. Bertin (IAP)
-VERSION 30/11/2005
+VERSION 29/10/2008
 ***/
 static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
 {
  wcsstruct	**wcs;
  double	 	rawpos[NAXIS], wcspos[NAXIS], wcspos2[NAXIS];
- int		i, lng, lat, naxis;
+ int		i, lng0,lat0, lng1,lat1, naxis;
 
 
   wcs = (wcsstruct **)pltr_data;
   if ((naxis=wcs[0]->naxis) > 2)
     for (i=0; i<naxis; i++)
       rawpos[i]= wcs[0]->naxisn[i]/2.0 + 0.5;
-  lng = wcs[0]->lng;
-  lat = wcs[0]->lat;
-  rawpos[lng] = x*wcs[0]->naxisn[lng]/(prefs.context_nsnap-1) + 0.5;
-  rawpos[lat] = y*wcs[0]->naxisn[lat]/(prefs.context_nsnap-1) + 0.5;
+  lng0 = wcs[0]->lng;
+  lat0 = wcs[0]->lat;
+  if (lng0==-1)
+    lng0 = 0;
+  if (lat0==-1)
+    lat0 = 1;
+  lng1 = wcs[1]->lng;
+  lat1 = wcs[1]->lat;
+  if (lng1==-1)
+    lng1 = 0;
+  if (lat1==-1)
+    lat1 = 1;
+  rawpos[lng0] = x*wcs[0]->naxisn[lng0]/(prefs.context_nsnap-1) + 0.5;
+  rawpos[lat0] = y*wcs[0]->naxisn[lat0]/(prefs.context_nsnap-1) + 0.5;
   raw_to_wcs(wcs[0], rawpos, wcspos);
-  wcspos2[wcs[1]->lng] = wcspos[lng];
-  wcspos2[wcs[1]->lat] = wcspos[lat];
+  wcspos2[lng1] = wcspos[lng0];
+  wcspos2[lat1] = wcspos[lat0];
   wcs_to_raw(wcs[1], wcspos2, rawpos);
-  *tx = rawpos[wcs[1]->lng];
-  *ty = rawpos[wcs[1]->lat];
+  *tx = rawpos[lng1];
+  *ty = rawpos[lat1];
 
   return;
   }
@@ -786,16 +809,28 @@ int	cplot_fwhm(fieldstruct *field)
     fwhm[0][j] = fwhm[1][j] = fwhmmin + j * dfwhm/(CPLOT_NSHADES-1);
 
   plvpor(0.91,0.935,0.115,0.885);
-  plwind(0.0,1.0,fwhmmin*DEG/ARCSEC,fwhmmax*DEG/ARCSEC);
-  plshades(fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+  if (wcs->lng == wcs->lat)
+    {
+    plwind(0.0,1.0,fwhmmin,fwhmmax);
+    plshades(fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   fwhmmin,fwhmmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+    }
+  else
+    {
+    plwind(0.0,1.0,fwhmmin*DEG/ARCSEC,fwhmmax*DEG/ARCSEC);
+    plshades(fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   fwhmmin*DEG/ARCSEC,fwhmmax*DEG/ARCSEC, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+    }
   plcol(15);
   plschr(0.0, 0.5);
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
-  sprintf(str, "%s", mfwhm < 0.09*ARCSEC/DEG?
+  sprintf(str, "%s", (wcs->lng == wcs->lat)?
+	  "pixels"
+	: (mfwhm < 0.09*ARCSEC/DEG?
 	  "mas" : (mfwhm < ARCMIN/DEG?
-		   "arcsec" : (mfwhm < 1.0? "arcmin": "deg")));
+		   "arcsec" : (mfwhm < 1.0? "arcmin": "deg"))));
   plschr(0.0, 0.6);
   plmtex("l", 5.0, 0.5, 0.0, str);
   plmtex("b", 2.0, 0.5, 0.5, "PSF FWHM");

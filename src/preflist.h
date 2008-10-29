@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	01/09/2008
+*	Last modify:	29/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -87,7 +87,7 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_name},
   {"PSFVAR_GROUPS", P_INTLIST, prefs.context_group, 1,MAXCONTEXT,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
-  {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,16},
+  {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,256},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},

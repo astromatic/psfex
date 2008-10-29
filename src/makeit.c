@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	12/07/2008
+*	Last modify:	29/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -339,6 +339,7 @@ void	makeit(void)
 /* Free memory */
   for (c=0; c<ncat; c++)
     field_end(fields[c]);
+  free(fields);
 
   if (context->npc)
     context_end(fullcontext);   

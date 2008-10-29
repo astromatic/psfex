@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	15/03/2008
+*	Last modify:	29/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -222,7 +222,7 @@ INPUT   Context structure pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/02/2008
+VERSION 29/10/2008
 */
 void	context_end(contextstruct *context)
   {
@@ -235,6 +235,7 @@ void	context_end(contextstruct *context)
   free(context->degree);
   free(context->pcflag);
   free(context->pc);
+  free(context);
 
   return;
   }

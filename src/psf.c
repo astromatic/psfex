@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	24/10/2008
+*	Last modify:	29/10/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -376,7 +376,7 @@ INPUT   psfstruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/12/2007
+VERSION 29/10/2008
  ***/
 void	psf_end(psfstruct *psf)
   {
@@ -386,6 +386,8 @@ void	psf_end(psfstruct *psf)
   for (d=0; d<ndim; d++)
     free(psf->contextname[d]);
   free(psf->contextname);
+  free(psf->contextoffset);
+  free(psf->contextscale);
   poly_end(psf->poly);
   free(psf->pixmask);
   free(psf->basis);
