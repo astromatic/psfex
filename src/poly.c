@@ -9,7 +9,7 @@
 *
 *	Contents:	Polynomial fitting
 *
-*	Last modify:	26/03/2008
+*	Last modify:	03/11/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -135,8 +135,8 @@ PURPOSE Free a polynom structure and everything it contains.
 INPUT   polystruct pointer.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 09/04/2000
+AUTHOR  E. Bertin (IAP)
+VERSION 03/11/2008
  ***/
 void	poly_end(polystruct *poly)
   {
@@ -146,6 +146,7 @@ void	poly_end(polystruct *poly)
     free(poly->basis);
     free(poly->degree);
     free(poly->group);
+    free(poly->orthomat);
     free(poly);
     }
 
@@ -954,5 +955,94 @@ int	*poly_powers(polystruct *poly)
     }
 
   return powers;
+  }
+
+
+/****** poly_ortho ************************************************************
+PROTO   void poly_ortho(polystruct *poly, double *data, int ndata)
+PURPOSE Compute orthonormalization matric for a polynomial basis on a data set.
+INPUT   polystruct pointer,
+        pointer to the 1D array of input vector data,
+	number of data vectors.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 03/11/2008
+ ***/
+void	poly_ortho(polystruct *poly, double *data, int ndata)
+  {
+   double	*basis, *coeff, *invec,*invect0,*invect,*invect02,*invect2,
+		*rdiag, *ortho, *pos,
+		scale,s;
+   int		c,i,j,m,n, ndmc, ndim,ncoeff;
+
+/* Prepare the vectors and counters */
+  ndim = poly->ndim;
+  ncoeff = poly->ncoeff;
+  basis = poly->basis;
+  coeff = poly->coeff;
+
+  QCALLOC(poly->orthomat, double, ncoeff*ncoeff);
+  QMALLOC(invec, double, ndata*ncoeff);
+  QMALLOC(rdiag, double, ncoeff);
+
+/* Generate (row) basis vectors from the measurements at data points */
+  pos = data;
+  invect0 = invec;
+  for (n=ndata; n--; pos+=ndim)
+    {
+    poly_func(poly, pos);
+    basis = poly->basis;
+    invect = invect0++;
+    for (c=ncoeff; c--; invect+=ndata)
+      *(invect++) = *(basis++);
+    }
+
+/* Do a QR decomposition of input vector set */
+/* Vectors are stored as rows to speed up the Householder transformation */
+  n = ncoeff;
+  m = ndata;
+  for (c=0; c<ncoeff; c++)
+    {
+    ndmc = ndata - c;
+    scale = 0.0;
+    invect = invect0 = invec + c*(ndata+1);
+    for (i=ndmc; i--; invect++)
+      scale = sqrt(scale*scale + *invect**invect);
+    if (scale > POLY_TINY)
+      {
+      if (*invect0 < 0.0)
+        scale = -scale;
+      invect = invect0;
+      for (i=ndmc; i--;)
+        *(invect++) /= scale;
+      *invect0 += 1.0;
+      invect02 = invect0 + ndata;
+      for (j=ncoeff-c; --j; invect02+=ndata)
+        {
+        s = 0.0;
+        invect = invect0;
+        invect2 = invect02;
+        for (i=ndmc; i--;)
+          s += *(invect++)**(invect2++);
+        s /= -*invect0;
+        invect = invect0;
+        invect2 = invect02;
+        for (i=ndmc; i--;)
+          *(invect2++) += s**(invect++);
+        }
+      }
+    rdiag[c] = -scale;
+    }
+
+/* Convert to orthonormalization matrix */
+  ortho = poly->orthomat;
+  for (i=0; i<ncoeff; i++)
+    for (j=0; j<ncoeff; j++)
+      ortho[i*ncoeff+j] = i<j? invec[j*ndata+i] : (i==j?rdiag[i] : 0.0);
+  free(rdiag);
+  free(invec);
+
+  return;
   }
 

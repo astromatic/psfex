@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for poly.c
 *
-*	Last modify:	11/03/2008
+*	Last modify:	03/11/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -21,6 +21,7 @@
 
 #define	POLY_MAXDIM		4	/* Max dimensionality of polynom */
 #define POLY_MAXDEGREE		10	/* Max degree of the polynom */
+#define	POLY_TINY		1e-30	/* A tiny number */
 
 /*---------------------------------- macros ---------------------------------*/
 
@@ -35,6 +36,7 @@ typedef struct poly
   int		ndim;		/* dimensionality of the polynom */
   int		*degree;	/* Degree in each group */
   int		ngroup;		/* Number of different groups */
+  double	*orthomat;	/* Orthonormalization matrix */
   }	polystruct;
 
 /*---------------------------------- protos --------------------------------*/
@@ -51,6 +53,7 @@ extern void		poly_addcste(polystruct *poly, double *cste),
 			poly_end(polystruct *poly),
 			poly_fit(polystruct *poly, double *x, double *y,
 				double *w, int ndata, double *extbasis),
+			poly_ortho(polystruct *poly, double *data, int ndata),
 			poly_solve(double *a, double *b, int n),
 			svdsolve(double *a, double *b, int m, int n,
 				double *vmat, double *wmat);
