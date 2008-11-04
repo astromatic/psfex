@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for poly.c
 *
-*	Last modify:	03/11/2008
+*	Last modify:	04/11/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,6 +30,7 @@
 typedef struct poly
   {
   double	*basis;		/* Current values of the basis functions */
+  double	*orthobasis;	/* Curr orthonormalized basis function values */
   double	*coeff;		/* Polynom coefficients */
   int		ncoeff;		/* Number of coefficients */
   int		*group;		/* Groups */
@@ -37,6 +38,7 @@ typedef struct poly
   int		*degree;	/* Degree in each group */
   int		ngroup;		/* Number of different groups */
   double	*orthomat;	/* Orthonormalization matrix */
+  double	*deorthomat;	/* "Deorthonormalization" matrix */
   }	polystruct;
 
 /*---------------------------------- protos --------------------------------*/
@@ -44,7 +46,11 @@ typedef struct poly
 extern polystruct	*poly_copy(polystruct *poly),
 			*poly_init(int *group,int ndim,int *degree,int ngroup);
 
-extern double		poly_func(polystruct *poly, double *pos);
+extern double		*poly_deortho(polystruct *poly, double *datain,
+				double *dataout),
+			poly_func(polystruct *poly, double *pos),
+			*poly_ortho(polystruct *poly, double *datain,
+				double *dataout);
 
 extern int		cholsolve(double *a, double *b, int n),
 			*poly_powers(polystruct *poly);
@@ -53,7 +59,8 @@ extern void		poly_addcste(polystruct *poly, double *cste),
 			poly_end(polystruct *poly),
 			poly_fit(polystruct *poly, double *x, double *y,
 				double *w, int ndata, double *extbasis),
-			poly_ortho(polystruct *poly, double *data, int ndata),
+			poly_initortho(polystruct *poly, double *data,
+				int ndata),
 			poly_solve(double *a, double *b, int n),
 			svdsolve(double *a, double *b, int m, int n,
 				double *vmat, double *wmat);

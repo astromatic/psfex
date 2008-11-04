@@ -9,7 +9,7 @@
 *
 *	Contents:	Polynomial fitting
 *
-*	Last modify:	03/11/2008
+*	Last modify:	04/11/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -136,7 +136,7 @@ INPUT   polystruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/11/2008
+VERSION 04/11/2008
  ***/
 void	poly_end(polystruct *poly)
   {
@@ -144,9 +144,11 @@ void	poly_end(polystruct *poly)
     {
     free(poly->coeff);
     free(poly->basis);
+    free(poly->orthobasis);
     free(poly->degree);
     free(poly->group);
     free(poly->orthomat);
+    free(poly->deorthomat);
     free(poly);
     }
 
@@ -161,7 +163,7 @@ INPUT   polystruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 06/03/2008
+VERSION 04/11/2008
  ***/
 polystruct *poly_copy(polystruct *poly)
   {
@@ -180,6 +182,15 @@ polystruct *poly_copy(polystruct *poly)
       QMEMCPY(poly->group, newpoly->group, int, poly->ndim);
     if (poly->ngroup)
       QMEMCPY(poly->degree, newpoly->degree, int, poly->ngroup);
+    if (poly->orthomat)
+      {
+      QMEMCPY(poly->orthomat, newpoly->orthomat, double,
+		poly->ncoeff*poly->ncoeff);
+      QMEMCPY(poly->deorthomat, newpoly->deorthomat, double,
+		poly->ncoeff*poly->ncoeff);
+      QMEMCPY(poly->orthobasis, newpoly->orthobasis, double, poly->ncoeff);
+      }
+
     return newpoly;
     }
   else
@@ -958,18 +969,19 @@ int	*poly_powers(polystruct *poly)
   }
 
 
-/****** poly_ortho ************************************************************
-PROTO   void poly_ortho(polystruct *poly, double *data, int ndata)
-PURPOSE Compute orthonormalization matric for a polynomial basis on a data set.
+/****** poly_initortho ********************************************************
+PROTO   void poly_initortho(polystruct *poly, double *data, int ndata)
+PURPOSE Compute orthonormalization and de-orthonormalization matrices for a
+	polynomial basis on a data set.
 INPUT   polystruct pointer,
         pointer to the 1D array of input vector data,
 	number of data vectors.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/11/2008
+VERSION 04/11/2008
  ***/
-void	poly_ortho(polystruct *poly, double *data, int ndata)
+void	poly_initortho(polystruct *poly, double *data, int ndata)
   {
    double	*basis, *coeff, *invec,*invect0,*invect,*invect02,*invect2,
 		*rdiag, *ortho, *pos,
@@ -982,31 +994,21 @@ void	poly_ortho(polystruct *poly, double *data, int ndata)
   basis = poly->basis;
   coeff = poly->coeff;
 
+/* Allocate memory for orthonormalization matrix and vector */
   QCALLOC(poly->orthomat, double, ncoeff*ncoeff);
-  QMALLOC(invec, double, ndata*ncoeff);
+  QMALLOC(poly->orthobasis, double, poly->ncoeff);
   QMALLOC(rdiag, double, ncoeff);
-
-/* Generate (row) basis vectors from the measurements at data points */
-  pos = data;
-  invect0 = invec;
-  for (n=ndata; n--; pos+=ndim)
-    {
-    poly_func(poly, pos);
-    basis = poly->basis;
-    invect = invect0++;
-    for (c=ncoeff; c--; invect+=ndata)
-      *(invect++) = *(basis++);
-    }
 
 /* Do a QR decomposition of input vector set */
 /* Vectors are stored as rows to speed up the Householder transformation */
   n = ncoeff;
   m = ndata;
+  invec = data;
   for (c=0; c<ncoeff; c++)
     {
     ndmc = ndata - c;
     scale = 0.0;
-    invect = invect0 = invec + c*(ndata+1);
+    invect = invect0 = data + c*(ndata+1);
     for (i=ndmc; i--; invect++)
       scale = sqrt(scale*scale + *invect**invect);
     if (scale > POLY_TINY)
@@ -1039,10 +1041,88 @@ void	poly_ortho(polystruct *poly, double *data, int ndata)
   ortho = poly->orthomat;
   for (i=0; i<ncoeff; i++)
     for (j=0; j<ncoeff; j++)
-      ortho[i*ncoeff+j] = i<j? invec[j*ndata+i] : (i==j?rdiag[i] : 0.0);
+      ortho[i*ncoeff+j] = i<j? data[j*ndata+i] : (i==j?rdiag[i] : 0.0);
+
   free(rdiag);
-  free(invec);
+
+/* Compute the "unorthonormalization" matrix */
+  QMEMCPY(poly->orthomat, poly->deorthomat, double, ncoeff*ncoeff);
+  clapack_dtrtri(CblasRowMajor, CblasUpper, CblasNonUnit, ncoeff,
+	poly->deorthomat, ncoeff);
 
   return;
   }
+
+
+/****** poly_ortho ************************************************************
+PROTO   void poly_ortho(polystruct *poly)
+PURPOSE Apply orthonormalization to the poly basis vector.
+INPUT   polystruct pointer.
+OUTPUT  Pointer to poly->orthobasis, or poly->basis if no ortho. matrix exists.
+NOTES   The poly->basis vector must have been updated with poly_func() first.
+AUTHOR  E. Bertin (IAP)
+VERSION 04/11/2008
+ ***/
+double	*poly_ortho(polystruct *poly, double *datain, double *dataout)
+  {
+   double	*omat,*basis,*obasis,
+		dval;
+   int		i,j, ncoeff;
+
+  if (!poly->orthomat)
+    return datain;
+
+  ncoeff = poly->ncoeff;
+
+/* Compute matrix product */
+  omat = poly->orthomat;
+  obasis = dataout;
+  for (j=ncoeff; j--;)
+    {
+    basis = datain;
+    dval = 0.0;
+    for (i=ncoeff; i--;)
+      dval += *(omat++)**(basis++);
+    *(obasis++) = dval;
+    }
+
+  return dataout;
+  }
+
+
+/****** poly_deortho **********************************************************
+PROTO   void poly_deortho(polystruct *poly)
+PURPOSE Apply deorthonormalization to the poly basis vector.
+INPUT   polystruct pointer.
+OUTPUT  Pointer to poly->basis.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 04/11/2008
+ ***/
+double	*poly_deortho(polystruct *poly, double *datain, double *dataout)
+  {
+   double	*omat,*basis,*obasis,
+		dval;
+   int		i,j, ncoeff;
+
+  if (!poly->deorthomat)
+    return datain;
+
+  ncoeff = poly->ncoeff;
+
+/* Compute matrix product */
+  omat = poly->deorthomat;
+  basis = dataout;
+  for (j=ncoeff; j--;)
+    {
+    obasis = datain;
+    dval = 0.0;
+    for (i=ncoeff; i--;)
+      dval += *(omat++)**(obasis++);
+    *(basis++) = dval;
+    }
+
+  return dataout;
+  }
+
 

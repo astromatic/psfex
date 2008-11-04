@@ -859,7 +859,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
    double		*desmat,*desmatt,*desmatt2, *desmat0,*desmat02,
 			*bmat,*bmatt, *basis,*basist, *basist2,
 			*sigvig,*sigvigt, *alphamat,*alphamatt,
-			*betamat,*betamatt, *coeffmat,*coeffmatt,
+			*betamat,*betamatt,*betamat2, *coeffmat,*coeffmatt,
 			dx,dy, dval, norm, tikfac;
    float		*vig,*vigt,*vigt2, *wvig,
 			*vecvig,*vecvigt, *ppix, *vec,
@@ -903,6 +903,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* ... and allocate some more for storing the normal equations */
   QCALLOC(alphamat, double, nunknown*nunknown);
   QCALLOC(betamat, double, nunknown);
+//  psf_orthopoly(psf);
 
 /* Go through each sample */
   for (sample=set->sample, n=0; n<nsample ; n++, sample++)
@@ -921,7 +922,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     psf_build(psf, pos);
 
 /*-- Build the current context coefficient sub-matrix */
-    basis = poly->basis;
+    basis = poly_ortho(poly, poly->basis, poly->orthobasis);
     for (basist=basis, coeffmatt=coeffmat, l=ncoeff; l--;)
       for (dval=*(basist++), basist2=basis, i=ncoeff; i--;)
         *(coeffmatt++) = dval**(basist2++);
@@ -1034,7 +1035,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Basic Tikhonov regularisation */
   if (psf->pixmask)
     {
-    tikfac= 0.008;
+    tikfac= 1e20;
     tikfac = 1.0/(tikfac*tikfac);
     for (i=0; i<nunknown; i++)
       alphamat[i+nunknown*i] += tikfac;
@@ -1064,10 +1065,11 @@ int	psf_refine(psfstruct *psf, setstruct *set)
   NFPRINTF(OUTPUT,"Updating the PSF...");
   if (!psf->pixmask)
     memset(psf->comp, 0, npix*ncoeff*sizeof(float));
-  betamatt = betamat;
+  QMALLOC(betamat2, double, ncoeff);
   for (j=0; j<npsf; j++)
     {
     ppix = psf->comp;
+    betamatt = poly_deortho(poly, betamat + j*ncoeff, betamat2);
     for (c=ncoeff; c--;)
       {
       vec = &psf->basis[j*npix];
@@ -1080,8 +1082,65 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Free all */
   free(alphamat);
   free(betamat);
+  free(betamat2);
 
   return RETURN_OK;
+  }
+
+
+/****** psf_orthopoly *********************************************************
+PROTO	void	psf_orthopoly(psfstruct *psf)
+PURPOSE	Orthonormalize the polynomial basis over the range of possible contexts.
+INPUT	PSF structure.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 04/11/2008
+ ***/
+void psf_orthopoly(psfstruct *psf)
+  {
+   polystruct	*poly;
+   double	dpos[POLY_MAXDIM],
+		*basis, *data,*datat,
+		dstep, dstart;
+   int		c,i,n, ndim, ncoeff, ndata;
+
+  poly = psf->poly;
+  ncoeff = poly->ncoeff;
+  dstep = 1.0/(PSF_NORTHOSTEP-1);
+  dstart = 0.5;
+  memset(dpos, 0, POLY_MAXDIM*sizeof(double));
+  ndim = poly->ndim;
+  for (i=0; i<ndim; i++)
+     dpos[i] = -dstart;
+  for (ndata=1, i=ndim; (i--)>0;)
+    ndata *= PSF_NORTHOSTEP;
+
+  QMALLOC(data, double, ndata*ncoeff);
+/* For each snapshot of PSF context */ 
+  for (n=0; n<ndata; n++)
+    {
+    poly_func(poly, dpos);
+    basis = poly->basis;
+    datat = data + n;
+/*-- Fill basis matrix as a series of row vectors */
+    for (c=ncoeff; c--; datat+=ndata)
+      *datat = *(basis++);
+
+    for (i=0; i<ndim; i++)
+      if (dpos[i]<dstart-0.01)
+        {
+        dpos[i] += dstep;
+        break;
+        }
+      else
+        dpos[i] = -dstart;
+    }
+
+  poly_initortho(poly, data, ndata);
+  free(data);
+
+  return;
   }
 
 

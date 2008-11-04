@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	24/10/2008
+*	Last modify:	04/11/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -37,6 +37,7 @@
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
 #define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 #define	PSF_AUTO_FWHM	3.0	/* FWHM theshold for PIXEL-AUTO mode */
+#define	PSF_NORTHOSTEP	16	/* Number of PSF orthonor. snapshots/dimension*/
 
 /*----------------------------- Type definitions --------------------------*/
 typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE,
@@ -113,6 +114,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			double prof_accuracy),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
+		psf_orthopoly(psfstruct *psf),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
