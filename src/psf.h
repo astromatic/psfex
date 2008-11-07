@@ -114,7 +114,7 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			double prof_accuracy),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
-		psf_orthopoly(psfstruct *psf),
+		psf_orthopoly(psfstruct *psf, setstruct *set),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
 extern int	psf_pshapelet(float **shape, int w, int h, int nmax,

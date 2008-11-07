@@ -903,8 +903,9 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* ... and allocate some more for storing the normal equations */
   QCALLOC(alphamat, double, nunknown*nunknown);
   QCALLOC(betamat, double, nunknown);
-//  psf_orthopoly(psf);
-
+/*
+  psf_orthopoly(psf, set);
+*/
 /* Go through each sample */
   for (sample=set->sample, n=0; n<nsample ; n++, sample++)
     {
@@ -1035,7 +1036,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Basic Tikhonov regularisation */
   if (psf->pixmask)
     {
-    tikfac= 1e20;
+    tikfac= 0.01;
     tikfac = 1.0/(tikfac*tikfac);
     for (i=0; i<nunknown; i++)
       alphamat[i+nunknown*i] += tikfac;
@@ -1095,46 +1096,37 @@ INPUT	PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 04/11/2008
+VERSION 05/11/2008
  ***/
-void psf_orthopoly(psfstruct *psf)
+void psf_orthopoly(psfstruct *psf, setstruct *set)
   {
+   samplestruct	*sample;
    polystruct	*poly;
-   double	dpos[POLY_MAXDIM],
+   double	pos[POLY_MAXDIM],
 		*basis, *data,*datat,
-		dstep, dstart;
+		norm;
    int		c,i,n, ndim, ncoeff, ndata;
 
   poly = psf->poly;
   ncoeff = poly->ncoeff;
-  dstep = 1.0/(PSF_NORTHOSTEP-1);
-  dstart = 0.5;
-  memset(dpos, 0, POLY_MAXDIM*sizeof(double));
   ndim = poly->ndim;
-  for (i=0; i<ndim; i++)
-     dpos[i] = -dstart;
-  for (ndata=1, i=ndim; (i--)>0;)
-    ndata *= PSF_NORTHOSTEP;
+  ndata = set->nsample;
+  norm = -1.0/sqrt(ndata);
 
   QMALLOC(data, double, ndata*ncoeff);
-/* For each snapshot of PSF context */ 
-  for (n=0; n<ndata; n++)
+/* Go through each sample */
+  for (sample=set->sample, n=0; n<ndata ; n++, sample++)
     {
-    poly_func(poly, dpos);
+/*-- Get the local context coordinates */
+    for (i=0; i<ndim; i++)
+      pos[i] = (sample->context[i]-set->contextoffset[i])
+		/set->contextscale[i];
+    poly_func(poly, pos);
     basis = poly->basis;
     datat = data + n;
 /*-- Fill basis matrix as a series of row vectors */
     for (c=ncoeff; c--; datat+=ndata)
-      *datat = *(basis++);
-
-    for (i=0; i<ndim; i++)
-      if (dpos[i]<dstart-0.01)
-        {
-        dpos[i] += dstep;
-        break;
-        }
-      else
-        dpos[i] = -dstart;
+      *datat = *(basis++)*norm;
     }
 
   poly_initortho(poly, data, ndata);

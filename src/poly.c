@@ -979,13 +979,13 @@ INPUT   polystruct pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 04/11/2008
+VERSION 06/11/2008
  ***/
 void	poly_initortho(polystruct *poly, double *data, int ndata)
   {
    double	*basis, *coeff, *invec,*invect0,*invect,*invect02,*invect2,
-		*rdiag, *ortho, *pos,
-		scale,s;
+		*rdiag, *deortho,
+		scale,s, dval;
    int		c,i,j,m,n, ndmc, ndim,ncoeff;
 
 /* Prepare the vectors and counters */
@@ -995,7 +995,7 @@ void	poly_initortho(polystruct *poly, double *data, int ndata)
   coeff = poly->coeff;
 
 /* Allocate memory for orthonormalization matrix and vector */
-  QCALLOC(poly->orthomat, double, ncoeff*ncoeff);
+  QCALLOC(poly->deorthomat, double, ncoeff*ncoeff);
   QMALLOC(poly->orthobasis, double, poly->ncoeff);
   QMALLOC(rdiag, double, ncoeff);
 
@@ -1037,27 +1037,38 @@ void	poly_initortho(polystruct *poly, double *data, int ndata)
     rdiag[c] = -scale;
     }
 
-/* Convert to orthonormalization matrix */
-  ortho = poly->orthomat;
-  for (i=0; i<ncoeff; i++)
-    for (j=0; j<ncoeff; j++)
-      ortho[i*ncoeff+j] = i<j? data[j*ndata+i] : (i==j?rdiag[i] : 0.0);
+/* Convert to deorthonormalization matrix */
+  deortho = poly->deorthomat;
+  for (j=0; j<ncoeff; j++)
+    for (i=0; i<ncoeff; i++)
+      deortho[j*ncoeff+i] = i<j? data[j*ndata+i] : (i==j?rdiag[i] : 0.0);
 
   free(rdiag);
 
 /* Compute the "unorthonormalization" matrix */
-  QMEMCPY(poly->orthomat, poly->deorthomat, double, ncoeff*ncoeff);
-  clapack_dtrtri(CblasRowMajor, CblasUpper, CblasNonUnit, ncoeff,
-	poly->deorthomat, ncoeff);
+  QMEMCPY(poly->deorthomat, poly->orthomat, double, ncoeff*ncoeff);
+  clapack_dtrtri(CblasRowMajor, CblasLower, CblasNonUnit, ncoeff,
+	poly->orthomat, ncoeff);
+/* Transpose orthonormalization matrix to speed up later use */
+  deortho = poly->deorthomat;
+  for (j=0; j<ncoeff; j++)
+    for (i=0; i<ncoeff; i++)
+      {
+      dval = deortho[j*ncoeff+i];
+      deortho[j*ncoeff+i] = deortho[i*ncoeff+j];
+      deortho[i*ncoeff+j] = dval;
+      }
 
   return;
   }
 
 
 /****** poly_ortho ************************************************************
-PROTO   void poly_ortho(polystruct *poly)
-PURPOSE Apply orthonormalization to the poly basis vector.
-INPUT   polystruct pointer.
+PROTO   void poly_ortho(polystruct *poly, double *datain, double *dataout)
+PURPOSE Apply orthonormalization to the poly basis vector ("ket>").
+INPUT   polystruct pointer,
+	pointer to the input vector,
+	pointer to the output vector.
 OUTPUT  Pointer to poly->orthobasis, or poly->basis if no ortho. matrix exists.
 NOTES   The poly->basis vector must have been updated with poly_func() first.
 AUTHOR  E. Bertin (IAP)
@@ -1091,9 +1102,11 @@ double	*poly_ortho(polystruct *poly, double *datain, double *dataout)
 
 
 /****** poly_deortho **********************************************************
-PROTO   void poly_deortho(polystruct *poly)
-PURPOSE Apply deorthonormalization to the poly basis vector.
-INPUT   polystruct pointer.
+PROTO   void poly_deortho(polystruct *poly, double *datain, double *dataout)
+PURPOSE Apply deorthonormalization to the poly basis component vector("<bra|").
+INPUT   polystruct pointer,
+	pointer to the input vector,
+	pointer to the output vector.
 OUTPUT  Pointer to poly->basis.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)

@@ -92,7 +92,7 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
-DATE2 = Tue Nov 04 2008
+DATE2 = Fri Nov 07 2008
 DATE3 = November 2008
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
