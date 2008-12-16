@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	17/07/2007
+*	Last modify:	16/12/2008
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -22,10 +22,9 @@
 #define _DIAGNOSTIC_H_
 
 /*----------------------------- Internal constants --------------------------*/
-#define		PSF_DIAGMAXITER	200	/* Max. nb of iterations in fitting */
+#define		PSF_DIAGMAXITER	1000	/* Max. nb of iterations in fitting */
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
 #define		PSF_FWHMMIN	0.1	/* Minimum FWHM for fit (model pixels)*/
-#define		PSF_FWHMMAX	100.0	/* Maximum FWHM for fit (model pixels)*/
 #define		PSF_BETAMIN	0.5	/* Minimum Moffat beta for fit */
 /*----------------------------- Global variables ---------------------------*/
 
