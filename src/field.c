@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	08/07/2008
+*	Last modify:	04/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 08/07/2008
+VERSION 04/02/2009
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -75,6 +75,13 @@ fieldstruct	*field_init(char *catname)
     field->rcatname = field->catname;
   else
     field->rcatname++;
+
+  if (!next0)
+    {
+    field_end(field);
+    error(EXIT_FAILURE,"*Error*: No SExtractor FITS-LDAC catalog found in ",
+        catname);
+    }
 
   QMALLOC(field->wcs, wcsstruct *, next0);
 /* Compute the number of valid input extensions */

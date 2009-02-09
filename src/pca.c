@@ -215,7 +215,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     NFPRINTF(OUTPUT, str);
     pca_findpc(covmat, vector, ncat);
     for (c=0; c<ncat; c++)
-      pc[c*npc+p] = vector[c];
+printf("%g \n",      pc[c*npc+p] = vector[c]);
     }
 
   free(covmat);

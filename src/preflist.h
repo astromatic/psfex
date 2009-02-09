@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	29/10/2008
+*	Last modify:	09/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -77,6 +77,8 @@ pkeystruct key[] =
   {"HOMOKERNEL_SUFFIX", P_STRING, prefs.homokernel_suffix},
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
+  {"MOSAIC_TYPE", P_KEY, &prefs.mosaic_type, 0,0, 0.0,0.0,
+	{"CHIPS", "COMMON", ""}},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
 	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
@@ -103,6 +105,8 @@ pkeystruct key[] =
   {"SAMPLE_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
   {"SAMPLEVAR_TYPE", P_KEY, &prefs.var_type, 0,0, 0.0,0.0,
 	{"NONE", "SEEING",""}},
+  {"STABILITY_TYPE", P_KEY, &prefs.stability_type, 0,0, 0.0,0.0,
+	{"EXPOSURE", "SEQUENCE", ""}},
   {"VERBOSE_TYPE", P_KEY, &prefs.verbose_type, 0,0, 0.0,0.0,
    {"QUIET","NORMAL","LOG","FULL",""}},
   {"XML_NAME", P_STRING, prefs.xml_name},
@@ -139,6 +143,8 @@ char *default_prefs[] =
 "PSFVAR_GROUPS  1,1              # Group tag for each context key",
 "PSFVAR_DEGREES   2              # Polynom degree for each group",
 "*PSFVAR_NSNAP   9                # Number of PSF snapshots per axis",
+"*MOSAIC_TYPE    CHIPS            # CHIPS or COMMON",
+"*STABILITY_TYPE EXPOSURE         # EXPOSURE or SEQUENCE",
 " ",
 "#----------------------------- Sample selection ------------------------------",
 " ",
@@ -162,11 +168,11 @@ char *default_prefs[] =
 "*",
 "#------------------------------- Check-plots ----------------------------------",
 " ",
-"CHECKPLOT_DEV          PNG             # NULL, XWIN, TK, PS, PSC, XFIG, PNG,",
-"                                       # JPEG, AQT, PDF or SVG",
-"*CHECKPLOT_RES          0               # Check-plot resolution (0 = default)",
-"*CHECKPLOT_ANTIALIAS    Y               # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE         FWHM,ELLIPTICITY            # NONE, FWHM or ELLIPTICITY",
+"CHECKPLOT_DEV       PNG         # NULL, XWIN, TK, PS, PSC, XFIG, PNG,",
+"                                # JPEG, AQT, PDF or SVG",
+"*CHECKPLOT_RES       0           # Check-plot resolution (0 = default)",
+"*CHECKPLOT_ANTIALIAS Y           # Anti-aliasing using convert (Y/N) ?",
+"CHECKPLOT_TYPE     FWHM,ELLIPTICITY    # NONE, FWHM or ELLIPTICITY",
 "CHECKPLOT_NAME         fwhm, ellipticity",
 " ",
 "#------------------------------ Check-Images ---------------------------------",

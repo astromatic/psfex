@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	29/10/2008
+*	Last modify:	09/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -187,6 +187,7 @@ void	makeit(void)
   QIPRINTF(OUTPUT,
         " extension accepted/total sampling chi2/dof FWHM(pix) ellip."
 	" residuals asymmetry");
+
   for (ext=0 ; ext<next; ext++)
     {
     if (prefs.newbasis_type == NEWBASIS_PCAMULTI)
@@ -230,18 +231,33 @@ void	makeit(void)
       free(cpsf);
       }
 
-/*-- Load all the samples */
-    set = load_samples(incatnames, ncat, ext, next, fullcontext);
-    if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-      psfstep = (float)((set->fwhm/2.35)*0.5);
-    psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
-    end_set(set);
-    NFPRINTF(OUTPUT, "Computing final model...");
-    context_apply(fullcontext, psf, fields, ext, ncat);
-    nmed = psf->nmed;
-    psf_end(psf);
+    if (prefs.stability_type == STABILITY_SEQUENCE)
+      {
+/*---- Load all the samples at once */
+      set = load_samples(incatnames, ncat, ext, next, fullcontext);
+      if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
+        psfstep = (float)((set->fwhm/2.35)*0.5);
+      psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+      end_set(set);
+      NFPRINTF(OUTPUT, "Computing final model...");
+      context_apply(fullcontext, psf, fields, ext, ncat);
+      nmed = psf->nmed;
+      psf_end(psf);
+      }
     for (c=0; c<ncat; c++)
       {
+      if (prefs.stability_type == STABILITY_EXPOSURE)
+        {
+/*------ Load the samples for current exposure */
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
+          psfstep = (float)((set->fwhm/2.35)*0.5);
+        psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+        end_set(set);
+        context_apply(fullcontext, psf, fields, ext, ncat);
+        nmed = psf->nmed;
+        psf_end(psf);
+        }
       psf = fields[c]->psf[ext];
 /*---- Check PSF with individual datasets */
       set2 = load_samples(&incatnames[c], 1, ext, next, context);
