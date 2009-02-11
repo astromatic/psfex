@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	06/07/2008
+*	Last modify:	11/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -51,11 +51,11 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
    char			str[MAXCHAR];
    char			*head, *(pkeynames[4]);
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt, *hl, *fmax, *elong,
+			*fwhm,*fwhmt, *hl, *fmax, *elong, *backnoises,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
    int			*fwhmindex,
-			i,j,n, nobj,nobjmax, ldflag, ext2;
+			e,i,j,n, nobj,nobjmax, ldflag, ext2, next2;
 
   NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -94,74 +94,86 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
       if (!(cat = read_cat(filename[i])))
         error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[i]);
 
-/*---- Get the background noise for this catalog */
+      QMALLOC(backnoises, float, cat->ntab);
+      e=0;
       ldflag = 1;
       ext2 = ext+1;
       tab = cat->tab;
+/*---- Get background noises for this catalog */
       for (j=cat->ntab; j--; tab=tab->nexttab)
         if (!(ldflag = strcmp("LDAC_IMHEAD",tab->extname))
-	  || fitsread(tab->headbuf,"SEXBKDEV",&backnoise,H_FLOAT,T_FLOAT)
-		==RETURN_OK)
-          if (!--ext2)
-            break;
-
-      if (j<0)
+		|| fitsread(tab->headbuf,"SEXBKDEV",&backnoises[e],
+			H_FLOAT,T_FLOAT) == RETURN_OK)
+          {
+          if (ext >= 0 && !(--ext2))
+            continue;
+          if (!ldflag)
+            {
+            fkey=read_key(tab, "Field Header Card");
+            head = fkey->ptr;
+            if (fitsread(head,"SEXBKDEV",&backnoises[e],H_FLOAT,T_FLOAT)
+		== RETURN_ERROR)
+              error(EXIT_FAILURE, "*Error*: Keyword not found:", "SEXBKDEV");
+            }
+          if (backnoises[e]<1/BIG)
+            backnoises[e] = 1.0;
+          e++;
+          }
+      next2 = e;
+      if (!next2)
         error(EXIT_FAILURE, "*Error*: SExtractor table missing in ",
 		filename[j]);
-      if (!ldflag)
-        {
-        fkey=read_key(tab, "Field Header Card");
-        head = fkey->ptr;
-        if (fitsread(head,"SEXBKDEV",&backnoise,H_FLOAT,T_FLOAT)==RETURN_ERROR)
-          error(EXIT_FAILURE, "*Error*: Keyword not found:", "SEXBKDEV");
-	}
-      if (backnoise<1/BIG)
-        backnoise = 1.0;
 
 /*---- Now load the objects */
+      e = 0;
       ext2 = ext+1;
       tab = cat->tab;
       for (j=cat->ntab; j--; tab=tab->nexttab)
         if (!strcmp("LDAC_OBJECTS", tab->extname)
 		||  !strcmp("OBJECTS", tab->extname))
-          if (!--ext2)
-            break;
-      if (j<0)
-        error(EXIT_FAILURE, "*Error*: OBJECTS table not found in catalog ",
-		filename[i]);
-      for (j=0; j<4; j++)
-        if (!(key[j]=name_to_key(tab, keynames[j])))
           {
-          sprintf(str, "%s not found in catalog %s", keynames[j], filename[i]);
-          error(EXIT_FAILURE, "*Error*: ", str);
-          }
+          if (ext >= 0 && !(--ext2))
+            continue;
+          if (e>=next2)
+            break;
+          for (j=0; j<4; j++)
+            if (!(key[j]=name_to_key(tab, keynames[j])))
+              {
+              sprintf(str, "%s not found in catalog %s", keynames[j],
+			filename[i]);
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
 
-      read_keys(tab, pkeynames, NULL, 4, NULL);
+          read_keys(tab, pkeynames, NULL, 4, NULL);
 
-/*---- Fill the FWHM array */
-      hl = key[0]->ptr;
-      fmax = key[1]->ptr;
-      flags = key[2]->ptr;
-      elong = key[3]->ptr;
-      for (n=tab->naxisn[1]; n--; hl++, fmax++, flags++, elong++)
-	{
-        if (*fmax/backnoise>minsn
+/*-------- Fill the FWHM array */
+          hl = key[0]->ptr;
+          fmax = key[1]->ptr;
+          flags = key[2]->ptr;
+          elong = key[3]->ptr;
+          backnoise = backnoises[e];
+          for (n=tab->naxisn[1]; n--; hl++, fmax++, flags++, elong++)
+            {
+            if (*fmax/backnoise>minsn
 		&& !(*flags&prefs.flag_mask)
 		&& *elong<maxelong
 		&& (fval=2.0**hl)>=min
 		&& fval<max)
-          {
-          if (++nobj>nobjmax)
-            {
-            nobjmax += LSAMPLE_DEFSIZE;
-            QREALLOC(fwhm, float, nobjmax);
-            fwhmt=fwhm+nobj-1;
+              {
+              if (++nobj>nobjmax)
+                {
+                nobjmax += LSAMPLE_DEFSIZE;
+                QREALLOC(fwhm, float, nobjmax);
+                fwhmt=fwhm+nobj-1;
+                }
+              *(fwhmt++) = fval;
+              }
             }
-          *(fwhmt++) = fval;
+          e++;
           }
-	}
       free_cat(&cat, 1);
       fwhmindex[i+1] = nobj;
+      free(backnoises);
       }
 
     if (prefs.var_type == VAR_NONE)
@@ -214,7 +226,12 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   mode = BIG;
   for (i=0; i<ncat; i++)
     {
-    set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
+    if (ext>=0)
+      set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
+			next, i, context, context->pc + i*context->npc);
+    else
+      for (e=0; e<next2; e++)
+        set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, e,
 			next, i, context, context->pc + i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];
@@ -388,14 +405,6 @@ setstruct *read_samples(setstruct *set, char *filename,
     }
   if (fitsread(head, "SEXGAIN", &gain, H_FLOAT, T_FLOAT) == RETURN_ERROR)
     error(EXIT_FAILURE, "*Error*: Keyword not found:", "SEXGAIN");
-
-  if (fitsread(head,  "SEXIMASX", &imaw, H_INT, T_LONG)== RETURN_ERROR
-	&& fitsread(head, "NAXIS1  ", &imaw, H_INT, T_LONG)== RETURN_ERROR)
-    error(EXIT_FAILURE,"*Error*: Image X-size not found","");
-
-  if (fitsread(head,  "SEXIMASY", &imah, H_INT, T_LONG)== RETURN_ERROR
-	&& fitsread(head, "NAXIS2  ", &imah, H_INT, T_LONG)== RETURN_ERROR)
-    error(EXIT_FAILURE,"*Error*: Image Y-size not found","");
 
   ext2 = ext+1;
   tab = cat->tab;
