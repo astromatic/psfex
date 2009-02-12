@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	17/09/2008
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -38,7 +38,7 @@ INPUT	Pointer to an array of PSF structures,
 	Number of principal components.
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+AUTHOR  E. Bertin (IAP)
 VERSION 20/02/2008
  ***/
 float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
@@ -111,18 +111,19 @@ float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
 
 
 /****** pca_oncomps ***********************************************************
-PROTO	double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
+PROTO	double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
 PURPOSE	Make a Principal Component Analysis in image space on PSF model
 	components.
 INPUT	Pointer to an array of PSF structures,
+	Number of extensions,
 	Number of catalogues (PSFs),
 	Number of principal components.
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 17/09/2008
+AUTHOR  E. Bertin (IAP)
+VERSION 12/02/2009
  ***/
-double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
+double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
   {
    psfstruct	*psf;
    char		str[MAXCHAR];
@@ -131,7 +132,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
 		*covmat, *covmatt, *pc,
 		dval, dstep,dstart;
    float	*pix, *vector;
-   int		d,i,c,c1,c2,n,p, ndim, nt, npix, npixt;
+   int		e, d,i,c,c1,c2,n,p, ndim, nt, npix, npixt;
 
 /* Build models of the PSF over a range of dependency parameters */
   ndim = psfs[0]->poly->ndim;
@@ -139,7 +140,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
   nt = 1;
   for (d=0; d<ndim; d++)
     nt *= PCA_NSNAP;
-  npixt = npix*nt;
+  npixt = npix*nt*next;
   dstep = 1.0/PCA_NSNAP;
   dstart = (1.0-dstep)/2.0;
 
@@ -152,23 +153,26 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		50.0*(float)c/ncat);
       NFPRINTF(OUTPUT, str);
-    psf = psfs[c];
-    for (d=0; d<ndim; d++)
-      dpos[d] = -dstart;
-    for (n=nt; n--;)
+    for (e=0; e<next; e++)
       {
-      psf_build(psf, dpos);
-      pix = psf->loc;
-      for (i=npix; i--;)
-        *(compt++) = (double)*(pix++);
+      psf = psfs[c*next+e];
       for (d=0; d<ndim; d++)
-        if (dpos[d]<dstart-0.01)
-          {
-          dpos[d] += dstep;
-          break;
-          }
-        else
-          dpos[d] = -dstart;
+        dpos[d] = -dstart;
+      for (n=nt; n--;)
+        {
+        psf_build(psf, dpos);
+        pix = psf->loc;
+        for (i=npix; i--;)
+          *(compt++) = (double)*(pix++);
+        for (d=0; d<ndim; d++)
+          if (dpos[d]<dstart-0.01)
+            {
+            dpos[d] += dstep;
+            break;
+            }
+          else
+            dpos[d] = -dstart;
+        }
       }
     }
 
@@ -215,7 +219,7 @@ double *pca_oncomps(psfstruct **psfs, int ncat, int npc)
     NFPRINTF(OUTPUT, str);
     pca_findpc(covmat, vector, ncat);
     for (c=0; c<ncat; c++)
-printf("%g \n",      pc[c*npc+p] = vector[c]);
+      pc[c*npc+p] = vector[c];
     }
 
   free(covmat);
@@ -235,7 +239,7 @@ INPUT	Covariance matrix,
 	Number of principal components.
 OUTPUT  Eigenvalue (variance) of the PC.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+AUTHOR  E. Bertin (IAP)
 VERSION 23/07/2008
  ***/
 double pca_findpc(double *covmat, float *vec, int nmat)

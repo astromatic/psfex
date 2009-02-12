@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for pca.c.
 *
-*	Last modify:	23/07/2008
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,7 +29,7 @@
 
 /*--------------------------- structure definitions -------------------------*/
 /*---------------------------------- protos --------------------------------*/
-extern double	*pca_oncomps(psfstruct **psfs, int ncat, int npc),
+extern double	*pca_oncomps(psfstruct **psfs, int next, int ncat, int npc),
 		pca_findpc(double *covmat, float *vec, int nmat);
 
 extern float	*pca_onsnaps(psfstruct **psfs, int ncat, int npc);

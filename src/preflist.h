@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	09/02/2009
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -70,6 +70,8 @@ pkeystruct key[] =
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
     {"NONE", "FWHM", "ELLIPTICITY", "MOFFAT_RESIDUALS", "ASYMMETRY"},
     0, MAXCHECK, &prefs.ncplot_type},
+  {"HIDDENMEF_TYPE", P_KEY, &prefs.hidden_mef_type, 0,0, 0.0,0.0,
+	{"INDEPENDENT", "COMMON", ""}},
   {"HOMOBASIS_NUMBER", P_INT, &prefs.homobasis_number, 0,10000},
   {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
   {"HOMOBASIS_TYPE", P_KEY, &prefs.homobasis_type, 0,0, 0.0,0.0,
@@ -77,8 +79,8 @@ pkeystruct key[] =
   {"HOMOKERNEL_SUFFIX", P_STRING, prefs.homokernel_suffix},
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
-  {"MOSAIC_TYPE", P_KEY, &prefs.mosaic_type, 0,0, 0.0,0.0,
-	{"CHIPS", "COMMON", ""}},
+  {"MEF_TYPE", P_KEY, &prefs.psf_mef_type, 0,0, 0.0,0.0,
+	{"INDEPENDENT", "COMMON", ""}},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
 	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
@@ -136,14 +138,15 @@ char *default_prefs[] =
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",
+"*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
 " ",
 "#----------------------------- PSF variability -----------------------------",
 " ",
 "PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params",
 "PSFVAR_GROUPS  1,1              # Group tag for each context key",
-"PSFVAR_DEGREES   2              # Polynom degree for each group",
+"PSFVAR_DEGREES 2                # Polynom degree for each group",
 "*PSFVAR_NSNAP   9                # Number of PSF snapshots per axis",
-"*MOSAIC_TYPE    CHIPS            # CHIPS or COMMON",
+"*HIDDENMEF_TYPE COMMON           # INDEPENDENT or COMMON",
 "*STABILITY_TYPE EXPOSURE         # EXPOSURE or SEQUENCE",
 " ",
 "#----------------------------- Sample selection ------------------------------",

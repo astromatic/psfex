@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	09/02/2009
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -61,7 +61,7 @@ void	makeit(void)
 			*pstr;
    float		*psfsteps, *basis,
 			psfstep;
-   int			c,i, ncat, ext, next, nmed, nbasis;
+   int			c,i,p, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -188,6 +188,32 @@ void	makeit(void)
         " extension accepted/total sampling chi2/dof FWHM(pix) ellip."
 	" residuals asymmetry");
 
+  if (prefs.hidden_mef_type == HIDDEN_MEF_COMMON && context->npc)
+/*-- Derive principal components of PSF variation from the whole mosaic */
+      {
+      p = 0;
+      QMALLOC(cpsf, psfstruct *, ncat*next);
+      for (c=0; c<ncat; c++)
+        {
+        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        for (ext=0 ; ext<next; ext++)
+          {
+          set = load_samples(&incatnames[c], 1, ext, next, context);
+          if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
+            psfstep = (float)((set->fwhm/2.35)*0.5);
+          NFPRINTF(OUTPUT, str);
+          cpsf[p++] = make_psf(set, psfstep, basis, nbasis, context);
+          end_set(set);
+          }
+        }
+      free(fullcontext->pc);
+      fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
+      for (c=0 ; c<ncat*next; c++)
+        psf_end(cpsf[c]);
+      free(cpsf);
+      }
+
+
   for (ext=0 ; ext<next; ext++)
     {
     if (prefs.newbasis_type == NEWBASIS_PCAMULTI)
@@ -210,7 +236,7 @@ void	makeit(void)
       free(cpsf);
       }
 
-    if (context->npc)
+    if (prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT && context->npc)
 /*---- Derive principal components of PSF components */
       {
       QMALLOC(cpsf, psfstruct *, ncat);
@@ -225,7 +251,7 @@ void	makeit(void)
         end_set(set);
         }
       free(fullcontext->pc);
-      fullcontext->pc = pca_oncomps(cpsf, ncat, context->npc);
+      fullcontext->pc = pca_oncomps(cpsf, 1, ncat, context->npc);
       for (c=0 ; c<ncat; c++)
         psf_end(cpsf[c]);
       free(cpsf);

@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	09/02/2009
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -89,10 +89,12 @@ typedef struct
   int		context_nsnap;			/* nb of snapshots / context */
   int		group_deg[MAXCONTEXT];		/* Degree for each group */
   int		ngroup_deg;			/* nb of params */
-  int		pc_type;			/* How are contexts defined */
-  enum	{MOSAIC_CHIPS, MOSAIC_COMMON}	mosaic_type;	/* Mosaic handling */
+  enum	{HIDDEN_MEF_INDEPENDENT, HIDDEN_MEF_COMMON}
+		hidden_mef_type;			/* Mosaic handling for hiddens*/
   enum	{STABILITY_EXPOSURE, STABILITY_SEQUENCE}
 		stability_type;			/* PSF stability range*/
+  enum	{PSF_MEF_INDEPENDENT, PSF_MEF_COMMON}
+		psf_mef_type;			/* Mosaic handling for PSF */
 /* Homogenisation kernel vector basis */
   enum	{HOMOBASIS_NONE, HOMOBASIS_GAUSSLAGUERRE}
 		homobasis_type;			/* Homo. kernel basis set */

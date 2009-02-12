@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	11/02/2009
+*	Last modify:	12/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -86,6 +86,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 /*-- Try to estimate the most appropriate Half-light Radius range */
 /*-- Get the Half-light radii */
     nobj = 0;
+    next2 = 1;
     for (i=0; i<ncat; i++)
       {
       sprintf(str,"Examining Catalog #%d", i+1);
@@ -336,7 +337,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 			backnoise, backnoise2, gain, minsn,maxelong;
    static int		ncat;
    int			i,j, n, nsample,nsamplemax,
-			vigw, vigh, vigsize, imaw,imah, nobj, nt,
+			vigw, vigh, vigsize, nobj, nt,
 			maxbad, maxbadflag, ldflag, ext2, pc;
 
 
