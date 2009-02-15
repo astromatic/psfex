@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	22/07/2008
+*	Last modify:	13/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -33,6 +33,7 @@
 #define		BIG		1e+30		/* a huge number */
 #define		MAXCHAR		512		/* max. number of characters */
 #define		MAXFILE		32768		/* max number of input files */
+#define		ALL_EXTENSIONS	(-1)		/* code for all MEF extensions*/
 
 /*------------ Set defines according to machine's specificities -------------*/
 #if _LARGEFILE_SOURCE

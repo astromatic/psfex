@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	08/07/2008
+*	Last modify:	15/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -59,7 +59,8 @@ extern void		field_end(fieldstruct *field),
 			field_psfsave(fieldstruct *field, char *filename);
 
 void			context_apply(contextstruct *context, psfstruct *psf,
-				fieldstruct **fields, int ext, int ncat),
+				fieldstruct **fields, int ext, int catindex,
+				int ncat),
 			context_end(contextstruct *context);
 
 #endif

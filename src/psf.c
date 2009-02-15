@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	29/10/2008
+*	Last modify:	13/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -341,29 +341,30 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/03/2008
+VERSION 13/02/2009
  ***/
 psfstruct	*psf_inherit(contextstruct *context, psfstruct *psf)
   {
    psfstruct	*newpsf;
    int		c,co, ncnew,ncold, npix;
 
-    newpsf = psf_init(context, psf->size, psf->pixstep, 10000);
-    newpsf->fwhm = psf->fwhm;
-    npix = psf->size[0]*psf->size[1];
-    if (psf->pixmask)
-      QMEMCPY(psf->pixmask, newpsf->pixmask, int, npix);
-    if (psf->basis)
-      QMEMCPY(psf->basis, newpsf->basis, float, psf->nbasis*npix);
-    ncold = psf->poly->ndim;
-    ncnew = newpsf->poly->ndim;
-    for (c=0; c<ncnew; c++)
-      for (co=0; co<ncold; co++)
-        if (!strcmp(newpsf->contextname[c],psf->contextname[co]))
-          {
-          newpsf->contextoffset[c] = psf->contextoffset[co];
-          newpsf->contextscale[c] = psf->contextscale[co];
-          }
+/* 10000 is just a dummy number */
+  newpsf = psf_init(context, psf->size, psf->pixstep, 10000);
+  newpsf->fwhm = psf->fwhm;
+  npix = psf->size[0]*psf->size[1];
+  if (psf->pixmask)
+    QMEMCPY(psf->pixmask, newpsf->pixmask, int, npix);
+  if (psf->basis)
+    QMEMCPY(psf->basis, newpsf->basis, float, psf->nbasis*npix);
+  ncold = psf->poly->ndim;
+  ncnew = newpsf->poly->ndim;
+  for (c=0; c<ncnew; c++)
+    for (co=0; co<ncold; co++)
+      if (!strcmp(newpsf->contextname[c],psf->contextname[co]))
+        {
+        newpsf->contextoffset[c] = psf->contextoffset[co];
+        newpsf->contextscale[c] = psf->contextscale[co];
+        }
 
   return newpsf;
   }

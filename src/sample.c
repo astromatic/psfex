@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	12/02/2009
+*	Last modify:	13/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -124,6 +124,8 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
       if (!next2)
         error(EXIT_FAILURE, "*Error*: SExtractor table missing in ",
 		filename[j]);
+      if (next2>next)
+        next2 = next;
 
 /*---- Now load the objects */
       e = 0;
@@ -133,7 +135,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
         if (!strcmp("LDAC_OBJECTS", tab->extname)
 		||  !strcmp("OBJECTS", tab->extname))
           {
-          if (ext >= 0 && !(--ext2))
+          if (ext != ALL_EXTENSIONS && !(--ext2))
             continue;
           if (e>=next2)
             break;
@@ -227,12 +229,12 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   mode = BIG;
   for (i=0; i<ncat; i++)
     {
-    if (ext>=0)
-      set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
-			next, i, context, context->pc + i*context->npc);
-    else
+    if (ext == ALL_EXTENSIONS)
       for (e=0; e<next2; e++)
         set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, e,
+			next, i, context, context->pc + i*context->npc);
+    else
+      set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
 			next, i, context, context->pc + i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];

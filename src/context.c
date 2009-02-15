@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	29/10/2008
+*	Last modify:	15/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -34,18 +34,19 @@
 #include "field.h"
 
 /****** context_init *********************************************************
-PROTO   contextstruct *context_init(char **names, int *group, int ngroup,
-		int *group_deg)
+PROTO   contextstruct *context_init(char **names, int *group, int ndim,
+			int *degree, int ngroup, int pcexflag)
 PURPOSE Allocate and initialize a context structure.
 INPUT   Pointer to an array of context names,
 	Pointer to an array of group indices,
+	Number of dependency parameters,
+	Pointer to an array of group degrees,
 	Number of groups,
-	Pointer to an array of dimensions per group,
 	Principal Component exclusion flag.
-OUTPUT  -.
+OUTPUT  Pointer to an allocated context structure.
 NOTES   See prefs.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/02/2008
+VERSION 13/02/2009
 */
 contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
 	 int ngroup, int pcexflag)
@@ -65,7 +66,7 @@ contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
   d2=0;
   for (d=0; d<ndim; d++)
     {
-    if ((pcflag = !wstrncmp(names[d], "PC?", 80)))
+    if ((pcflag = !wstrncmp(names[d], "HIDDEN?", 80)))
       {
       context->npc++;
       if (!pcexflag)
@@ -105,20 +106,22 @@ contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
 
 
 /****** context_apply ********************************************************
-PROTO	double context_apply(contextstruct *context, psfstruct **psfs, int npsf)
-PURPOSE	Find the principal component (the one with the highest eigenvalue) and
-	subtract its contribution from the covariance matrix, using the
-	iterative "power" method.
-INPUT	Covariance matrix,
-	output vector,
-	Number of principal components.
-OUTPUT  Eigenvalue (variance) of the PC.
+PROTO	void context_apply(contextstruct *context, psfstruct *psf,
+		fieldstruct **fields, int ext, int catindex, int ncat)
+PURPOSE	"Apply" hidden dependencies to a set of PSFs.
+INPUT	Pointer to the full context,
+	Pointer to the PSF which depends (or not) on hidden dependencies,
+	Pointer to an array of fields where the final PSFs are to be copied.
+	Current extension,
+	Starting catalog index,
+	Number of catalogs.
+OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 15/03/2008
+AUTHOR  E. Bertin (IAP)
+VERSION 15/02/2009
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
-		fieldstruct **fields, int ext, int ncat)
+		fieldstruct **fields, int ext, int catindex, int ncat)
   {
    psfstruct		*psf2;
    polystruct		*poly, *poly2;
@@ -129,10 +132,15 @@ void context_apply(contextstruct *context, psfstruct *psf,
 			dval;
    float		*comp, *comp2, *comp2t;
    int			*polycopyflag, *polycopyflagt,
-			c,c2, i, n,n2, p, npc, npix,comp2size,ncontext2;
+			c,c2, e, i, n,n2, p, npc, npix,comp2size,ncontext2;
 
-  for (p=0; p<ncat; p++)
-    fields[p]->psf[ext] = psf_copy(psf);
+  ncat += catindex;
+  for (p=catindex; p<ncat; p++)
+    if (ext==ALL_EXTENSIONS)
+      for (e=0; e<fields[p]->next; e++)
+        fields[p]->psf[e] = psf_copy(psf);
+    else
+      fields[p]->psf[ext] = psf_copy(psf);
 
 /* No PC dependency: the PSF is simply duplicated */
   if (!context->npc)
@@ -151,7 +159,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
 
 /* Create a new context with the PCs removed */
   context2 = context_init(context->name, context->group, context->ncontext,
-			context->degree, context->ngroup, CONTEXT_REMOVEPC);
+			context->degree, context->ngroup, CONTEXT_REMOVEHIDDEN);
   ncontext2 = context2->ncontext;
   poly2 = poly_init(context2->group, context2->ncontext, context2->degree,
 		context2->ngroup);
@@ -182,7 +190,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
   npix = psf->size[0]*psf->size[1];
   comp2size = npix*poly2->ncoeff;
   npc = context->npc;
-  for (p=0; p<ncat; p++)
+  for (p=catindex; p<ncat; p++)
     {
 /*--- Update PC component values */
     c2 = 0;
@@ -205,10 +213,25 @@ void context_apply(contextstruct *context, psfstruct *psf,
           for (i=npix; i--;)
             *(comp2t++) += dval**(comp++);
           }
-/*-- Replace the new PSF components; 1000000 is just a big number */
-    fields[p]->psf[ext] = psf2 = psf_inherit(context2, psf);
-    free(psf2->comp);
-    psf2->comp = comp2;    
+/*-- Replace the new PSF components */
+    if (ext==ALL_EXTENSIONS)
+      for (e=0;e<fields[p]->next; e++)
+        {
+        fields[p]->psf[e] = psf2 = psf_inherit(context2, psf);
+        free(psf2->comp);
+        if (e)
+          {
+          QMEMCPY(comp2, psf2->comp, float, comp2size);
+          }
+        else
+          psf2->comp = comp2;
+        }
+    else
+      {
+      fields[p]->psf[ext] = psf2 = psf_inherit(context2, psf);
+      free(psf2->comp);
+      psf2->comp = comp2;
+      }
     }
 
   return;

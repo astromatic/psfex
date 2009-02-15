@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to contexts
 *
-*	Last modify:	11/03/2008
+*	Last modify:	13/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -21,8 +21,8 @@
 /*--------------------------------- constants -------------------------------*/
 
 #define		MAXCONTEXT		8	/* max. # of context keys */
-#define		CONTEXT_KEEPPC		0
-#define		CONTEXT_REMOVEPC	1
+#define		CONTEXT_KEEPHIDDEN	0
+#define		CONTEXT_REMOVEHIDDEN	1
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -45,3 +45,4 @@ contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
 
 
 #endif
+

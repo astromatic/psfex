@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	12/02/2009
+*	Last modify:	13/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -82,7 +82,7 @@ pkeystruct key[] =
   {"MEF_TYPE", P_KEY, &prefs.psf_mef_type, 0,0, 0.0,0.0,
 	{"INDEPENDENT", "COMMON", ""}},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
-	{"NONE", "PCA_MULTI", "PCA_SINGLE", ""}},
+	{"NONE", "PCA_INDEPENDENT", "PCA_COMMON", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
@@ -132,7 +132,8 @@ char *default_prefs[] =
 "BASIS_NUMBER    16              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
-"*NEWBASIS_TYPE   NONE            # Create new basis: NONE,PCA_MULTI or PCA_SINGLE",
+"*NEWBASIS_TYPE   NONE            # Create new basis: NONE, PCA_INDEPENDENT",
+"*                                # or PCA_COMMON",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",

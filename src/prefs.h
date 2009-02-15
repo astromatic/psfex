@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	12/02/2009
+*	Last modify:	14/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -52,7 +52,7 @@ typedef struct
   int		ncat;				/* Number of input images */
   char		psf_suffix[MAXCHAR];		/* Suffix for PSF filenames */
   int		psf_size[2], npsf_size;		/* PSF size */
-  enum {NEWBASIS_NONE, NEWBASIS_PCAMULTI, NEWBASIS_PCASINGLE}
+  enum {NEWBASIS_NONE, NEWBASIS_PCAINDEPENDENT, NEWBASIS_PCACOMMON}
 		newbasis_type;			/* Type of new basis */
   int		newbasis_number;		/* Number of PCs */
 /* Point-source sample */
