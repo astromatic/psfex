@@ -113,8 +113,18 @@ void	makeit(void)
 
 /* Create an array of PSFs (one PSF for each extension) */
   QMALLOC(fields, fieldstruct *, ncat);
+
+  NFPRINTF(OUTPUT, "");
+  QPRINTF(OUTPUT, "----- %d input catalogues:\n", ncat);
   for (c=0; c<ncat; c++)
+    {
     fields[c] = field_init(incatnames[c]);
+    QPRINTF(OUTPUT, "%-20.20s:  \"%-16.16s\"  %3d extension%s %7d detection%s\n",
+        fields[c]->rcatname, fields[c]->ident,
+        fields[c]->next, fields[c]->next>1 ? "s":"",
+        fields[c]->ndet, fields[c]->ndet>1 ? "s":"");
+    }
+  QPRINTF(OUTPUT, "\n");
 
   next = fields[0]->next;
 
@@ -128,6 +138,7 @@ void	makeit(void)
   basiss = NULL;
 
 /* Initialize context */
+  NFPRINTF(OUTPUT, "Initializing contexts...");
   context = context_init(prefs.context_name, prefs.context_group,
 		prefs.ncontext_group, prefs.group_deg, prefs.ngroup_deg,
 		CONTEXT_REMOVEHIDDEN);
@@ -137,35 +148,40 @@ void	makeit(void)
 		    CONTEXT_KEEPHIDDEN)
 		: context;
 
-  if (prefs.newbasis_type==NEWBASIS_PCAINDEPENDENT && (!psfstep))
+/* Compute PSF steps */
+  if (!prefs.psf_step)
     {
-/* A first run through all samples only to derive a common pixel step */
-    QMALLOC(psfsteps, float, next);
-    for (ext=0 ; ext<next; ext++)
+    NFPRINTF(OUTPUT, "Computing optimum PSF sampling steps...");
+/*-- Need to derive a common pixel step for each ext */
+    if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT
+	|| (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT)
+	|| (prefs.stability_type == STABILITY_SEQUENCE
+		&& prefs.psf_mef_type == PSF_MEF_INDEPENDENT))
       {
-      set = load_samples(incatnames, ncat, ext, next, context);
-      psfsteps[ext] = (float)(psfstep? psfstep : (set->fwhm/2.35)*0.5);
-      end_set(set);
-      }
-    }
-  else if (prefs.newbasis_type==NEWBASIS_PCACOMMON)
-    {
-    NFPRINTF(OUTPUT, "");
-    QPRINTF(OUTPUT,
-	"----- First pass for Principal Component Analysis (single): "
-	"%dx%d PSFs required\n", ncat, next);
-    if (!prefs.psf_step)
-      {
+/*-- Run through all samples to derive a different pixel step for each extension */
       QMALLOC(psfsteps, float, next);
       for (ext=0 ; ext<next; ext++)
         {
         set = load_samples(incatnames, ncat, ext, next, context);
-        psfsteps[ext] = (float)((set->fwhm/2.35)*0.5);
+        psfsteps[ext] = (float)(psfstep? psfstep : (set->fwhm/2.35)*0.5);
         end_set(set);
         }
-      psfstep = fast_median(psfsteps, next);
       }
-/*-- Derive a new common PCA basis for all extensions */
+    else if (prefs.newbasis_type==NEWBASIS_PCACOMMON
+	|| (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_COMMON)
+	|| (prefs.stability_type == STABILITY_SEQUENCE
+		&& prefs.psf_mef_type == PSF_MEF_COMMON))
+      {
+      set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
+      psfstep = (float)((set->fwhm/2.35)*0.5);
+      end_set(set);
+      }
+    }
+
+/* Derive a new common PCA basis for all extensions */
+  if (prefs.newbasis_type==NEWBASIS_PCACOMMON)
+    {
+    NFPRINTF(OUTPUT, "Computing new PCA image basis using all extensions...");
     QMALLOC(cpsf, psfstruct *, ncat*next);
     for (ext=0 ; ext<next; ext++)
       for (c=0; c<ncat; c++)
@@ -181,12 +197,34 @@ void	makeit(void)
     for (i=0 ; i<ncat*next; i++)
       psf_end(cpsf[i]);
     free(cpsf);
-    NFPRINTF(OUTPUT, "");
-    QPRINTF(OUTPUT,
-	"----- Second pass for Principal Component Analysis (single):\n\n");
     }
 
-  if (prefs.hidden_mef_type == HIDDEN_MEF_COMMON && context->npc)
+/* Derive a new PCA basis for each extension */
+  if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT)
+    {
+    NFPRINTF(OUTPUT, "Computing new PCA image basis using all extensions...");
+    nbasis = prefs.newbasis_number;
+    QMALLOC(basiss, float *, next);
+    for (ext=0; ext<next; ext++)
+      {
+      psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
+      QMALLOC(cpsf, psfstruct *, ncat);
+      for (c=0; c<ncat; c++)
+        {
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        NFPRINTF(OUTPUT, str);
+        cpsf[c] = make_psf(set, psfstep, NULL, 0, context);
+        end_set(set);
+        }
+      basiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
+      for (c=0 ; c<ncat; c++)
+        psf_end(cpsf[c]);
+      free(cpsf);
+      }
+    }
+
+  if (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_COMMON)
 /*-- Derive principal components of PSF variation from the whole mosaic */
     {
     p = 0;
@@ -209,30 +247,6 @@ void	makeit(void)
     for (c=0 ; c<ncat*next; c++)
       psf_end(cpsf[c]);
     free(cpsf);
-    }
-
-  if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT)
-/*-- Derive a new PCA basis for each extension */
-    {
-    nbasis = prefs.newbasis_number;
-    QMALLOC(basiss, float *, next);
-    for (ext=0; ext<next; ext++)
-      {
-      psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
-      QMALLOC(cpsf, psfstruct *, ncat);
-      for (c=0; c<ncat; c++)
-        {
-        set = load_samples(&incatnames[c], 1, ext, next, context);
-        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
-        NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, NULL, 0, context);
-        end_set(set);
-        }
-      basiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
-      for (c=0 ; c<ncat; c++)
-        psf_end(cpsf[c]);
-      free(cpsf);
-      }
     }
 
   if (prefs.psf_mef_type == PSF_MEF_COMMON)
@@ -324,8 +338,8 @@ void	makeit(void)
 
 /* Compute diagnostics and check-images */
   QIPRINTF(OUTPUT,
-        " extension accepted/total sampling chi2/dof FWHM(pix) ellip."
-	" residuals asymmetry");
+        "   filename      [ext] accepted/total samp. chi2/dof FWHM ellip."
+	" resi. asym.");
   for (c=0; c<ncat; c++)
     {
     for (ext=0 ; ext<next; ext++)
@@ -350,11 +364,14 @@ void	makeit(void)
       strcpy(str2, fields[c]->rcatname);
       if ((pstr=strrchr(str2, '.')))
         *pstr = '\0';
-      sprintf(str, "%s[%d]
-      QPRINTF(OUTPUT, "%-20s[%3d] %5d/%-5d %6.2f %6.2f %6.2f %4.2f"
-	"    %5.2f     %5.2f\n",
-	fields[c]->rcatname,
-	ext+1,
+      if (next>1)
+        sprintf(str, "[%d/%d]", ext+1, next);
+      else
+        str[0] = '\0';
+      QPRINTF(OUTPUT, "%-17.17s%-7.7s %5d/%-5d %6.2f %6.2f %6.2f  %4.2f"
+	" %5.2f %5.2f\n",
+	ext==0? str2 : "",
+	str,
 	psf->samples_accepted, psf->samples_loaded,
 	psf->pixstep,
 	psf->chi2,
@@ -377,7 +394,7 @@ void	makeit(void)
     }
 
 /* Save result */
-  NFPRINTF(OUTPUT,"Saving the PSF descriptions...");
+  NFPRINTF(OUTPUT,"Saving PSF models...");
   for (c=0; c<ncat; c++)
     {
 /*-- Create a file name with a "PSF" extension */

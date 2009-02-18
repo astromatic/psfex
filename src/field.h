@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	15/02/2009
+*	Last modify:	18/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,6 +40,7 @@ typedef struct field
   char		*rcatname;		/* "Reduced" catalog name */
   char		ident[MAXCHAR];		/* Field identifier (read from FITS) */
   int		next;			/* Number of extensions */
+  int		ndet;			/* Number of detections (info only) */
   psfstruct	**psf;			/* Array of PSFs */
   wcsstruct	**wcs;			/* Array of WCS structures */
   setstruct	*set;			/* Array of catalogues */

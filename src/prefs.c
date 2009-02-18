@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	01/09/2008
+*	Last modify:	18/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -449,7 +449,7 @@ void	useprefs()
 
   {
    unsigned short	ashort=1;
-   int		i, flag;
+   int			i, flag;
 #ifdef USE_THREADS
    int			nproc;
 #endif
@@ -506,7 +506,7 @@ void	useprefs()
     prefs.psf_size[1] = prefs.psf_size[0];
 
   if (!prefs.autoselect_flag && !prefs.psf_step)
-    warning("PSF_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",
+    warning("SAMPLE_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",
 		" PSF_SAMPLING will default to 1 pixel");
 
 /*------------------------------- Contexts ---------------------------------*/
@@ -523,6 +523,30 @@ void	useprefs()
 /* ngroup_deg implicitely states the number of groups (one degree per group) */
   if (!prefs.ncontext_group)
     prefs.ngroup_deg = 0;
+
+/*---------------------------- Common/independent MEF ----------------------*/
+  if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT
+	&& prefs.psf_mef_type == PSF_MEF_COMMON)
+    {
+    prefs.newbasis_type = NEWBASIS_PCACOMMON;
+    warning("NEWBASIS_TYPE PCA_INDEPENDENT is incompatible with "
+	"MEF_TYPE COMMON:\n", " NEWBASIS_TYPE forced to PCA_COMMON");
+    }
+
+  flag = 0;
+  for (i=0; i<prefs.ncontext_name; i++)
+    if (!wstrncmp(prefs.context_name[i], "HIDDEN?", 80))
+      {
+      flag = 1;
+      break;
+      }
+  if (flag && prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT
+	&& prefs.psf_mef_type == PSF_MEF_COMMON)
+    {
+    prefs.hidden_mef_type = HIDDEN_MEF_COMMON;
+    warning("HIDDENMEF_TYPE INDEPENDENT is incompatible with "
+	"MEF_TYPE COMMON:\n", " HIDDENMEF_TYPE forced to COMMON");
+    }
 
 /*----------------------------- CHECK-images -------------------------------*/
   flag = 0;
