@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF homogenisation stuff.
 *
-*	Last modify:	04/02/2008
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 04/02/2008
+VERSION 19/02/2009
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -65,7 +65,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 			c,c1,c2,c3,c4,d,f1,f2,i,j,j1,j2,n,p,
 			nt, npix,nbigpix, ndim, nbasis,ncoeff,nfree;
 
-  NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
+//  NFPRINTF(OUTPUT,"Computing the PSF homogenization kernel...");
 
   npix = psf->size[0]*psf->size[1];
   poly = psf->poly;

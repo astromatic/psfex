@@ -447,10 +447,6 @@ void	makeit(void)
 /* Create homogenisation kernels */
     if (prefs.homobasis_type != HOMOBASIS_NONE)
       {
-      strcpy(str, incatnames[c]);
-      if (!(pstr = strrchr(str, '.')))
-        pstr = str+strlen(str);
-        sprintf(pstr, "%s", prefs.homokernel_suffix);
       for (ext=0; ext<next; ext++)
         {
         if (next>1)
@@ -460,6 +456,10 @@ void	makeit(void)
           sprintf(str, "Computing homogenisation kernel for %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
+        strcpy(str, incatnames[c]);
+        if (!(pstr = strrchr(str, '.')))
+          pstr = str+strlen(str);
+        sprintf(pstr, "%s", prefs.homokernel_suffix);
         psf_homo(fields[c]->psf[ext], str, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
         }
