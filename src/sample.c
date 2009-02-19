@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	13/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -57,7 +57,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
    int			*fwhmindex,
 			e,i,j,n, nobj,nobjmax, ldflag, ext2, next2;
 
-  NFPRINTF(OUTPUT,"Loading samples...");
+//  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
   maxelong = (float)(prefs.maxellip < 1.0?
 	(prefs.maxellip + 1.0)/(1.0 - prefs.maxellip)
@@ -90,7 +90,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
     for (i=0; i<ncat; i++)
       {
       sprintf(str,"Examining Catalog #%d", i+1);
-      NFPRINTF(OUTPUT, str);
+//      NFPRINTF(OUTPUT, str);
 /*---- Read input catalog */
       if (!(cat = read_cat(filename[i])))
         error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[i]);
@@ -243,7 +243,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   set->fwhm = mode;
 
   sprintf(str, "%d samples loaded.", set->nsample);
-  NFPRINTF(OUTPUT, str);
+//  NFPRINTF(OUTPUT, str);
 
   if (!set->nsample)
     warning("No appropriate source found!!","");
@@ -521,7 +521,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       {
       sprintf(str,"Catalog #%d %s: Object #%d / %d samples stored",
 	ncat, str2, n,nsample);
-      NFPRINTF(OUTPUT, str);
+//      NFPRINTF(OUTPUT, str);
       }
     sn = (double)(backnoise>0.0? *fluxmax/backnoise : BIG);
 /*---- Apply some selection over flags, fluxes... */

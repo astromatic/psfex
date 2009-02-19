@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	12/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -56,12 +56,12 @@ void	makeit(void)
    setstruct		*set, *set2;
    contextstruct	*context, *fullcontext;
    struct tm		*tm;
-   char			str[MAXCHAR], str2[MAXCHAR];
+   char			str[MAXCHAR];
    char			**incatnames,
 			*pstr;
-   float		**basiss,
-			*psfsteps, *basis,
-			psfstep;
+   float		**psfbasiss,
+			*psfsteps, *psfbasis, *basis,
+			psfstep, step;
    int			c,i,p, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
@@ -134,8 +134,8 @@ void	makeit(void)
   psfstep = prefs.psf_step;
   psfsteps = NULL;
   nbasis = 0;
-  basis = NULL;
-  basiss = NULL;
+  psfbasis = NULL;
+  psfbasiss = NULL;
 
 /* Initialize context */
   NFPRINTF(OUTPUT, "Initializing contexts...");
@@ -152,9 +152,17 @@ void	makeit(void)
   if (!prefs.psf_step)
     {
     NFPRINTF(OUTPUT, "Computing optimum PSF sampling steps...");
+    if (prefs.newbasis_type==NEWBASIS_PCACOMMON
+	|| (prefs.stability_type == STABILITY_SEQUENCE
+		&& prefs.psf_mef_type == PSF_MEF_COMMON))
+      {
+      set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
+      psfstep = (float)((set->fwhm/2.35)*0.5);
+      end_set(set);
+      }
 /*-- Need to derive a common pixel step for each ext */
-    if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT
-	|| (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT)
+    else if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT
+	|| context->npc
 	|| (prefs.stability_type == STABILITY_SEQUENCE
 		&& prefs.psf_mef_type == PSF_MEF_INDEPENDENT))
       {
@@ -167,57 +175,51 @@ void	makeit(void)
         end_set(set);
         }
       }
-    else if (prefs.newbasis_type==NEWBASIS_PCACOMMON
-	|| (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_COMMON)
-	|| (prefs.stability_type == STABILITY_SEQUENCE
-		&& prefs.psf_mef_type == PSF_MEF_COMMON))
-      {
-      set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
-      psfstep = (float)((set->fwhm/2.35)*0.5);
-      end_set(set);
-      }
     }
 
 /* Derive a new common PCA basis for all extensions */
   if (prefs.newbasis_type==NEWBASIS_PCACOMMON)
     {
-    NFPRINTF(OUTPUT, "Computing new PCA image basis using all extensions...");
     QMALLOC(cpsf, psfstruct *, ncat*next);
     for (ext=0 ; ext<next; ext++)
       for (c=0; c<ncat; c++)
         {
-        set = load_samples(&incatnames[c], 1, ext, next, context);
-        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        sprintf(str, "Computing new PCA image basis from %s...",
+		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        step = psfstep;
         cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context);
         end_set(set);
         }
     nbasis = prefs.newbasis_number;
-    basis = pca_onsnaps(cpsf, ncat*next, nbasis);
+    psfbasis = pca_onsnaps(cpsf, ncat*next, nbasis);
     for (i=0 ; i<ncat*next; i++)
       psf_end(cpsf[i]);
     free(cpsf);
     }
-
 /* Derive a new PCA basis for each extension */
-  if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT)
+  else if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT)
     {
-    NFPRINTF(OUTPUT, "Computing new PCA image basis using all extensions...");
     nbasis = prefs.newbasis_number;
-    QMALLOC(basiss, float *, next);
+    QMALLOC(psfbasiss, float *, next);
     for (ext=0; ext<next; ext++)
       {
-      psfstep = prefs.psf_step? prefs.psf_step : psfsteps[ext];
+      if (psfsteps)
+        step = psfsteps[ext];
+      else
+        step = psfstep;
       QMALLOC(cpsf, psfstruct *, ncat);
       for (c=0; c<ncat; c++)
         {
-        set = load_samples(&incatnames[c], 1, ext, next, context);
-        sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+        sprintf(str, "Computing new PCA image basis from %s...",
+		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        cpsf[c] = make_psf(set, psfstep, NULL, 0, context);
+        set = load_samples(&incatnames[c], 1, ext, next, context);
+        cpsf[c] = make_psf(set, step, NULL, 0, context);
         end_set(set);
         }
-      basiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
+      psfbasiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
       for (c=0 ; c<ncat; c++)
         psf_end(cpsf[c]);
       free(cpsf);
@@ -231,14 +233,18 @@ void	makeit(void)
     QMALLOC(cpsf, psfstruct *, ncat*next);
     for (c=0; c<ncat; c++)
       {
-      sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+      sprintf(str, "Computing hidden dependency parameter(s) from %s...",
+		fields[c]->rtcatname);
+      NFPRINTF(OUTPUT, str);
       for (ext=0 ; ext<next; ext++)
         {
         set = load_samples(&incatnames[c], 1, ext, next, context);
-        if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-          psfstep = (float)((set->fwhm/2.35)*0.5);
-        NFPRINTF(OUTPUT, str);
-        cpsf[p++] = make_psf(set, psfstep, basis, nbasis, context);
+        if (psfsteps)
+          step = psfsteps[ext];
+        else
+          step = psfstep;
+        basis = psfbasiss? psfbasiss[ext] : psfbasis;
+        cpsf[p++] = make_psf(set, step, basis, nbasis, context);
         end_set(set);
         }
       }
@@ -255,11 +261,11 @@ void	makeit(void)
       {
 /*---- Load all the samples at once */
       set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
-      if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-        psfstep = (float)((set->fwhm/2.35)*0.5);
-      psf = make_psf(set, psfstep, basis, nbasis, context);
+      step = psfstep;
+      basis = psfbasis;
+      psf = make_psf(set, step, basis, nbasis, context);
       end_set(set);
-      NFPRINTF(OUTPUT, "Computing final model...");
+      NFPRINTF(OUTPUT, "Computing final PSF model...");
       context_apply(context, psf, fields, ALL_EXTENSIONS, 0, ncat);
       psf_end(psf);
       }
@@ -267,10 +273,16 @@ void	makeit(void)
       for (c=0; c<ncat; c++)
         {
 /*------ Load the samples for current exposure */
+        sprintf(str, "Computing final PSF model from %s...",
+		fields[c]->rtcatname);
+        NFPRINTF(OUTPUT, str);
         set = load_samples(&incatnames[c], 1, ALL_EXTENSIONS, next, context);
-        if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-          psfstep = (float)((set->fwhm/2.35)*0.5);
-        psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+        if (psfstep)
+          step = psfstep;
+        else
+          step = (float)((set->fwhm/2.35)*0.5);
+        basis = psfbasis;
+        psf = make_psf(set, step, basis, nbasis, fullcontext);
         end_set(set);
         context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
         psf_end(psf);
@@ -279,18 +291,27 @@ void	makeit(void)
   else
     for (ext=0 ; ext<next; ext++)
       {
-      if (prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT && context->npc)
+      basis = psfbasiss? psfbasiss[ext] : psfbasis;
+      if (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_INDEPENDENT)
 /*------ Derive principal components of PSF components */
         {
         QMALLOC(cpsf, psfstruct *, ncat);
+        if (psfsteps)
+          step = psfsteps[ext];
+        else
+          step = psfstep;
         for (c=0; c<ncat; c++)
           {
-          set = load_samples(&incatnames[c], 1, ext, next, context);
-          if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-            psfstep = (float)((set->fwhm/2.35)*0.5);
-          sprintf(str, "Computing PSF model for catalog %s...", incatnames[c]);
+          if (next>1)
+            sprintf(str,
+		"Computing hidden dependency parameter(s) from %s[%d/%d]...",
+		fields[c]->rtcatname, ext+1, next);
+          else
+            sprintf(str, "Computing hidden dependency parameter(s) from %s...",
+		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
-          cpsf[c] = make_psf(set, psfstep, basis, nbasis, context);
+          set = load_samples(&incatnames[c], 1, ext, next, context);
+          cpsf[c] = make_psf(set, step, basis, nbasis, context);
           end_set(set);
           }
         free(fullcontext->pc);
@@ -303,12 +324,23 @@ void	makeit(void)
       if (prefs.stability_type == STABILITY_SEQUENCE)
         {
 /*------ Load all the samples at once */
+        if (next>1)
+          {
+          sprintf(str, "Computing final PSF model for extension [%d/%d]...",
+		ext+1, next);
+          NFPRINTF(OUTPUT, str);
+          }
+        else
+          NFPRINTF(OUTPUT, "Computing final PSF model...");
         set = load_samples(incatnames, ncat, ext, next, fullcontext);
-        if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-          psfstep = (float)((set->fwhm/2.35)*0.5);
-        psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+        if (psfstep)
+          step = psfstep;
+        else if (psfsteps)
+          step = psfsteps[ext];
+        else
+          step = (float)((set->fwhm/2.35)*0.5);
+        psf = make_psf(set, step, basis, nbasis, fullcontext);
         end_set(set);
-        NFPRINTF(OUTPUT, "Computing final model...");
         context_apply(fullcontext, psf, fields, ext, 0, ncat);
         psf_end(psf);
         }
@@ -316,25 +348,36 @@ void	makeit(void)
         for (c=0; c<ncat; c++)
           {
 /*-------- Load the samples for current exposure */
+          if (next>1)
+            sprintf(str, "Computing final PSF model for %s[%d/%d]...",
+		fields[c]->rtcatname, ext+1, next);
+          else
+            sprintf(str, "Computing final PSF model for %s...",
+		fields[c]->rtcatname);
+          NFPRINTF(OUTPUT, str);
           set = load_samples(&incatnames[c], 1, ext, next, context);
-          if (prefs.newbasis_type == NEWBASIS_NONE && !psfstep)
-            psfstep = (float)((set->fwhm/2.35)*0.5);
-          psf = make_psf(set, psfstep, basis, nbasis, fullcontext);
+          if (psfstep)
+            step = psfstep;
+          else if (psfsteps)
+            step = psfsteps[ext];
+          else
+            step = (float)((set->fwhm/2.35)*0.5);
+          psf = make_psf(set, step, basis, nbasis, context);
           end_set(set);
-          context_apply(fullcontext, psf, fields, ext, c, 1);
+          context_apply(context, psf, fields, ext, c, 1);
           psf_end(psf);
           }
       }
 
   free(psfsteps);
-  if (basiss)
+  if (psfbasiss)
     {
     for (ext=0; ext<next; ext++)
-      free(basiss[ext]);
-    free(basiss);
+      free(psfbasiss[ext]);
+    free(psfbasiss);
     }
-  if (basis)
-    free(basis);
+  else if (psfbasis)
+    free(psfbasis);
 
 /* Compute diagnostics and check-images */
   QIPRINTF(OUTPUT,
@@ -361,16 +404,13 @@ void	makeit(void)
       psf_diagnostic(psf);
       nmed = psf->nmed;
 /*---- Display stats for current catalog/extension */
-      strcpy(str2, fields[c]->rcatname);
-      if ((pstr=strrchr(str2, '.')))
-        *pstr = '\0';
       if (next>1)
         sprintf(str, "[%d/%d]", ext+1, next);
       else
         str[0] = '\0';
       QPRINTF(OUTPUT, "%-17.17s%-7.7s %5d/%-5d %6.2f %6.2f %6.2f  %4.2f"
 	" %5.2f %5.2f\n",
-	ext==0? str2 : "",
+	ext==0? fields[c]->rtcatname : "",
 	str,
 	psf->samples_accepted, psf->samples_loaded,
 	psf->pixstep,
@@ -394,9 +434,10 @@ void	makeit(void)
     }
 
 /* Save result */
-  NFPRINTF(OUTPUT,"Saving PSF models...");
   for (c=0; c<ncat; c++)
     {
+    sprintf(str, "Saving PSF model for %s...", fields[c]->rtcatname);
+    NFPRINTF(OUTPUT, str);
 /*-- Create a file name with a "PSF" extension */
     strcpy(str, incatnames[c]);
     if (!(pstr = strrchr(str, '.')))
@@ -406,14 +447,22 @@ void	makeit(void)
 /* Create homogenisation kernels */
     if (prefs.homobasis_type != HOMOBASIS_NONE)
       {
-      NFPRINTF(OUTPUT, "Computing homogenisation kernel...");
       strcpy(str, incatnames[c]);
       if (!(pstr = strrchr(str, '.')))
         pstr = str+strlen(str);
         sprintf(pstr, "%s", prefs.homokernel_suffix);
       for (ext=0; ext<next; ext++)
+        {
+        if (next>1)
+          sprintf(str, "Computing homogenisation kernel for %s[%d/%d]...",
+		fields[c]->rtcatname, ext+1, next);
+        else
+          sprintf(str, "Computing homogenisation kernel for %s...",
+		fields[c]->rtcatname);
+        NFPRINTF(OUTPUT, str);
         psf_homo(fields[c]->psf[ext], str, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
+        }
       }
 #ifdef HAVE_PLPLOT
 /* Plot diagnostic maps for all catalogs */
@@ -469,7 +518,7 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/03/2008
+VERSION 19/02/2009
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, contextstruct *context)
@@ -477,14 +526,14 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
    psfstruct		*psf;
    basistypenum		basistype;
 
-  NFPRINTF(OUTPUT,"Initializing PSF modules...");
+//  NFPRINTF(OUTPUT,"Initializing PSF modules...");
   psf = psf_init(context, prefs.psf_size, psfstep, set->nsample);
 
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;
   
 /* Make the basic PSF-model (1st pass) */
-  NFPRINTF(OUTPUT,"Modeling the PSF.");
+//  NFPRINTF(OUTPUT,"Modeling the PSF (1/3)...");
   psf_make(psf, set, 0.2);
   if (basis && nbasis)
     {
@@ -493,7 +542,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     }
   else
     {
-    NFPRINTF(OUTPUT,"Generating the PSF model...");
+//    NFPRINTF(OUTPUT,"Generating the PSF model...");
     basistype = prefs.basis_type;
     if (basistype==BASIS_PIXEL_AUTO)
       basistype = (psf->fwhm < PSF_AUTO_FWHM)? BASIS_PIXEL : BASIS_NONE;
@@ -507,7 +556,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     psf_clean(psf, set, 0.2);
 
 /*-- Make the basic PSF-model (2nd pass) */
-    NFPRINTF(OUTPUT,"Modeling the PSF...");
+//    NFPRINTF(OUTPUT,"Modeling the PSF (2/3)...");
     psf_make(psf, set, 0.1);
     psf_refine(psf, set);
     }
@@ -518,7 +567,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     psf_clean(psf, set, 0.1);
 
 /*-- Make the basic PSF-model (3rd pass) */
-    NFPRINTF(OUTPUT,"Modeling the PSF...");
+//    NFPRINTF(OUTPUT,"Modeling the PSF (3/3)...");
     psf_make(psf, set, 0.05);
     psf_refine(psf, set);
     }

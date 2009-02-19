@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to Principal Component Analysis (PCA).
 *
-*	Last modify:	12/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,7 +39,7 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/02/2008
+VERSION 19/02/2009
  ***/
 float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
   {
@@ -62,7 +62,7 @@ float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
   dstep = 1.0/PCA_NSNAP;
   dstart = (1.0-dstep)/2.0;
 
-  NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
+//  NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
   QCALLOC(covmat, double, npix*npix);
   for (c=0; c<ncat; c++)
     {
@@ -77,7 +77,7 @@ float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
       covmatt = covmat;
       sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		100.0*((float)n/nt+c)/ncat);
-      NFPRINTF(OUTPUT, str);
+//      NFPRINTF(OUTPUT, str);
       for (j=npix; j--;)
         {
         pix2 = pix;
@@ -100,7 +100,7 @@ float *pca_onsnaps(psfstruct **psfs, int ncat, int npc)
   for (p=0; p<npc; p++)
     {
     sprintf(str, "Computing Principal Component vector #%d...", p);
-    NFPRINTF(OUTPUT, str);
+//    NFPRINTF(OUTPUT, str);
     pca_findpc(covmat, &basis[p*npix], npix);
     }
 
@@ -121,7 +121,7 @@ INPUT	Pointer to an array of PSF structures,
 OUTPUT  Pointer to an array of principal component vectors.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/02/2009
+VERSION 19/02/2009
  ***/
 double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
   {
@@ -144,7 +144,7 @@ double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
   dstep = 1.0/PCA_NSNAP;
   dstart = (1.0-dstep)/2.0;
 
-  NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
+//  NFPRINTF(OUTPUT, "Setting-up the PCA covariance matrix");
 /* Compute PSF snapshots */
   QMALLOC(comp, double, ncat*npixt);
   compt = comp;
@@ -152,7 +152,7 @@ double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
     {
     sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		50.0*(float)c/ncat);
-      NFPRINTF(OUTPUT, str);
+//      NFPRINTF(OUTPUT, str);
     for (e=0; e<next; e++)
       {
       psf = psfs[c*next+e];
@@ -196,7 +196,7 @@ double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
     {
     sprintf(str, "Setting-up the PCA covariance matrix (%.0f%%)...",
 		50.0+50.0*((float)c1)/ncat);
-    NFPRINTF(OUTPUT, str);
+//    NFPRINTF(OUTPUT, str);
     for (c2=0; c2<ncat; c2++)
       {
       comp1 = comp + c1*npixt;
@@ -216,7 +216,7 @@ double *pca_oncomps(psfstruct **psfs, int next, int ncat, int npc)
   for (p=0; p<npc; p++)
     {
     sprintf(str, "Computing Principal Component vector #%d...", p);
-    NFPRINTF(OUTPUT, str);
+//    NFPRINTF(OUTPUT, str);
     pca_findpc(covmat, vector, ncat);
     for (c=0; c<ncat; c++)
       pc[c*npc+p] = vector[c];

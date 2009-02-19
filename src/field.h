@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	18/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -38,6 +38,7 @@ typedef struct field
   {
   char		catname[MAXCHAR];	/* Input catalog filename */
   char		*rcatname;		/* "Reduced" catalog name */
+  char		rtcatname[MAXCHAR];	/* "Reduced", no trail catalog name */
   char		ident[MAXCHAR];		/* Field identifier (read from FITS) */
   int		next;			/* Number of extensions */
   int		ndet;			/* Number of detections (info only) */

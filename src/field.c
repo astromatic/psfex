@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	18/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 18/02/2009
+VERSION 19/02/2009
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -48,6 +48,7 @@ fieldstruct	*field_init(char *catname)
    catstruct	*cat;
    tabstruct	*tab, *imatab;
    keystruct	*key;
+   char		*pstr;
    int		next, next0, ntab;
 
   QCALLOC(field, fieldstruct, 1);
@@ -75,6 +76,9 @@ fieldstruct	*field_init(char *catname)
     field->rcatname = field->catname;
   else
     field->rcatname++;
+  strcpy(field->rtcatname, field->rcatname);
+  if ((pstr=strrchr(field->rtcatname, '.')))
+    *pstr = '\0';
 
   if (!next0)
     {

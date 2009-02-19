@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	13/02/2009
+*	Last modify:	19/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -46,7 +46,7 @@ INPUT	Pointer to the PSF,
 OUTPUT	Reduced chi2.
 NOTES	-
 AUTHOR	E. Bertin (IAP)
-VERSION	25/03/2008
+VERSION	19/02/2009
  ***/
 double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -58,11 +58,11 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
    int		i, n, nsample;
 
 /* First compute residuals for each sample (chi^2) */
-  NFPRINTF(OUTPUT,"Computing residuals...");
+//  NFPRINTF(OUTPUT,"Computing residuals...");
   psf_makeresi(psf, set, prefs.recenter_flag, prof_accuracy);
 
 /* Store the chi's (sqrt(chi2) pdf close to Gaussian) */
-  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
+//  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
   nsample = set->nsample;
   QMALLOC(chi, float, nsample);
   chit = chi;
@@ -106,7 +106,7 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   chi2 = chivar/(nsample-(nsample>1?1:0));
 
 /* Clip outliers */
-  NFPRINTF(OUTPUT,"Filtering PSF-candidates...");
+//  NFPRINTF(OUTPUT,"Filtering PSF-candidates...");
   chi2max = (float)hicut;
   chi2max *= chi2max;
   nsample=set->nsample;
@@ -849,7 +849,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 24/10/2008
+VERSION 19/02/2009
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -889,7 +889,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Prepare a vignet that will contain each projected basis vector */
   QCALLOC(vecvig, float, nvpix);
 
-  NFPRINTF(OUTPUT,"Processing samples...");
+//  NFPRINTF(OUTPUT,"Processing samples...");
   matoffset =nunknown-ncoeff;		/* Offset between matrix coeffs */
 /* Set-up the (compressed) design matrix and data vector */
   QCALLOC(desmat, double, npsf*ndata);
@@ -911,7 +911,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
   for (sample=set->sample, n=0; n<nsample ; n++, sample++)
     {
     sprintf(str, "Processing sample #%d", n+1);
-    NFPRINTF(OUTPUT, str);
+//    NFPRINTF(OUTPUT, str);
 /*-- Delta-x and Delta-y in PSF-pixel units */
     dx = -sample->dx*vigstep;
     dy = -sample->dy*vigstep;
@@ -1043,7 +1043,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
       alphamat[i+nunknown*i] += tikfac;
     }
 
-  NFPRINTF(OUTPUT,"Solving the system...");
+//  NFPRINTF(OUTPUT,"Solving the system...");
 
   clapack_dpotrf(CblasRowMajor, CblasUpper, nunknown, alphamat, nunknown);
   clapack_dpotrs(CblasRowMajor, CblasUpper, nunknown, 1, alphamat, nunknown,
@@ -1064,7 +1064,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     return RETURN_ERROR;
     }
 
-  NFPRINTF(OUTPUT,"Updating the PSF...");
+//  NFPRINTF(OUTPUT,"Updating the PSF...");
   if (!psf->pixmask)
     memset(psf->comp, 0, npix*ncoeff*sizeof(float));
   QMALLOC(betamat2, double, ncoeff);
@@ -1148,7 +1148,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/11/2007
+VERSION 19/02/2009
  ***/
 void	psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec)
@@ -1171,7 +1171,7 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
       if (npsf>npix)
         npsf=npix;
 /*---- First Select the brightest pixels */
-      NFPRINTF(OUTPUT,"Selecting pixels...");
+//      NFPRINTF(OUTPUT,"Selecting pixels...");
       psforder = (float *)NULL;		/* To avoid gcc -Wall warnings */
       QMEMCPY(psf->comp, psforder, float, npix);
       for (psfordert=psforder, i=npix; i--; psfordert++)
@@ -1350,7 +1350,7 @@ int psf_pshapelet(float **basis, int w, int h, int nmax, double beta)
     for (m=n%2; m<=n; m+=2)
       {
       sprintf(str, "Generating basis vector #%d/%d", k++, kmax);
-      NFPRINTF(OUTPUT, str);
+//      NFPRINTF(OUTPUT, str);
       dm = (double)m;
 /*---- Compute ((n+m)/2)!/((n-m)/2)! */
       hnmm = (n-m)/2;
