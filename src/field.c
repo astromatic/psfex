@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	19/02/2009
+*	Last modify:	20/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2009
+VERSION 20/02/2009
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -91,7 +91,7 @@ fieldstruct	*field_init(char *catname)
 /* Compute the number of valid input extensions */
   tab = cat->tab;
   next = 0;
-  for (ntab = 0 ; next<next0 && ntab<cat->ntab; ntab++, tab = tab->nexttab)
+  for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab)
 /*--  Check for the next valid FITS extension */
     if ((!strcmp("LDAC_IMHEAD",tab->extname))
 	&& (key=read_key(tab, "Field Header Card")))
@@ -112,8 +112,7 @@ fieldstruct	*field_init(char *catname)
       free_tab(imatab);
       }
     else if ((!strcmp("LDAC_OBJECTS", tab->extname)
-	||  !strcmp("OBJECTS", tab->extname)) && tab->naxis == 2)
-    
+	||  !strcmp("OBJECTS", tab->extname)) && tab->naxis == 2)    
       field->ndet += tab->naxisn[1];
 
   free_cat(&cat, 1);

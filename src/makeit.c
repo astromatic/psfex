@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	19/02/2009
+*	Last modify:	20/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -147,6 +147,13 @@ void	makeit(void)
 		    prefs.ncontext_group, prefs.group_deg, prefs.ngroup_deg,
 		    CONTEXT_KEEPHIDDEN)
 		: context;
+
+  if (context->npc && ncat<2)
+    warning("Hidden dependencies cannot be derived from",
+	" a single catalog");
+  else if (context->npc && prefs.stability_type == STABILITY_EXPOSURE)
+    warning("Hidden dependencies have no effect",
+	" in STABILITY_TYPE EXPOSURE mode");
 
 /* Compute PSF steps */
   if (!prefs.psf_step)
@@ -388,7 +395,13 @@ void	makeit(void)
     for (ext=0 ; ext<next; ext++)
       {
       psf = fields[c]->psf[ext];
-      NFPRINTF(OUTPUT,"Computing diagnostics...");
+      if (next>1)
+        sprintf(str, "Computing diagnostics for %s[%d/%d]...",
+		fields[c]->rtcatname, ext+1, next);
+      else
+        sprintf(str, "Computing diagnostics for %s...",
+		fields[c]->rtcatname);
+      NFPRINTF(OUTPUT, str);
 /*---- Check PSF with individual datasets */
       set2 = load_samples(&incatnames[c], 1, ext, next, context);
       psf->samples_loaded = set2->nsample;
@@ -436,7 +449,8 @@ void	makeit(void)
 /* Save result */
   for (c=0; c<ncat; c++)
     {
-    sprintf(str, "Saving PSF model for %s...", fields[c]->rtcatname);
+    sprintf(str, "Saving PSF model and metadata for %s...",
+	fields[c]->rtcatname);
     NFPRINTF(OUTPUT, str);
 /*-- Create a file name with a "PSF" extension */
     strcpy(str, incatnames[c]);

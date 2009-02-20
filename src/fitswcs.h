@@ -9,17 +9,17 @@
 *
 *	Contents:	Include file for fitswcs.c
 *
-*	Last modify:	11/03/2008
+*	Last modify:	20/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
 
+#ifndef _FITSWCS_H_
+#define _FITSWCS_H_
+
 #ifndef _FITSCAT_H_
 #include "fits/fitscat.h"
 #endif
-
-#ifndef _FITSWCS_H_
-#define _FITSWCS_H_
 
 /*-------------------------------- macros -----------------------------------*/
 
@@ -103,7 +103,9 @@ extern wcsstruct	*create_wcs(char **ctype, double *crval, double *crpix,
 			*copy_wcs(wcsstruct *wcsin),
 			*read_wcs(tabstruct *tab);
 
-extern double		sextodegal(char *hms),
+extern double		fmod_0_p360(double angle),
+			fmod_m90_p90(double angle),
+			sextodegal(char *hms),
 			sextodegde(char *dms),
 			wcs_dist(wcsstruct *wcs,
 				double *wcspos1, double *wcspos2),

@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	19/02/2009
+*	Last modify:	20/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -132,7 +132,7 @@ INPUT	Pointer to the PSF,
 OUTPUT	Reduced chi2.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/03/2008
+VERSION	20/02/2009
  ***/
 double	psf_chi2(psfstruct *psf, setstruct *set)
   {
@@ -141,11 +141,11 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
    int		n, nsample;
 
 /* First compute residuals for each sample (chi^2) */
-  NFPRINTF(OUTPUT,"Computing residuals...");
+//  NFPRINTF(OUTPUT,"Computing residuals...");
   psf_makeresi(psf, set, prefs.recenter_flag, prefs.prof_accuracy);
 
 /* Store the chi's (sqrt(chi2) pdf close to gaussian) */
-  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
+//  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
   nsample = set->nsample;
   chi2 = 0.0;
   for (sample=set->sample, n=nsample; n--; sample++)

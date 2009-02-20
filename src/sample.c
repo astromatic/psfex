@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	19/02/2009
+*	Last modify:	20/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -69,6 +69,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   QMALLOC(fwhmmin, float, ncat);
   QMALLOC(fwhmmax, float, ncat);
   QMALLOC(fwhmmode, float, ncat);
+  next2 = 1;
 
   if (prefs.autoselect_flag)
     {
@@ -86,7 +87,6 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 /*-- Try to estimate the most appropriate Half-light Radius range */
 /*-- Get the Half-light radii */
     nobj = 0;
-    next2 = 1;
     for (i=0; i<ncat; i++)
       {
       sprintf(str,"Examining Catalog #%d", i+1);
@@ -98,7 +98,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
       QMALLOC(backnoises, float, cat->ntab);
       e=0;
       ldflag = 1;
-      ext2 = ext+1;
+      ext2 = 0;
       tab = cat->tab;
 /*---- Get background noises for this catalog */
       for (j=cat->ntab; j--; tab=tab->nexttab)
@@ -106,8 +106,14 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 		|| fitsread(tab->headbuf,"SEXBKDEV",&backnoises[e],
 			H_FLOAT,T_FLOAT) == RETURN_OK)
           {
-          if (ext >= 0 && !(--ext2))
-            continue;
+          if (ext != ALL_EXTENSIONS)
+            {
+            if (ext2 < ext)
+              continue;
+            else if (ext2 > ext)
+              break;
+            ext2++;
+            }
           if (!ldflag)
             {
             fkey=read_key(tab, "Field Header Card");
@@ -129,16 +135,20 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 
 /*---- Now load the objects */
       e = 0;
-      ext2 = ext+1;
+      ext2 = ext;
       tab = cat->tab;
       for (j=cat->ntab; j--; tab=tab->nexttab)
         if (!strcmp("LDAC_OBJECTS", tab->extname)
 		||  !strcmp("OBJECTS", tab->extname))
           {
-          if (ext != ALL_EXTENSIONS && !(--ext2))
-            continue;
-          if (e>=next2)
-            break;
+          if (ext != ALL_EXTENSIONS)
+            {
+            if (ext2 < ext)
+              continue;
+            else if (ext2 > ext)
+              break;
+            ext2++;
+            }
           for (j=0; j<4; j++)
             if (!(key[j]=name_to_key(tab, keynames[j])))
               {
