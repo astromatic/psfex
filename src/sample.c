@@ -109,10 +109,12 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
           if (ext != ALL_EXTENSIONS)
             {
             if (ext2 < ext)
+              {
+              ext2++;
               continue;
+              }
             else if (ext2 > ext)
               break;
-            ext2++;
             }
           if (!ldflag)
             {
@@ -144,7 +146,10 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
           if (ext != ALL_EXTENSIONS)
             {
             if (ext2 < ext)
+              {
+              ext2++;
               continue;
+              }
             else if (ext2 > ext)
               break;
             ext2++;
