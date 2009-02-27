@@ -163,8 +163,7 @@ int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
       sprintf(str, "%dx%d", prefs.cplot_res[0], prefs.cplot_res[1]);
       plsetopt("-geometry", str);
       }
-/* Force 24bits and use Hershey fonts for consistency across drivers/versions */
-    plsetopt("-drvopt","24bit,text=0");
+    plsetopt("-drvopt","24bit");
     }
   else
     {
