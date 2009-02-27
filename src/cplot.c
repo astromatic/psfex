@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	20/02/2009
+*	Last modify:	27/02/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -95,7 +95,7 @@ INPUT	Input name,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/07/2008
+VERSION	27/02/2009
  ***/
 int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
   {
@@ -163,13 +163,14 @@ int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
       sprintf(str, "%dx%d", prefs.cplot_res[0], prefs.cplot_res[1]);
       plsetopt("-geometry", str);
       }
-    plsetopt("-drvopt","24bit");
+/* Force 24bits and use Hershey fonts for consistency across drivers/versions */
+    plsetopt("-drvopt","24bit,text=0");
     }
   else
     {
 /*-- Small hack to reset driver options */
     argc = 0;
-    plParseOpts(&argc, NULL, PL_PARSE_NOPROGRAM);
+    plparseopts(&argc, NULL, PL_PARSE_NOPROGRAM);
     }
 
   plfontld(1);
@@ -629,7 +630,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/02/2009
+VERSION	27/02/2009
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -680,6 +681,7 @@ int	cplot_fwhm(fieldstruct *field)
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %s: FWHM map", field->rtcatname);
+  plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -861,7 +863,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/02/2009
+VERSION	27/02/2009
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -912,6 +914,7 @@ int	cplot_ellipticity(fieldstruct *field)
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %s: ellipticity map", field->rtcatname);
+  plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -1077,7 +1080,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/02/2009
+VERSION	27/02/2009
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1128,6 +1131,7 @@ int	cplot_moffatresi(fieldstruct *field)
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %s: map of Moffat fit residuals", field->rtcatname);
+  plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
   plcol(7);
@@ -1289,7 +1293,7 @@ INPUT	Pointer to the PSF MEF.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/02/2009
+VERSION	27/02/2009
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1340,6 +1344,7 @@ int	cplot_asymresi(fieldstruct *field)
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %s: PSF asymmetry map", field->rtcatname);
+  plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
   plcol(7);
