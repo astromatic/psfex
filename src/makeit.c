@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	20/02/2009
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -163,7 +163,7 @@ void	makeit(void)
 	|| (prefs.stability_type == STABILITY_SEQUENCE
 		&& prefs.psf_mef_type == PSF_MEF_COMMON))
       {
-      set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
+      set = load_samples(incatnames, 0, ncat, ALL_EXTENSIONS, next, context);
       psfstep = (float)((set->fwhm/2.35)*0.5);
       end_set(set);
       }
@@ -177,7 +177,7 @@ void	makeit(void)
       QMALLOC(psfsteps, float, next);
       for (ext=0 ; ext<next; ext++)
         {
-        set = load_samples(incatnames, ncat, ext, next, context);
+        set = load_samples(incatnames, 0, ncat, ext, next, context);
         psfsteps[ext] = (float)(psfstep? psfstep : (set->fwhm/2.35)*0.5);
         end_set(set);
         }
@@ -194,7 +194,7 @@ void	makeit(void)
         sprintf(str, "Computing new PCA image basis from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(&incatnames[c], 1, ext, next, context);
+        set = load_samples(incatnames, c, 1, ext, next, context);
         step = psfstep;
         cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context);
         end_set(set);
@@ -222,7 +222,7 @@ void	makeit(void)
         sprintf(str, "Computing new PCA image basis from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(&incatnames[c], 1, ext, next, context);
+        set = load_samples(incatnames, c, 1, ext, next, context);
         cpsf[c] = make_psf(set, step, NULL, 0, context);
         end_set(set);
         }
@@ -245,7 +245,7 @@ void	makeit(void)
       NFPRINTF(OUTPUT, str);
       for (ext=0 ; ext<next; ext++)
         {
-        set = load_samples(&incatnames[c], 1, ext, next, context);
+        set = load_samples(incatnames, c, 1, ext, next, context);
         if (psfsteps)
           step = psfsteps[ext];
         else
@@ -262,15 +262,18 @@ void	makeit(void)
     free(cpsf);
     }
 
+/* Compute "final" PSF models */
   if (prefs.psf_mef_type == PSF_MEF_COMMON)
     {
     if (prefs.stability_type == STABILITY_SEQUENCE)
       {
 /*---- Load all the samples at once */
-      set = load_samples(incatnames, ncat, ALL_EXTENSIONS, next, context);
+      set = load_samples(incatnames, 0, ncat, ALL_EXTENSIONS, next, context);
       step = psfstep;
       basis = psfbasis;
+      field_count(fields, set, COUNT_LOADED);
       psf = make_psf(set, step, basis, nbasis, context);
+      field_count(fields, set, COUNT_ACCEPTED);
       end_set(set);
       NFPRINTF(OUTPUT, "Computing final PSF model...");
       context_apply(context, psf, fields, ALL_EXTENSIONS, 0, ncat);
@@ -283,13 +286,15 @@ void	makeit(void)
         sprintf(str, "Computing final PSF model from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(&incatnames[c], 1, ALL_EXTENSIONS, next, context);
+        set = load_samples(incatnames, c, 1, ALL_EXTENSIONS, next, context);
         if (psfstep)
           step = psfstep;
         else
           step = (float)((set->fwhm/2.35)*0.5);
         basis = psfbasis;
+        field_count(fields, set, COUNT_LOADED);
         psf = make_psf(set, step, basis, nbasis, fullcontext);
+        field_count(fields, set, COUNT_ACCEPTED);
         end_set(set);
         context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
         psf_end(psf);
@@ -317,8 +322,10 @@ void	makeit(void)
             sprintf(str, "Computing hidden dependency parameter(s) from %s...",
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
-          set = load_samples(&incatnames[c], 1, ext, next, context);
+          set = load_samples(incatnames, c, 1, ext, next, context);
+          field_count(fields, set, COUNT_LOADED);
           cpsf[c] = make_psf(set, step, basis, nbasis, context);
+          field_count(fields, set, COUNT_ACCEPTED);
           end_set(set);
           }
         free(fullcontext->pc);
@@ -339,14 +346,16 @@ void	makeit(void)
           }
         else
           NFPRINTF(OUTPUT, "Computing final PSF model...");
-        set = load_samples(incatnames, ncat, ext, next, fullcontext);
+        set = load_samples(incatnames, 0, ncat, ext, next, fullcontext);
         if (psfstep)
           step = psfstep;
         else if (psfsteps)
           step = psfsteps[ext];
         else
           step = (float)((set->fwhm/2.35)*0.5);
+        field_count(fields, set, COUNT_LOADED);
         psf = make_psf(set, step, basis, nbasis, fullcontext);
+        field_count(fields, set, COUNT_ACCEPTED);
         end_set(set);
         context_apply(fullcontext, psf, fields, ext, 0, ncat);
         psf_end(psf);
@@ -362,14 +371,16 @@ void	makeit(void)
             sprintf(str, "Computing final PSF model for %s...",
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
-          set = load_samples(&incatnames[c], 1, ext, next, context);
+          set = load_samples(incatnames, c, 1, ext, next, context);
           if (psfstep)
             step = psfstep;
           else if (psfsteps)
             step = psfsteps[ext];
           else
             step = (float)((set->fwhm/2.35)*0.5);
+          field_count(fields, set, COUNT_LOADED);
           psf = make_psf(set, step, basis, nbasis, context);
+          field_count(fields, set, COUNT_ACCEPTED);
           end_set(set);
           context_apply(context, psf, fields, ext, c, 1);
           psf_end(psf);
@@ -403,7 +414,7 @@ void	makeit(void)
 		fields[c]->rtcatname);
       NFPRINTF(OUTPUT, str);
 /*---- Check PSF with individual datasets */
-      set2 = load_samples(&incatnames[c], 1, ext, next, context);
+      set2 = load_samples(incatnames, c, 1, ext, next, context);
       psf->samples_loaded = set2->nsample;
       if (set2->nsample>1)
         {
@@ -480,10 +491,12 @@ void	makeit(void)
       }
 #ifdef HAVE_PLPLOT
 /* Plot diagnostic maps for all catalogs */
-    cplot_ellipticity (fields[c]);
+    cplot_ellipticity(fields[c]);
     cplot_fwhm(fields[c]);
     cplot_moffatresi(fields[c]);
     cplot_asymresi(fields[c]);
+    cplot_counts(fields[c]);
+    cplot_countfrac(fields[c]);
 #endif
 /*-- Update XML */
     if (prefs.xml_flag)

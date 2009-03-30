@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	20/02/2009
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -33,14 +33,14 @@
 #include	"psf.h"
 #include	"field.h"
 
-/****** field_init ***********************************************************
+/****** field_init ************************************************************
 PROTO	fieldstruct *field_init(char *catname, int next)
 PURPOSE	Allocate and initialize a PSF MEF structure (groups of PSFs).
 INPUT	Catalog filename.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 20/02/2009
+VERSION 30/03/2009
  ***/
 fieldstruct	*field_init(char *catname)
   {
@@ -49,7 +49,7 @@ fieldstruct	*field_init(char *catname)
    tabstruct	*tab, *imatab;
    keystruct	*key;
    char		*pstr;
-   int		next, next0, ntab;
+   int		e, next, next0, ntab, countsize;
 
   QCALLOC(field, fieldstruct, 1);
 /* Compute the number of valid input extensions */
@@ -119,19 +119,27 @@ fieldstruct	*field_init(char *catname)
 
   field_locate(field);
   QCALLOC(field->ccat, catstruct *, MAXCHECK);
+  countsize = prefs.context_nsnap*prefs.context_nsnap;
+  QMALLOC(field->lcount, int *, next0);
+  QMALLOC(field->acount, int *, next0);
+  for (e=0; e<next0; e++)
+    {
+    QCALLOC(field->lcount[e], int, countsize);
+    QCALLOC(field->acount[e], int, countsize);
+    }
 
   return field;
   }
 
 
-/****** field_end ***********************************************************
+/****** field_end *************************************************************
 PROTO	void field_end(fieldstruct *field)
 PURPOSE	Free a PSF MEF structure (groups of PSFs).
 INPUT	Pointer to the fieldstruct.
 OUTPUT  -.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 08/07/2008
+VERSION 30/03/2009
  ***/
 void	field_end(fieldstruct *field)
   {
@@ -141,10 +149,14 @@ void	field_end(fieldstruct *field)
     {
     psf_end(field->psf[ext]);
     end_wcs(field->wcs[ext]);
+    free(field->lcount[ext]);
+    free(field->acount[ext]);
     }
   free(field->psf);
   free(field->wcs);
   free(field->ccat);
+  free(field->lcount);
+  free(field->acount);
   free(field);
 
   return;
@@ -240,7 +252,7 @@ void	field_locate(fieldstruct *field)
   }
 
 
-/****** dhmedian ******************************************************
+/****** dhmedian **************************************************************
 PROTO	double   dhmedian(double *ra, int n)
 PURPOSE	Compute the median of an array of doubles, using the Heapsort
 	algorithm (based on Num.Rec algo.).
@@ -291,6 +303,53 @@ double   dhmedian(double *ra, int n)
     }
 
 /* (the 'return' is inside the loop!!) */
+  }
+
+
+/****** field_count ***********************************************************
+PROTO	void field_count(fieldstruct **fields, setstruct *set, int counttype)
+PURPOSE	Count the number of sources (samples) per image area.
+INPUT	Pointer to an array of fieldstruct pointers,
+	Pointer to the set to be counter,
+	Sample type.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 30/03/2009
+ ***/
+void	field_count(fieldstruct **fields, setstruct *set, int counttype)
+  {
+   fieldstruct	*field;
+   samplestruct	*sample;
+   int		c,e,n,s, w,h, x,y, size;
+
+  sample = set->sample;
+  size = (double)prefs.context_nsnap;
+  for (s=set->nsample; s--; sample++)
+    {
+    c = sample->catindex;
+    e = sample->extindex;
+    field = fields[c];
+    w = field->wcs[e]->naxisn[0];
+    h = field->wcs[e]->naxisn[1];
+    x = (int)((sample->x-0.5)*size) / w;
+    if (x<0)
+      x = 0;
+    else if (x>=size)
+      x = size-1;
+    y = (int)((sample->y-0.5)*size) / h;
+    if (y<0)
+      y = 0;
+    else if (y>=size)
+      y = size-1;
+    n = y*size+x;
+    if ((counttype & COUNT_LOADED))
+      fields[c]->lcount[e][n]++;
+    if ((counttype & COUNT_ACCEPTED))
+      fields[c]->acount[e][n]++;
+    }
+
+  return;
   }
 
 

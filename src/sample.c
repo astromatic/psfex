@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	20/02/2009
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -39,8 +39,8 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 /*
 Examine and load PSF candidates.
 */
-setstruct *load_samples(char **filename, int ncat, int ext, int next,
-			contextstruct *context)
+setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
+			int next, contextstruct *context)
   {
    setstruct		*set;
    catstruct		*cat;
@@ -55,7 +55,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
    int			*fwhmindex,
-			e,i,j,n, nobj,nobjmax, ldflag, ext2, next2;
+			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, next2;
 
 //  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -92,8 +92,9 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
       sprintf(str,"Examining Catalog #%d", i+1);
 //      NFPRINTF(OUTPUT, str);
 /*---- Read input catalog */
-      if (!(cat = read_cat(filename[i])))
-        error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[i]);
+      icat = catindex + i;
+      if (!(cat = read_cat(filename[icat])))
+        error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[icat]);
 
       QMALLOC(backnoises, float, cat->ntab);
       e=0;
@@ -131,7 +132,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
       next2 = e;
       if (!next2)
         error(EXIT_FAILURE, "*Error*: SExtractor table missing in ",
-		filename[j]);
+		filename[icat]);
       if (next2>next)
         next2 = next;
 
@@ -158,7 +159,7 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
             if (!(key[j]=name_to_key(tab, keynames[j])))
               {
               sprintf(str, "%s not found in catalog %s", keynames[j],
-			filename[i]);
+			filename[icat]);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
 
@@ -244,13 +245,14 @@ setstruct *load_samples(char **filename, int ncat, int ext, int next,
   mode = BIG;
   for (i=0; i<ncat; i++)
     {
+    icat = catindex + i;
     if (ext == ALL_EXTENSIONS)
       for (e=0; e<next2; e++)
-        set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, e,
-			next, i, context, context->pc + i*context->npc);
+        set = read_samples(set, filename[icat], fwhmmin[i]/2.0, fwhmmax[i]/2.0,
+			e, next, icat, context, context->pc+i*context->npc);
     else
-      set = read_samples(set, filename[i], fwhmmin[i]/2.0, fwhmmax[i]/2.0, ext,
-			next, i, context, context->pc + i*context->npc);
+      set = read_samples(set, filename[icat], fwhmmin[i]/2.0, fwhmmax[i]/2.0,
+			ext, next, icat, context, context->pc+i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];
     }
@@ -578,6 +580,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
       sample = set->sample + nsample;
       sample->catindex = catindex;
+      sample->extindex = ext;
 
 /*---- Copy the vignet to the training set */
       memcpy(sample->vig, vignet, vigsize*sizeof(float));

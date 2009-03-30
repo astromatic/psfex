@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	19/02/2009
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -26,10 +26,16 @@
 #include "psf.h"
 #endif
 
+#ifndef _SAMPLE_H_
+#include "sample.h"
+#endif
+
 #ifndef _PSFMEF_H_
 #define _PSFMEF_H_
 
 /*----------------------------- Internal constants --------------------------*/
+#define	COUNT_LOADED	1		/* Count detections that are loaded */
+#define	COUNT_ACCEPTED	2		/* Count detections that are accepted */
 
 /*------------------------------ Type definitions ---------------------------*/
 /*--------------------------- structure definitions -------------------------*/
@@ -49,6 +55,8 @@ typedef struct field
   double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
   double	meanwcsscale[NAXIS];	/* Mean pixel scale */
   double	maxradius;		/* Maxium radius */
+  int		**lcount;		/* Count detections that are loaded */
+  int		**acount;		/* Count detections that are accepted */
   }	fieldstruct;
 
 /*---------------------------------- protos --------------------------------*/
@@ -56,7 +64,9 @@ extern fieldstruct	*field_init(char *catname);
 
 extern double		dhmedian(double *ra, int n);
 
-extern void		field_end(fieldstruct *field),
+extern void		field_count(fieldstruct **fields, setstruct *set,
+				int counttype),
+			field_end(fieldstruct *field),
 			field_locate(fieldstruct *field),
 			field_psfsave(fieldstruct *field, char *filename);
 

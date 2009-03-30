@@ -625,7 +625,7 @@ static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
 /****** cplot_fwhm ***********************************************************
 PROTO	int cplot_fwhm(fieldstruct *field)
 PURPOSE	Plot a map of the PSF FWHM in the instrument field.
-INPUT	Pointer to the PSF MEF.
+INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
@@ -829,7 +829,7 @@ int	cplot_fwhm(fieldstruct *field)
 	  "mas" : (mfwhm < ARCMIN/DEG?
 		   "arcsec" : (mfwhm < 1.0? "arcmin": "deg"))));
   plschr(0.0, 0.6);
-  plmtex("l", 5.0, 0.5, 0.0, str);
+  plmtex("l", 5.0, 0.5, 0.5, str);
   plmtex("b", 2.0, 0.5, 0.5, "PSF FWHM");
 
 /* Draw right colour scale */
@@ -841,7 +841,7 @@ int	cplot_fwhm(fieldstruct *field)
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
   plschr(0.0, 0.5);
-  plmtex("r", 5.0, 0.5, 0.0, "%");
+  plmtex("r", 5.0, 0.5, 0.5, "%");
 
   plFree2dGrid(fwhm, 2, CPLOT_NSHADES);
   plend();
@@ -858,7 +858,7 @@ int	cplot_fwhm(fieldstruct *field)
 /****** cplot_ellipticity *****************************************************
 PROTO	int cplot_ellipticity(fieldstruct *field)
 PURPOSE	Plot a map of the PSF ellipticity in the instrument field.
-INPUT	Pointer to the PSF MEF.
+INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
@@ -1048,7 +1048,7 @@ int	cplot_ellipticity(fieldstruct *field)
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
   sprintf(str, "(a-b)/(a+b)");
   plschr(0.0, 0.5);
-  plmtex("l", 5.0, 0.5, 0.0, str);
+  plmtex("l", 5.0, 0.5, 0.5, str);
   plmtex("b", 2.0, 0.5, 0.5, "PSF ellipticity");
 
 /* Draw right colour scale */
@@ -1058,7 +1058,7 @@ int	cplot_ellipticity(fieldstruct *field)
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
   plschr(0.0, 0.5);
-  plmtex("r", 5.0, 0.5, 0.0, "%");
+  plmtex("r", 5.0, 0.5, 0.5, "%");
 
   plFree2dGrid(ellip, 2, CPLOT_NSHADES);
   plend();
@@ -1075,7 +1075,7 @@ int	cplot_ellipticity(fieldstruct *field)
 /****** cplot_moffatresi *****************************************************
 PROTO	int cplot_moffatresi(fieldstruct *field)
 PURPOSE	Plot a map of Moffat fit residuals in the instrument field.
-INPUT	Pointer to the PSF MEF.
+INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
@@ -1271,7 +1271,7 @@ int	cplot_moffatresi(fieldstruct *field)
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
   plschr(0.0, 0.5);
-  plmtex("r", 5.0, 0.5, 0.0, "%");
+  plmtex("r", 5.0, 0.5, 0.5, "%");
 
   plFree2dGrid(resi, 2, CPLOT_NSHADES);
   plend();
@@ -1288,7 +1288,7 @@ int	cplot_moffatresi(fieldstruct *field)
 /****** cplot_asymresi ******************************************************
 PROTO	int cplot_asymresi(fieldstruct *field)
 PURPOSE	Plot a map of asymmetry residuals in the instrument field.
-INPUT	Pointer to the PSF MEF.
+INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
@@ -1484,7 +1484,7 @@ int	cplot_asymresi(fieldstruct *field)
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
   plschr(0.0, 0.5);
-  plmtex("r", 5.0, 0.5, 0.0, "%");
+  plmtex("r", 5.0, 0.5, 0.5, "%");
 
   plFree2dGrid(resi, 2, CPLOT_NSHADES);
   plend();
@@ -1496,5 +1496,319 @@ int	cplot_asymresi(fieldstruct *field)
 
   return RETURN_OK;
   }
+
+
+/****** cplot_counts *********************************************************
+PROTO	int cplot_counts(fieldstruct *field)
+PURPOSE	Plot an x,y map of the number of sources that has been loaded.
+INPUT	Pointer to the field.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	30/03/2009
+ ***/
+int	cplot_counts(fieldstruct *field)
+  {
+   wcsstruct	*wcsptr[2],
+		*wcs, *wcsout;
+   PLFLT	**count,
+		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		cmin,cmax, mc,dc;
+   PLINT	lwid;
+   char		*ctype[NAXIS],
+		str[64];
+   double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
+		xmin,ymin,xmax,ymax, xstep,ystep, dval;
+   int		naxisn[NAXIS],
+		**icount,
+		i,j, e, n,nt, naxis, nsnap, flag;
+
+  if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTS) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_COUNTS);
+    return RETURN_OK;
+    }
+
+  wcs = field->wcs[0];
+  if (!wcs || wcs->naxis<2)
+    return RETURN_ERROR;
+  naxis = wcs->naxis;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(ctype[i], char, 16); 
+    strncpy(ctype[i],wcs->ctype[i], 16);
+    crpix[i] = 50.0;
+    cdelt[i] = field->maxradius/50.0;
+    if (i==wcs->lng)
+      cdelt[i] = -cdelt[i];	/* Put East to the left */
+    naxisn[i] = 100;
+    }
+
+  wcsout = create_wcs(ctype,field->meanwcspos,crpix,cdelt,naxisn, naxis);
+
+  xmin = 0.5;
+  xmax = 100.5;
+  ymin = 0.5;
+  ymax = 100.5;
+  lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+  plwid(lwid);
+  plfont(2);
+  plcol(15);
+  plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
+  sprintf(str, "#uField %s: source count map", field->rtcatname);
+  plschr(0.0, 1.0);
+  pllab("","", str);
+  plwid(0);
+  plcol(7);
+  cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
+
+  pllsty(1);
+  plcol(15);
+  plscmap1n(256);
+
+  cmin = BIG;
+  cmax = -BIG;
+
+/* First pass through the data to find min and max number counts */
+  flag = 0;
+  icount = field->lcount;
+  nsnap = prefs.context_nsnap;
+  nt = nsnap*nsnap;
+  for (e=0; e<field->next; e++)
+    for (n=0; n<nt; n++)
+      {
+      dval = (double)icount[e][n];
+      if (dval < cmin)
+        cmin = dval;
+      if (dval > cmax)
+        cmax = dval;
+      }
+
+/* Lower bound to variability in FWHM is 1e-5 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-5
+       || (dc=(cmax-cmin))/mc < 1.0e-5)
+    {
+    dc = 1.0e-5;
+    cmin = mc - dc/2.0;
+    cmax = mc + dc/2.0;
+    }
+  for (i=0; i<CPLOT_NSHADES; i++)
+    clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
+  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
+  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
+  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+
+/* Now the real 2D FWHM mapping */
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    plAlloc2dGrid(&count, nsnap, nsnap);
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (nsnap-1);
+    ystep = wcs->naxisn[1] / (nsnap-1);
+    for (j=0; j<nsnap; j++)
+      for (i=0; i<nsnap; i++)
+        count[i][j] = (PLFLT)icount[e][j*nsnap+i];
+
+    wcsptr[0] = wcs;
+    wcsptr[1] = wcsout;
+    plshades(count, nsnap, nsnap, NULL,
+	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
+             ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
+    plFree2dGrid(count, nsnap, nsnap);
+    plcol(7);
+    plwid(lwid);
+    cplot_drawbounds(wcs, wcsout);
+    }
+
+/* Draw left colour scale */
+  plAlloc2dGrid(&count, 2, CPLOT_NSHADES);
+  for (j=0; j<CPLOT_NSHADES; j++)
+    count[0][j] = count[1][j] = cmin + j * dc/(CPLOT_NSHADES-1);
+
+  plvpor(0.91,0.935,0.115,0.885);
+  plwind(0.0,1.0,cmin,cmax);
+  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plcol(15);
+  plschr(0.0, 0.5);
+  plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
+  plschr(0.0, 0.6);
+  plmtex("l", 5.0, 0.5, 0.5, "number");
+  plmtex("b", 2.0, 0.5, 0.5, "source ##");
+
+  plFree2dGrid(count, 2, CPLOT_NSHADES);
+  plend();
+  end_wcs(wcsout);
+  for (i=0; i<naxis; i++)
+    free(ctype[i]);
+
+  cplot_counts(field);		/* Recursive stuff */
+
+  return RETURN_OK;
+  }
+
+
+/****** cplot_countfrac *******************************************************
+PROTO	int cplot_countfrac(fieldstruct *field)
+PURPOSE	Plot an x,y map of the fraction of sources that has been accepted.
+INPUT	Pointer to the field.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	30/03/2009
+ ***/
+int	cplot_countfrac(fieldstruct *field)
+  {
+   wcsstruct	*wcsptr[2],
+		*wcs, *wcsout;
+   PLFLT	**count,
+		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		cmin,cmax, mc,dc;
+   PLINT	lwid;
+   char		*ctype[NAXIS],
+		str[64];
+   double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
+		xmin,ymin,xmax,ymax, xstep,ystep, dval;
+   int		naxisn[NAXIS],
+		**iacount,**ilcount,
+		i,j, e, n,nt, naxis, nsnap, flag;
+
+  if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTFRAC) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_COUNTFRAC);
+    return RETURN_OK;
+    }
+
+  wcs = field->wcs[0];
+  if (!wcs || wcs->naxis<2)
+    return RETURN_ERROR;
+  naxis = wcs->naxis;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(ctype[i], char, 16); 
+    strncpy(ctype[i],wcs->ctype[i], 16);
+    crpix[i] = 50.0;
+    cdelt[i] = field->maxradius/50.0;
+    if (i==wcs->lng)
+      cdelt[i] = -cdelt[i];	/* Put East to the left */
+    naxisn[i] = 100;
+    }
+
+  wcsout = create_wcs(ctype,field->meanwcspos,crpix,cdelt,naxisn, naxis);
+
+  xmin = 0.5;
+  xmax = 100.5;
+  ymin = 0.5;
+  ymax = 100.5;
+  lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+  plwid(lwid);
+  plfont(2);
+  plcol(15);
+  plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
+  sprintf(str, "#uField %s: source count fraction map", field->rtcatname);
+  plschr(0.0, 1.0);
+  pllab("","", str);
+  plwid(0);
+  plcol(7);
+  cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
+
+  pllsty(1);
+  plcol(15);
+  plscmap1n(256);
+
+  cmin = BIG;
+  cmax = -BIG;
+
+/* First pass through the data to find min and max number counts */
+  flag = 0;
+  ilcount = field->lcount;
+  iacount = field->acount;
+  nsnap = prefs.context_nsnap;
+  nt = nsnap*nsnap;
+  for (e=0; e<field->next; e++)
+    for (n=0; n<nt; n++)
+      {
+      dval = ilcount[e][n] > 0? 100.0*iacount[e][n] / ilcount[e][n] : 0.0;
+      if (dval < cmin)
+        cmin = dval;
+      if (dval > cmax)
+        cmax = dval;
+      }
+
+/* Lower bound to variability in FWHM is 1e-5 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-5
+       || (dc=(cmax-cmin))/mc < 1.0e-5)
+    {
+    dc = 1.0e-5;
+    cmin = mc - dc/2.0;
+    cmax = mc + dc/2.0;
+    }
+  for (i=0; i<CPLOT_NSHADES; i++)
+    clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
+  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
+  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
+  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+
+/* Now the real 2D FWHM mapping */
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    plAlloc2dGrid(&count, nsnap, nsnap);
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (nsnap-1);
+    ystep = wcs->naxisn[1] / (nsnap-1);
+    for (j=0; j<nsnap; j++)
+      for (i=0; i<nsnap; i++)
+        {
+        n = j*nsnap + i;
+        count[i][j] = (PLFLT)(ilcount[e][n] > 0?
+			100.0*iacount[e][n] / ilcount[e][n] : 0.0);
+        }
+
+    wcsptr[0] = wcs;
+    wcsptr[1] = wcsout;
+    plshades(count, nsnap, nsnap, NULL,
+	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
+             ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
+    plFree2dGrid(count, nsnap, nsnap);
+    plcol(7);
+    plwid(lwid);
+    cplot_drawbounds(wcs, wcsout);
+    }
+
+/* Draw left colour scale */
+  plAlloc2dGrid(&count, 2, CPLOT_NSHADES);
+  for (j=0; j<CPLOT_NSHADES; j++)
+    count[0][j] = count[1][j] = cmin + j * dc/(CPLOT_NSHADES-1);
+
+  plvpor(0.91,0.935,0.115,0.885);
+  plwind(0.0,1.0,cmin,cmax);
+  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plcol(15);
+  plschr(0.0, 0.5);
+  plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
+  plschr(0.0, 0.6);
+  plmtex("l", 5.0, 0.5, 0.5, "%");
+  plmtex("b", 2.0, 0.5, 0.5, "fraction");
+
+  plFree2dGrid(count, 2, CPLOT_NSHADES);
+  plend();
+  end_wcs(wcsout);
+  for (i=0; i<naxis; i++)
+    free(ctype[i]);
+
+  cplot_countfrac(field);		/* Recursive stuff */
+
+  return RETURN_OK;
+  }
+
 
 

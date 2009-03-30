@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	05/08/2008
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 05/08/2008
+VERSION 30/03/2009
  ***/
 void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -66,7 +66,7 @@ void	check_write(fieldstruct *field, char *checkname,
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,x,y, w,h,n, npc,nt,nr, nw,nh,np,
+   int			i,j,l,x,y, w,h,n, npc,nt,nr, nw,nh,np,
 			step, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
@@ -726,6 +726,50 @@ void	check_write(fieldstruct *field, char *checkname,
 	"pixel coordinates of the reference pixel");
       fitswrite(tab->headbuf, "CRPIX3  ", &dval1,  H_EXPO, T_DOUBLE);
       }
+    }
+
+  if (fitsread(set->head, "EPOCH   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "EPOCH   ", "Epoch of observation");
+    fitswrite(tab->headbuf, "EPOCH   ", &dval1,  H_EXPO, T_DOUBLE);
+    }
+  if (fitsread(set->head, "EQUINOX ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "EQUINOX ", "Equinox");
+    fitswrite(tab->headbuf, "EQUINOX ", &dval1,  H_EXPO, T_DOUBLE);
+    }
+  if (fitsread(set->head, "RADECSYS", str, H_STRING, T_STRING)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "RADECSYS", "Coordinate system");
+    fitswrite(tab->headbuf, "RADECSYS", str,  H_STRING, T_STRING);
+    }
+  if (fitsread(set->head, "LONGPOLE", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "LONGPOLE", "Longitude of pole");
+    fitswrite(tab->headbuf, "LONGPOLE", &dval1,  H_EXPO, T_DOUBLE);
+    }
+  if (fitsread(set->head, "LATPOLE ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "LATPOLE ", "Latitude of pole");
+    fitswrite(tab->headbuf, "LATPOLE ", &dval1,  H_EXPO, T_DOUBLE);
+    }
+  if (fitsread(set->head, "EPOCH   ", &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+    {
+    addkeywordto_head(tab, "EPOCH   ", "Epoch of observation");
+    fitswrite(tab->headbuf, "EPOCH   ", &dval1,  H_EXPO, T_DOUBLE);
+    }
+  if (fitsfind(set->head, "PV?_????") != RETURN_ERROR)
+    {
+    for (l=0; l<2; l++)
+      for (j=0; j<100; j++)
+        {
+        sprintf(str, "PV%d_%d ", l+1, j);
+        if (fitsread(set->head, str, &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
+          {
+          addkeywordto_head(tab, str, "distortion parameter");
+          fitswrite(tab->headbuf, str, &dval1,  H_EXPO, T_DOUBLE);
+          }
+        }
     }
 
   if (next == 1)

@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	26/03/2008
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -30,6 +30,7 @@
 typedef struct sample
   {
   int		catindex;		/* Catalogue index */
+  int		extindex;		/* Extension index */
   float		*vig;			/* Vignette array */
   float		*vigresi;		/* Residual-map of the PSF-residuals */
   float		*vigchi;		/* Chi-map of the PSF-residuals */
@@ -65,8 +66,8 @@ typedef struct set
 samplestruct	*remove_sample(setstruct *set, int isample);
 
 setstruct	*init_set(contextstruct *context),
-		*load_samples(char **filename, int ncat, int ext, int next,
-			contextstruct *context),
+		*load_samples(char **filename, int catindex, int ncat,
+			int ext, int next, contextstruct *context),
 		*read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
 			int ext, int next, int catindex,
