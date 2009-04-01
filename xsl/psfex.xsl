@@ -10,7 +10,7 @@
 	]>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <!-- ****************** Global XSL template for SExtractor ****************
-     (C) E.Bertin and C.Marmo 2005-2009
+     (C) E.Bertin and C.Marmo IAP/CNRS/UPMC 2005-2009
      ********************************************************************** -->
 
  <xsl:template match="/">
@@ -18,7 +18,7 @@
   <xsl:variable name="time" select="/VOTABLE/RESOURCE/RESOURCE[@name='MetaData']/PARAM[@name='Time']/@value"/>
   <HTML>
    <HEAD>
-<!--  <script type="text/javascript" language="javascript"> -->
+    <link rel="shortcut icon" type="image/x-icon" href="http://astromatic.iap.fr/xsl/favicon.ico" />
     <script src="http://astromatic.iap.fr/xsl/sorttable.js"/>
 
     <style type="text/css">
