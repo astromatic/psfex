@@ -6,104 +6,126 @@
 	<!ENTITY asec "&#168;">
         <!ENTITY Beta "&#946;">
         <!ENTITY chi "&#967;">
-        <!ENTITY br "&#60;&#98;&#115;&#32;&#47;&#62;">
+        <!ENTITY darr "&#8595;">
 	]>
-
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<!-- ****************** Global XSL template for SExtractor ****************
+     (C) E.Bertin and C.Marmo 2005-2009
+     ********************************************************************** -->
 
-<!-- *********************** Global XSL template ************************** -->
  <xsl:template match="/">
   <xsl:variable name="date" select="/VOTABLE/RESOURCE/RESOURCE[@name='MetaData']/PARAM[@name='Date']/@value"/>
   <xsl:variable name="time" select="/VOTABLE/RESOURCE/RESOURCE[@name='MetaData']/PARAM[@name='Time']/@value"/>
-  <html>
-
-<!-- HTML head  -->
-
-   <head>
-
-<!-- javascript -->
-
+  <HTML>
+   <HEAD>
 <!--  <script type="text/javascript" language="javascript"> -->
-
-    <script src="http://terapix.iap.fr/cplt/xsl/sorttable.js"/>
+    <script src="http://astromatic.iap.fr/xsl/sorttable.js"/>
 
     <style type="text/css">
-     p.sansserif {font-family: sans-serif}
+     p {
+      font-family: sans-serif;
+      }
      p.italic {font-style: italic}
-     body {background-color: white}
+     body {
+      margin: 10px;
+      background-color: #e0e0e0;
+      background-image: url("http://astromatic.iap.fr/xsl/body_bg.jpg");
+      background-repeat: repeat-x;
+      background-position: top;
+      min-width:662px;
+      }
      mono {font-family: monospace}
      elmin {color: green }
      elmax {color: red }
-     elm {font-family: monospace; font-size: 67%; white-space: nowrap}
-     el {font-family: monospace; font-size: 100%; color: black}
-     elb {font-family: monospace; font-size: 100%; font-weight: bold; color: black}
-     a {text-decoration: none}
-
-     table.sortable a.sortheader
-      {
-      background-color:#FFEECC;
+     el {
+      font-family: monospace;
+      font-size: 100%;
       color: black;
+      }
+     elm {
+      font-family: monospace;
+      font-size: 67%;
+      white-space: nowrap;
+      }
+     elh {font-family: monospace;
+      font-size: 120%;
+      }
+     elhi {
+      font-family: monospace;
+      font-size: 100%;
+      white-space: nowrap;
+      font-weight: normal;
+      font-style: italic;
+      }
+     a {text-decoration: none; font-style: bold; color: #476674}
+     a:hover {text-decoration: underline;}
+     #header {
+      padding: 5px;
+      min-width: 662px;
+      background-image: url("http://astromatic.iap.fr/xsl/astromaticleft.png");
+      background-repeat: repeat-x;
+      background-position: left top;
+      text-align: left;
+      font-size: 1.2em;
+      margin: 0 0 30px 0;
+      color:#d3e7f0;
+      font-weight: bold;
+      }
+     th {
+      background-color:#d3e7f0;
+      border-top: 1px solid white;
+      border-left: 1px solid white;
+      border-right: 1px solid #476674;
+      border-bottom: 1px solid #476674;
+      -moz-border-radius: 3px;
+      -khtml-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+      padding: 2px;
+      line-height: 12px;
+      }
+     td {
+      background-color:#f2f4f4;
+      padding-left: 2px;
+      padding-right: 2px;
+      }
+     table.sortable {
+      border-top: 1px solid #476674;
+      border-left: 1px solid #476674;
+      border-right: 1px solid white;
+      border-bottom: 1px solid white;
+      -moz-border-radius: 3px;
+      -khtml-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+      }
+     table.sortable a.sortheader {
+      background-color:#d3e7f0;
       font-weight: bold;
       font-size: 80%;
       text-decoration: none;
       display: button;
       }
-     table.sortable span.sortarrow
-      {
+
+     table.sortable span.sortarrow {
       color: black;
       font-weight: bold;
-      text-decoration: none;
+      text-decoration: blink;
       }
-     table.sortable a.sortheader.sub
-      {
-      vertical-align: sub;
-      }
-    </style>
+     table.sortable a.sortheader.sub {vertical-align: sub}
+     </style>
 
      <title>
       Processing summary on <xsl:value-of select="$date"/> at <xsl:value-of select="$time"/>
      </title>
-    </head>
-
-<!-- HTML body -->
-
+    </HEAD>
     <BODY>
-     <TABLE BORDER="0" CELLPADDING="0" CELLSPACING="0" WIDTH="100%">
-      <TR>
-       <TD ALIGN="LEFT">
-        <TABLE BORDER="0">
-         <TR>
-          <TD ALIGN="CENTER">
-           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixLogo.png" ALT="Terapix"/>
-          </TD>
-          <TD ALIGN="CENTER">
-           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixTitle.png" ALT="Logo"/>
-          </TD>
-          <TD ALIGN="CENTER" width="2000">
-           <FONT color="#669933">
-            <B> Processing summary</B>
-           </FONT>
-          </TD>
-          <TD ALIGN="CENTER">
-           <IMG SRC="http://terapix.iap.fr/cplt/xsl/terapixPicture.gif" ALT="Terapix banner"/>
-          </TD>
-         </TR>
-        </TABLE>
-       </TD>
-      </TR>
-      <TR>
-       <TD>
-        <TABLE BORDER="0" WIDTH="100%" BGCOLOR="#000000">
-         <TR>
-          <TH BGCOLOR="#000000" ALIGN="LEFT"><FONT SIZE="-1" COLOR="#FFFFFF"> Home > Tools > Data reduction</FONT></TH>
-         </TR>
-        </TABLE>
-       </TD>
-      </TR>
-     </TABLE>
+     <div id="header">
+      <a href="/"><img style="vertical-align: middle; border:0px" src="http://astromatic.iap.fr/xsl/astromatic.png" title="Astromatic home" alt="Astromatic.net" /></a>  Processing summary
+     </div>
     <xsl:call-template name="VOTable"/>
    </BODY>
-  </html>
+  </HTML>
  </xsl:template>
 
 <!-- **************** Generic XSL template for VOTables ****************** -->
@@ -198,9 +220,6 @@
     An Error occured!!! </xsl:if>
    <xsl:value-of select="PARAM[@name='Error_Msg']/@value"/></b>
   </p>
-  <p>
-  <i>click to expand or hide tables</i>
-  </p>
  </xsl:template>
 
 <!-- ********************** XSL template for PSF_Fields ******************* -->
@@ -238,62 +257,63 @@
    <xsl:variable name="asymmetrymin" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="countsplotflag" select="count(FIELD[@name='Plot_Counts'])"/>
+   <xsl:variable name="countsplot" select="count(FIELD[@name='Plot_Counts']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="countfracplotflag" select="count(FIELD[@name='Plot_Count_Fraction'])"/>
+   <xsl:variable name="countfracplot" select="count(FIELD[@name='Plot_Count_Fraction']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="fwhmplotflag" select="count(FIELD[@name='Plot_FWHM'])"/>
    <xsl:variable name="fwhmplot" select="count(FIELD[@name='Plot_FWHM']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipplotflag" select="count(FIELD[@name='Plot_Ellipticity'])"/>
    <xsl:variable name="ellipplot" select="count(FIELD[@name='Plot_Ellipticity']/preceding-sibling::FIELD)+1"/>
    <p>
-    <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('psffields')">
-     PSF stats per Input File
+    <BUTTON type="button" onclick="showhideTable('psffields')" title="click to expand">
+     PSF stats per Input File&nbsp;&darr;
     </BUTTON>
     <TABLE class="sortable" id="psffields" BORDER="2" style="display: none">
      <TR>
-      <TH BGCOLOR="#FFEECC">Filename</TH>
-      <TH BGCOLOR="#FFEECC">Identifier</TH>
-      <TH BGCOLOR="#FFEECC">N<sub>ext</sub></TH>
-      <TH BGCOLOR="#FFEECC">N<sub>accepted</sub></TH>
-      <TH BGCOLOR="#FFEECC">N<sub>loaded</sub></TH>
-      <TH BGCOLOR="#FFEECC">Half-Light diam.</TH>
-      <TH BGCOLOR="#FFEECC">Sampling</TH>
-      <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup>/d.o.f.</TH>
-      <TH BGCOLOR="#FFEECC">FWHM</TH>
-      <xsl:if test="$fwhmplotflag &gt; 0">
-       <TH BGCOLOR="#FFEECC">FWHM map</TH>
+      <TH>Filename</TH>
+      <TH>Identifier</TH>
+      <TH>N<sub>ext</sub></TH>
+      <TH>N<sub>loaded</sub></TH>
+      <xsl:if test="$countsplotflag &gt; 0">
+       <TH>Count map</TH>
       </xsl:if>
-      <TH BGCOLOR="#FFEECC">Ellipticity</TH>
+      <TH>N<sub>accepted</sub></TH>
+      <xsl:if test="$countfracplotflag &gt; 0">
+       <TH>Count fraction map</TH>
+      </xsl:if>
+      <TH>Half-Light diam.</TH>
+      <TH>Sampling</TH>
+      <TH>&chi;<sup>2</sup>/d.o.f.</TH>
+      <TH>FWHM</TH>
+      <xsl:if test="$fwhmplotflag &gt; 0">
+       <TH>FWHM map</TH>
+      </xsl:if>
+      <TH>Ellipticity</TH>
       <xsl:if test="$ellipplotflag &gt; 0">
-       <TH BGCOLOR="#FFEECC">Ellipticity map</TH>
+       <TH>Ellipticity map</TH>
       </xsl:if> 
-      <TH BGCOLOR="#FFEECC" style="white-space: nowrap">Moffat &Beta;</TH>
-      <TH BGCOLOR="#FFEECC">Residuals</TH>
-      <TH BGCOLOR="#FFEECC">Asymmetry</TH>
+      <TH style="white-space: nowrap">Moffat &Beta;</TH>
+      <TH>Residuals</TH>
+      <TH>Asymmetry</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
        <tr>
 <!-- Catalog name -->
-        <td  BGCOLOR="#EEEEEE">
+        <td>
          <el><xsl:value-of select="TD[$name]"/></el>
         </td>
 <!-- Identifier -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="TD[$ident]"/></el>
         </td>
 <!-- Number of extensions -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="TD[$next]"/></el>
         </td>
-<!-- Number of sources accepted -->
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$naccep],'######0.0')"/></el>
-         <br />
-         <elm>
-          <elmin><xsl:value-of select="TD[$naccepmin]"/></elmin>
-	  - <elmax><xsl:value-of select="TD[$naccepmax]"/></elmax>
-         </elm>
-        </td>
 <!-- Number of sources loaded -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$nload],'######0.0')"/></el>
          <br />
          <elm>
@@ -301,8 +321,53 @@
 	  - <elmax><xsl:value-of select="TD[$nloadmax]"/></elmax>
          </elm>
         </td>
+<!-- count fraction map -->
+        <xsl:if test="$countsplotflag &gt; 0">
+         <td align="center">
+          <a target="_blank">
+           <xsl:attribute name="href">
+            <xsl:value-of select="TD[$countsplot]"/>
+           </xsl:attribute>
+           <img width="80">
+            <xsl:attribute name="src">
+             <xsl:value-of select="TD[$countsplot]"/>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+             <xsl:value-of select="TD[$countsplot]"/>
+            </xsl:attribute>
+           </img>
+          </a>
+         </td>
+        </xsl:if>
+<!-- Number of sources accepted -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$naccep],'######0.0')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="TD[$naccepmin]"/></elmin>
+	  - <elmax><xsl:value-of select="TD[$naccepmax]"/></elmax>
+         </elm>
+        </td>
+<!-- fraction map -->
+        <xsl:if test="$countfracplotflag &gt; 0">
+         <td align="center">
+          <a target="_blank">
+           <xsl:attribute name="href">
+            <xsl:value-of select="TD[$countfracplot]"/>
+           </xsl:attribute>
+           <img width="80">
+            <xsl:attribute name="src">
+             <xsl:value-of select="TD[$countfracplot]"/>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+             <xsl:value-of select="TD[$countfracplot]"/>
+            </xsl:attribute>
+           </img>
+          </a>
+         </td>
+        </xsl:if>
 <!-- Half-light diameter -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$fluxrad],'##0.00')"/></el>
          <br />
          <elm>
@@ -311,7 +376,7 @@
          </elm>
         </td>
 <!-- Sampling -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$sampling],'##0.00')"/></el>
          <br />
          <elm>
@@ -320,7 +385,7 @@
          </elm>
         </td>
 <!-- Chi2 --> 
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$chi2], '######0.00')"/></el>
          <br />
          <elm>
@@ -329,7 +394,7 @@
          </elm>
         </td>
 <!-- FWHM -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/></el>
          <br />
          <elm>
@@ -339,7 +404,7 @@
         </td>
 <!-- FWHM map -->
         <xsl:if test="$fwhmplotflag &gt; 0">
-         <td align="center" BGCOLOR="#EEEEEE">
+         <td align="center">
           <a target="_blank">
            <xsl:attribute name="href">
             <xsl:value-of select="TD[$fwhmplot]"/>
@@ -356,7 +421,7 @@
          </td>
         </xsl:if>
 <!-- ellipticity -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$ellipticity],'##0.00')"/></el>
          <br />
          <elm>
@@ -366,7 +431,7 @@
         </td>
 <!-- Ellipticity map -->
         <xsl:if test="$ellipplotflag &gt; 0">
-         <td align="center" BGCOLOR="#EEEEEE">
+         <td align="center">
           <a target="_blank">
            <xsl:attribute name="href">
             <xsl:value-of select="TD[$ellipplot]"/>
@@ -383,7 +448,7 @@
          </td>
         </xsl:if>
 <!-- Beta -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$beta],'##0.00')"/></el>
          <br />
          <elm>
@@ -392,7 +457,7 @@
          </elm>
         </td>
 <!-- Residuals -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$residuals],'##0.00')"/></el>
          <br />
          <elm>
@@ -401,7 +466,7 @@
          </elm>
         </td>
 <!-- Asymmetry -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$asymmetry],'##0.00')"/></el>
          <br />
          <elm>
@@ -450,41 +515,32 @@
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
    <p>
-    <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('psfext')">
-     PSF stats per Extension
+    <BUTTON type="button" onclick="showhideTable('psfext')" title="click to expand">
+     PSF stats per Extension&nbsp;&darr;
     </BUTTON>
     <TABLE class="sortable" id="psfext" BORDER="2" style="display: none">
      <TR>
-      <TH BGCOLOR="#FFEECC">Ext.</TH>
-      <TH BGCOLOR="#FFEECC">N<sub>accepted</sub></TH>
-      <TH BGCOLOR="#FFEECC">N<sub>loaded</sub></TH>
-      <TH BGCOLOR="#FFEECC">Half-Light diam.</TH>
-      <TH BGCOLOR="#FFEECC">Sampling</TH>
-      <TH BGCOLOR="#FFEECC">&chi;<sup>2</sup>/d.o.f.</TH>
-      <TH BGCOLOR="#FFEECC">FWHM</TH>
-      <TH BGCOLOR="#FFEECC">Ellipticity</TH>
-      <TH BGCOLOR="#FFEECC" style="white-space: nowrap">Moffat &Beta;</TH>
-      <TH BGCOLOR="#FFEECC">Residuals</TH>
-      <TH BGCOLOR="#FFEECC">Asymmetry</TH>
+      <TH>Ext.</TH>
+      <TH>N<sub>loaded</sub></TH>
+      <TH>N<sub>accepted</sub></TH>
+      <TH>Half-Light diam.</TH>
+      <TH>Sampling</TH>
+      <TH>&chi;<sup>2</sup>/d.o.f.</TH>
+      <TH>FWHM</TH>
+      <TH>Ellipticity</TH>
+      <TH style="white-space: nowrap">Moffat &Beta;</TH>
+      <TH>Residuals</TH>
+      <TH>Asymmetry</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
        <tr>
 <!-- Extension number -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="TD[$ext]"/></el>
         </td>
-<!-- Number of sources accepted -->
-        <td align="center" BGCOLOR="#EEEEEE">
-         <el><xsl:value-of select="format-number(TD[$naccep],'######0.0')"/></el>
-         <br />
-         <elm>
-          <elmin><xsl:value-of select="TD[$naccepmin]"/></elmin>
-	  - <elmax><xsl:value-of select="TD[$naccepmax]"/></elmax>
-         </elm>
-        </td>
 <!-- Number of sources loaded -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$nload],'######0.0')"/></el>
          <br />
          <elm>
@@ -492,8 +548,17 @@
 	  - <elmax><xsl:value-of select="TD[$nloadmax]"/></elmax>
          </elm>
         </td>
+<!-- Number of sources accepted -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$naccep],'######0.0')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="TD[$naccepmin]"/></elmin>
+	  - <elmax><xsl:value-of select="TD[$naccepmax]"/></elmax>
+         </elm>
+        </td>
 <!-- Half-light diameter -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$fluxrad],'##0.00')"/></el>
          <br />
          <elm>
@@ -502,7 +567,7 @@
          </elm>
         </td>
 <!-- Sampling -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$sampling],'##0.00')"/></el>
          <br />
          <elm>
@@ -511,7 +576,7 @@
          </elm>
         </td>
 <!-- Chi2 --> 
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$chi2], '######0.00')"/></el>
          <br />
          <elm>
@@ -520,7 +585,7 @@
          </elm>
         </td>
 <!-- FWHM -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/></el>
          <br />
          <elm>
@@ -529,7 +594,7 @@
          </elm>
         </td>
 <!-- Ellipticity -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$ellipticity],'##0.00')"/></el>
          <br />
          <elm>
@@ -538,7 +603,7 @@
          </elm>
         </td>
 <!-- Beta -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$beta],'##0.00')"/></el>
          <br />
          <elm>
@@ -547,7 +612,7 @@
          </elm>
         </td>
 <!-- Residuals -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$residuals],'##0.00')"/></el>
          <br />
          <elm>
@@ -556,7 +621,7 @@
          </elm>
         </td>
 <!-- Asymmetry -->
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="format-number(TD[$asymmetry],'##0.00')"/></el>
          <br />
          <elm>
@@ -574,16 +639,16 @@
 <!-- ********************** XSL template for Config File ********************** -->
   <xsl:template name="Config">
    <p>
-    <BUTTON type="button" style="background:#CCEECC; font-family: sans-serif; font-weight: bold;" onclick="showhideTable('config')">
-     Configuration File: <xsl:value-of select="PARAM[@name='Prefs_Name']/@value"/>
+    <BUTTON type="button" onclick="showhideTable('config')" title="click to expand">
+     Configuration File: <B><xsl:value-of select="PARAM[@name='Prefs_Name']/@value"/></B>&nbsp;&darr;
     </BUTTON>
     <TABLE id="config" class="sortable" style="display: none">
      <TR>
-      <TH BGCOLOR="#FFEECC">Config Parameter</TH>
-      <TH BGCOLOR="#FFEECC">Value</TH>
+      <TH>Config Parameter</TH>
+      <TH>Value</TH>
      </TR>
      <xsl:for-each select="PARAM[position()>2]">
-      <tr BGCOLOR="#EEEEEE">
+      <tr>
        <td><el><xsl:value-of select="@name"/></el></td>
        <td><el><xsl:value-of select="@value"/></el></td>
       </tr>
@@ -591,12 +656,12 @@
     </TABLE>
    </p>
    <p>
-    <BUTTON type="button" style="background:#CCEECC; font-family: monospace; font-weight: bold: font-size: 80%;" onclick="showhideTable('commandline')">
-     Command Line
+    <BUTTON type="button" onclick="showhideTable('commandline')" title="click to expand">
+     Command Line&nbsp;&darr;
     </BUTTON>
     <TABLE id="commandline" style="display: none">
      <TR>
-      <TD BGCOLOR="#FFEECC" style="font-size: 80%;"><el>Command Line: <xsl:value-of select="PARAM[@name='Command_Line']/@value"/></el></TD>
+      <TD style="font-size: 80%;"><el><xsl:value-of select="PARAM[@name='Command_Line']/@value"/></el></TD>
      </TR>
     </TABLE>
    </p>
@@ -608,25 +673,25 @@
    <xsl:variable name="time" select="count(FIELD[@name='Time']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="msg" select="count(FIELD[@name='Msg']/preceding-sibling::FIELD)+1"/>
    <p>
-    <BUTTON type="button" style="background:#CCEECC; font-family: monospace; font-weight: bold: font-size: 80%;" onclick="showhideTable('warnings')">
-     Warnings (limited to the last 1000)
+    <BUTTON type="button" onclick="showhideTable('warnings')" title="click to expand">
+     Warnings (limited to the last 1000)&nbsp;&darr;
     </BUTTON>
-    <TABLE id="warnings" style="display: none">
+    <TABLE id="warnings" class="sortable" style="display: none">
      <TR style="font-size: 80%;">
-      <TH BGCOLOR="#FFEECC">Date</TH>
-      <TH BGCOLOR="#FFEECC">Time</TH>
-      <TH BGCOLOR="#FFEECC">Message</TH>
+      <TH>Date</TH>
+      <TH>Time</TH>
+      <TH>Message</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
        <tr>
-        <td  BGCOLOR="#EEEEEE">
+        <td >
          <el><xsl:value-of select="TD[$date]"/></el>
         </td>
-        <td BGCOLOR="#EEEEEE">
+        <td>
          <el><xsl:value-of select="TD[$time]"/></el>
         </td>
-        <td align="center" BGCOLOR="#EEEEEE">
+        <td align="center">
          <el><xsl:value-of select="TD[$msg]"/></el>
         </td>
        </tr>

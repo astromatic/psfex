@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	13/02/2009
+*	Last modify:	30/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -17,7 +17,7 @@
 /* Check if we are using a configure script here */
 #ifndef HAVE_CONFIG_H
 #define		VERSION		"3.x"
-#define		DATE		"2008-03-11"
+#define		DATE		"2009-03-30"
 #endif
 /*------------------------ what, who, when and where ------------------------*/
 
@@ -25,8 +25,8 @@
 #define         EXECUTABLE      "psfex"
 #define		MYVERSION	VERSION
 #define         COPYRIGHT       "Emmanuel BERTIN <bertin@iap.fr>"
-#define		WEBSITE		"http://terapix.iap.fr/soft/psfex"
-#define		INSTITUTE	"TERAPIX team at IAP  http://terapix.iap.fr"
+#define		WEBSITE		"http://astromatic.iap.fr/software/psfex"
+#define		INSTITUTE	"IAP http://www.iap.fr"
 
 /*----------------------------- Internal constants --------------------------*/
 #define		OUTPUT		stderr		/* where all msgs are sent */

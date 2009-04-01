@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	06/07/2008
+*	Last modify:	31/03/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -175,7 +175,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/07/2008
+VERSION	31/03/2009
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -396,6 +396,18 @@ int	write_xml_meta(FILE *file, char *error)
   if (pngflag)
     {
     pnplot = nplot;
+    if ((pngindex=cplot_check(CPLOT_COUNTS)) != RETURN_ERROR)
+      {
+      fprintf(file, "   <FIELD name=\"Plot_Counts\" datatype=\"char\""
+        " arraysize=\"*\" ucd=\"meta.id;meta.file\"/>\n");
+      cp[nplot++] = pngindex;
+      }
+    if ((pngindex=cplot_check(CPLOT_COUNTFRAC)) != RETURN_ERROR)
+      {
+      fprintf(file, "   <FIELD name=\"Plot_Count_Fraction\" datatype=\"char\""
+        " arraysize=\"*\" ucd=\"meta.id;meta.file\"/>\n");
+      cp[nplot++] = pngindex;
+      }
     if ((pngindex=cplot_check(CPLOT_FWHM)) != RETURN_ERROR)
       {
       fprintf(file, "   <FIELD name=\"Plot_FWHM\" datatype=\"char\""
