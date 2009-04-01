@@ -47,16 +47,6 @@
       font-size: 67%;
       white-space: nowrap;
       }
-     elh {font-family: monospace;
-      font-size: 120%;
-      }
-     elhi {
-      font-family: monospace;
-      font-size: 100%;
-      white-space: nowrap;
-      font-weight: normal;
-      font-style: italic;
-      }
      a {text-decoration: none; font-style: bold; color: #476674}
      a:hover {text-decoration: underline;}
      #header {
