@@ -9,7 +9,7 @@
 *
 *       Contents:       Routines dealing with FFT.
 *
-*       Last modify:    26/12/2007
+*       Last modify:    15/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -109,7 +109,7 @@ OUTPUT	-.
 NOTES	For data1 and fdata2, memory must be allocated for
 	size[0]* ... * 2*(size[naxis-1]/2+1) floats (padding required).
 AUTHOR	E. Bertin (IAP)
-VERSION	27/03/2007
+VERSION	15/04/2009
  ***/
 void    fft_conv(float *data1, float *fdata2, int width, int height)
   {
@@ -127,7 +127,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
   QFFTWMALLOC(fdata1, float, npix2);
-  plan = fftwf_plan_dft_r2c_2d(width, height, data1,
+  plan = fftwf_plan_dft_r2c_2d(height, width, data1,
         (fftwf_complex *)fdata1, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
@@ -158,7 +158,7 @@ void    fft_conv(float *data1, float *fdata2, int width, int height)
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
-  plan = fftwf_plan_dft_c2r_2d(width, height, (fftwf_complex *)fdata1, 
+  plan = fftwf_plan_dft_c2r_2d(height, width, (fftwf_complex *)fdata1, 
         data1, FFTW_ESTIMATE|FFTW_DESTROY_INPUT);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
@@ -189,7 +189,7 @@ INPUT	ptr to the image,
 OUTPUT	Pointer to the compressed, memory-allocated Fourier transform.
 NOTES	Input data may end up corrupted.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/12/2007
+VERSION	15/04/2009
  ***/
 float	*fft_rtf(float *data, int width, int height)
   {
@@ -205,7 +205,7 @@ float	*fft_rtf(float *data, int width, int height)
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
   QFFTWMALLOC(fdata, float, npix2);
-  plan = fftwf_plan_dft_r2c_2d(width, height, data,
+  plan = fftwf_plan_dft_r2c_2d(height, width, data,
         (fftwf_complex *)fdata, FFTW_ESTIMATE);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
@@ -235,7 +235,7 @@ INPUT	ptr to the image,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	15/01/2007
+VERSION	15/04/2009
  ***/
 void	fft_ctf(float *data, int width, int height, int sign)
   {
@@ -245,7 +245,7 @@ void	fft_ctf(float *data, int width, int height, int sign)
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_LOCK(&fftmutex);
 #endif
-  plan = fftwf_plan_dft_2d(width, height, (fftwf_complex *)data,
+  plan = fftwf_plan_dft_2d(height, width, (fftwf_complex *)data,
 		(fftwf_complex *)data, sign, FFTW_ESTIMATE);
 #ifdef USE_THREADS
   QPTHREAD_MUTEX_UNLOCK(&fftmutex);
