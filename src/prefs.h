@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	14/02/2009
+*	Last modify:	16/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,6 +50,7 @@ typedef struct
   char		prefs_name[MAXCHAR];		/* prefs filename */
   char		*(incat_name[MAXFILE]);		/* Filename(s) of input cats */
   int		ncat;				/* Number of input images */
+  char		psf_dir[MAXCHAR];		/* PSF output dir */
   char		psf_suffix[MAXCHAR];		/* Suffix for PSF filenames */
   int		psf_size[2], npsf_size;		/* PSF size */
   enum {NEWBASIS_NONE, NEWBASIS_PCAINDEPENDENT, NEWBASIS_PCACOMMON}
@@ -99,6 +100,7 @@ typedef struct
   enum	{HOMOBASIS_NONE, HOMOBASIS_GAUSSLAGUERRE}
 		homobasis_type;			/* Homo. kernel basis set */
   int		homobasis_number;		/* nb of supersampled pixels */
+  char		homokernel_dir[MAXCHAR];	/* Homo. kernel output dir */
   char		homokernel_suffix[MAXCHAR];	/* Homo. kernel file suffix */
   double	homobasis_scale;		/* Gauss-Laguerre beta param */
   double	homopsf_params[2];		/* Idealised Moffat PSF params*/

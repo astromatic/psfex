@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	16/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -464,7 +464,16 @@ void	makeit(void)
 	fields[c]->rtcatname);
     NFPRINTF(OUTPUT, str);
 /*-- Create a file name with a "PSF" extension */
-    strcpy(str, incatnames[c]);
+    if (*prefs.psf_dir)
+      {
+      if ((pstr = strrchr(incatnames[c], '/')))
+        pstr++;
+      else
+        pstr = incatnames[c];
+      sprintf(str, "%s/%s", prefs.psf_dir, pstr);
+      }
+    else
+      strcpy(str, incatnames[c]);
     if (!(pstr = strrchr(str, '.')))
       pstr = str+strlen(str);
     sprintf(pstr, "%s", prefs.psf_suffix);
@@ -481,7 +490,16 @@ void	makeit(void)
           sprintf(str, "Computing homogenisation kernel for %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        strcpy(str, incatnames[c]);
+        if (*prefs.homokernel_dir)
+          {
+          if ((pstr = strrchr(incatnames[c], '/')))
+            pstr++;
+          else
+            pstr = incatnames[c];
+          sprintf(str, "%s/%s", prefs.homokernel_dir, pstr);
+          }
+        else
+          strcpy(str, incatnames[c]);
         if (!(pstr = strrchr(str, '.')))
           pstr = str+strlen(str);
         sprintf(pstr, "%s", prefs.homokernel_suffix);

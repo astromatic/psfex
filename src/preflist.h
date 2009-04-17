@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	16/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -77,6 +77,7 @@ pkeystruct key[] =
   {"HOMOBASIS_SCALE", P_FLOAT, &prefs.homobasis_scale, 0,0, 0.0,1.0e3},
   {"HOMOBASIS_TYPE", P_KEY, &prefs.homobasis_type, 0,0, 0.0,0.0,
    {"NONE", "GAUSS-LAGUERRE", ""}},
+  {"HOMOKERNEL_DIR", P_STRING, prefs.homokernel_dir},
   {"HOMOKERNEL_SUFFIX", P_STRING, prefs.homokernel_suffix},
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
@@ -94,6 +95,7 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,256},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
+  {"PSF_DIR", P_STRING, prefs.psf_dir},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.psf_size, 1,1024, 0.0,0.0, {""},
@@ -169,7 +171,8 @@ char *default_prefs[] =
 "*HOMOBASIS_NUMBER   10           # Kernel basis number or parameter",
 "*HOMOBASIS_SCALE    1.0          # GAUSS-LAGUERRE beta parameter",
 "*HOMOPSF_PARAMS     2.0, 3.0     # Moffat parameters of the idealised PSF",
-"*HOMOKERNEL_SUFFIX  .homo.fits   # Output PSF homogenisation kernel filename",
+"*HOMOKERNEL_DIR                  # Where to write kernels (empty=same as input)",
+"*HOMOKERNEL_SUFFIX  .homo.fits   # Filename extension for homogenisation kernels",
 "*",
 "#------------------------------- Check-plots ----------------------------------",
 " ",
@@ -190,6 +193,7 @@ char *default_prefs[] =
 " ",
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",
+"PSF_DIR                         # Where to write PSFs (empty=same as input)",
 "PSF_SUFFIX      .psf            # Filename extension for output PSF filename",
 "VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL",
 "WRITE_XML       Y               # Write XML file (Y/N)?",

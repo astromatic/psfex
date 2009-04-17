@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	18/02/2009
+*	Last modify:	16/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -203,7 +203,7 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
 
           case P_STRING:
             if (!value || value[0]==(char)'#')
-              error(EXIT_FAILURE, keyword," string is empty!");
+              value = "";
             if (*value=='@')
               value = listbuf = list_to_str(value+1);
             strcpy((char *)key[nkey].ptr, value);
@@ -448,6 +448,7 @@ Update various structures according to the prefs.
 void	useprefs()
 
   {
+   char			*pstr;
    unsigned short	ashort=1;
    int			i, flag;
 #ifdef USE_THREADS
@@ -547,6 +548,14 @@ void	useprefs()
     warning("HIDDENMEF_TYPE INDEPENDENT is incompatible with "
 	"MEF_TYPE COMMON:\n", " HIDDENMEF_TYPE forced to COMMON");
     }
+
+/*--------------------------- Output directories ----------------------------*/
+/* Strip final "/" if present */
+  if ((i=strlen(prefs.psf_dir)-1) > 0 && *(pstr=prefs.psf_dir+i) == (char)'/')
+    *pstr = (char)'\0';
+  if ((i=strlen(prefs.homokernel_dir)-1) > 0
+	&& *(pstr=prefs.homokernel_dir+i) == (char)'/')
+    *pstr = (char)'\0';
 
 /*----------------------------- CHECK-images -------------------------------*/
   flag = 0;
