@@ -9,7 +9,7 @@
 *
 *       Contents:       Routines dealing with FFT.
 *
-*       Last modify:    15/04/2009
+*       Last modify:    21/04/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -27,7 +27,6 @@
 #include "define.h"
 #include "globals.h"
 #include "fft.h"
-#include "prefs.h"
 #ifdef USE_THREADS
 #include "threads.h"
 #endif
@@ -274,16 +273,16 @@ INPUT	ptr to the image,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/12/2007
+VERSION	21/04/2009
  ***/
 void	fft_shift(float *data, int width, int height)
   {
-   float	*temp, *tempt;
+   float	*temp, *tempt, *datat;
    int		i, xc,yc, x,y,x2,y2, npix;
 
   npix = width*height;
   QMALLOC(temp, float, width*height);
-  tempt = temp;
+  datat = data;
   xc = width/2;
   yc = height/2;
   for (y=0; y<height; y++)
@@ -297,7 +296,7 @@ void	fft_shift(float *data, int width, int height)
       x2 = x-xc;
       if (x2<0)
         x2 += width;
-      *(tempt++) = data[x2+y2];
+      temp[x2+y2] = *(datat++);
       }
     }
 
