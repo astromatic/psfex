@@ -502,7 +502,7 @@ void	useprefs()
 #endif
 #ifndef HAVE_FFTWF_MP
    if (prefs.nthreads>1)
-     warning("This executable has been compiled using a version of the ATLAS "
+     warning("This executable has been compiled using a version of the FFTW "
 	"library without support for multithreading. ",
 	"Performance will be degraded.");
 #endif
