@@ -6,7 +6,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.3.10, [bertin@iap.fr])
+AC_INIT(psfex, 3.3.11, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -184,14 +184,13 @@ AC_ARG_ENABLE(gprof,
         use_gprof="no"
 	AC_MSG_RESULT([no]))
 
-# Enable static linking
-AC_MSG_CHECKING([for static linking])
-AC_ARG_ENABLE(static,
-	[AC_HELP_STRING([--enable-static],
-	[Enable static linking (off by default)])],
-        use_static="$enableval"
+# Static linking with libtool
+AC_ARG_WITH(static-libtool,
+	[AC_HELP_STRING([--with-static-libtool],
+	[Static linking with ltdl (off by default)])],
+        use_static_libtool="$enableval"
 	AC_MSG_RESULT([yes]),
-        use_static="no"
+        use_static_libtool="no"
 	AC_MSG_RESULT([no]))
 
 ################# Actions to complete in case of multhreading ################
@@ -259,9 +258,9 @@ if test "$use_gprof" = "yes"; then
   use_static="no"
 fi
 
-# Static linking option
-if test "$use_static" = "yes"; then
-  LDFLAGS="-static -shared-libgcc $LDFLAGS"
+# Static linking with libtool option
+if test "$use_static_libtool" = "yes"; then
+  LDFLAGS="-static-libtool-libs $LDFLAGS"
 fi
 
 # Override automatic CFLAGS and LDFLAGS with those of user

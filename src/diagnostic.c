@@ -248,12 +248,12 @@ INPUT	Pointer to the vector of fitted parameters,
 OUTPUT	Normalized residuals.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	05/04/2007
+VERSION	16/07/2009
  ***/
 double	psf_normresi(double *par, psfstruct *psf)
   {
    double	dx,dy,dy2, ct,st, r2,fac,inva2,invb2, cxx,cyy,cxy,
-		resi,val,norm;
+		resi,val,val2,norm;
    float	*loc;
    int		x,y,w,h;
 
@@ -278,8 +278,9 @@ double	psf_normresi(double *par, psfstruct *psf)
       dx = x-par[1];
       r2 = cxx*dx*dx + cyy*dy2 + cxy*dx*dy;
       val = (double)*(loc++);
+      val2 = par[0]*pow(1.0 + r2, -par[6]);
       norm += val*val;
-      resi += fabs(val*(val - par[0]*pow(1.0 + r2, -par[6])));
+      resi += fabs(val*(val - val2));
       }
     }
 

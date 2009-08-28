@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	16/12/2008
+*	Last modify:	21/07/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -26,6 +26,11 @@
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
 #define		PSF_FWHMMIN	0.1	/* Minimum FWHM for fit (model pixels)*/
 #define		PSF_BETAMIN	0.5	/* Minimum Moffat beta for fit */
+
+/*-------------------------------- macros -----------------------------------*/
+
+#define         PSFEX_POW(x,a)	(x>0.01? exp(a*log(x)) : pow(x,a))
+
 /*----------------------------- Global variables ---------------------------*/
 
 double	moffat_parammin[PSF_DIAGNPARAM], moffat_parammax[PSF_DIAGNPARAM];
