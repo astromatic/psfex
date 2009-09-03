@@ -29,7 +29,6 @@
 #include	"fits/fitscat.h"
 #include	"levmar/lm.h"
 #include	"diagnostic.h"
-#include	"fastromath.h"
 #include	"prefs.h"
 #include	"poly.h"
 #include	"psf.h"
