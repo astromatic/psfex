@@ -9,7 +9,7 @@
         <!ENTITY darr "&#8595;">
 	]>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<!-- ****************** Global XSL template for SExtractor ****************
+<!-- ****************** Global XSL template for PSFEx *********************
      (C) E.Bertin and C.Marmo IAP/CNRS/UPMC 2005-2009
      ********************************************************************** -->
 
@@ -111,7 +111,7 @@
     </HEAD>
     <BODY>
      <div id="header">
-      <a href="/"><img style="vertical-align: middle; border:0px" src="http://astromatic.iap.fr/xsl/astromatic.png" title="Astromatic home" alt="Astromatic.net" /></a>  Processing summary
+      <a href="http://astromatic.net"><img style="vertical-align: middle; border:0px" src="http://astromatic.iap.fr/xsl/astromatic.png" title="Astromatic home" alt="Astromatic.net" /></a>  Processing summary
      </div>
     <xsl:call-template name="VOTable"/>
    </BODY>

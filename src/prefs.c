@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	26/06/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -518,6 +518,9 @@ void	useprefs()
 
   if (prefs.npsf_size<2)
     prefs.psf_size[1] = prefs.psf_size[0];
+
+  if (prefs.npsf_pixsize<2)
+    prefs.psf_pixsize[1] = prefs.psf_pixsize[0];
 
   if (!prefs.autoselect_flag && !prefs.psf_step)
     warning("SAMPLE_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",

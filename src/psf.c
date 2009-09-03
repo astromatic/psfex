@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	20/02/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -208,20 +208,21 @@ void	psf_clip(psfstruct *psf)
 
 
 /****** psf_init **************************************************************
-PROTO	psfstruct *psf_init(contextstruct *context,
-			int *size, float psfstep, int nsample)
+PROTO	psfstruct *psf_init(contextstruct *context, int *size,
+			float psfstep, float *pixsize, int nsample)
 PURPOSE	Allocate and initialize a PSF structure.
 INPUT	Pointer to context structure,
-	PSF model width,
-	PSF model height,
-	Number of dimensions.
+	PSF model image size (pixels),
+	PSF pixel step,
+	array of 2 effective pixel sizes (along x and along y),
+	number of samples.
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 11/07/2008
+VERSION 03/09/2009
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
-			float psfstep, int nsample)
+			float psfstep, float *pixsize, int nsample)
   {
    psfstruct	*psf;
    static char	str[MAXCHAR];
@@ -282,6 +283,8 @@ psfstruct	*psf_init(contextstruct *context, int *size,
       }
 
   psf->pixstep = psfstep;
+  psf->pixsize[0] = pixsize[0];
+  psf->pixsize[1] = pixsize[1];
   psf->npix = psf->size[0] = size[0];
   psf->npix *= (psf->size[1] = size[1]);
   psf->npix *= (psf->size[2] = psf->poly->ncoeff);
@@ -341,7 +344,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 13/02/2009
+VERSION 03/09/2009
  ***/
 psfstruct	*psf_inherit(contextstruct *context, psfstruct *psf)
   {
@@ -349,7 +352,7 @@ psfstruct	*psf_inherit(contextstruct *context, psfstruct *psf)
    int		c,co, ncnew,ncold, npix;
 
 /* 10000 is just a dummy number */
-  newpsf = psf_init(context, psf->size, psf->pixstep, 10000);
+  newpsf = psf_init(context, psf->size, psf->pixstep, psf->pixsize, 10000);
   newpsf->fwhm = psf->fwhm;
   npix = psf->size[0]*psf->size[1];
   if (psf->pixmask)

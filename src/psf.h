@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	04/11/2008
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -61,7 +61,7 @@ typedef struct moffat
 typedef struct psf
   {
   int		dim;		/* Dimensionality of the tabulated data */
-  int		*size;		/* PSF  dimensions */
+  int		*size;		/* PSF dimensions */
   int		npix;		/* Total number of involved PSF pixels */
   float		*comp; 		/* Complete pix. data (PSF components) */
   float		*loc;		/* Local PSF */
@@ -72,6 +72,7 @@ typedef struct psf
   int		cx,cy;		/* Indices of X and Y mapping contexts */
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */
+  float		pixsize[2];	/* Effective pixel size on each axis (pixel) */
   int		samples_loaded;	/* Number of detections loaded */
   int		samples_accepted;/* Number of detections accepted */
   double	chi2;		/* chi2/d.o.f. */
@@ -128,7 +129,7 @@ extern double	psf_chi2(psfstruct *psf, setstruct *set),
 extern psfstruct	*psf_copy(psfstruct *psf),
 			*psf_inherit(contextstruct *context, psfstruct *psf),
 			*psf_init(contextstruct *context, int *size,
-				float psfstep,int nsample),
+				float psfstep, float *pixsize, int nsample),
 			*psf_load(char *filename);
 
 #endif

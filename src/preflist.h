@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	16/04/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -96,6 +96,8 @@ pkeystruct key[] =
   {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,256},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
   {"PSF_DIR", P_STRING, prefs.psf_dir},
+  {"PSF_PIXELSIZE", P_FLOATLIST, prefs.psf_pixsize, 0,0, 0.0,100.0, {""},
+     1,2, &prefs.npsf_pixsize},
   {"PSF_RECENTER", P_BOOL, &prefs.recenter_flag},
   {"PSF_SAMPLING", P_FLOAT, &prefs.psf_step, 0,0, 0.0,1.0e3},
   {"PSF_SIZE", P_INTLIST, prefs.psf_size, 1,1024, 0.0,0.0, {""},
@@ -139,6 +141,7 @@ char *default_prefs[] =
 "*                                # or PCA_COMMON",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
+"*PSF_PIXELSIZE  1.0              # Effective pixel size in pixel step units",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",

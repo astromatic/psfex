@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	16/04/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -563,16 +563,19 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2009
+VERSION 03/09/2009
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, contextstruct *context)
   {
    psfstruct		*psf;
    basistypenum		basistype;
+   float		pixsize[2];
 
+  pixsize[0] = (float)prefs.psf_pixsize[0];
+  pixsize[1] = (float)prefs.psf_pixsize[1];
 //  NFPRINTF(OUTPUT,"Initializing PSF modules...");
-  psf = psf_init(context, prefs.psf_size, psfstep, set->nsample);
+  psf = psf_init(context, prefs.psf_size, psfstep, pixsize, set->nsample);
 
   psf->samples_loaded = set->nsample;
   psf->fwhm = set->fwhm;

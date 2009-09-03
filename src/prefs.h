@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	16/04/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -65,6 +65,8 @@ typedef struct
   int		flag_mask;			/* Rejection mask on SEx FLAGS*/
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
+  double	psf_pixsize[2];			/* Eff. pixel size (pixels) */
+  int		npsf_pixsize;			/* nb of params */
   int		badpix_flag;			/* Filter bad pixels? */
   int		badpix_nmax;			/* Max number of bad pixels */
   enum {VAR_NONE, VAR_SEEING}	var_type;	/* PSF variability type */

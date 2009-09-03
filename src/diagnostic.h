@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	21/07/2009
+*	Last modify:	03/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -26,6 +26,7 @@
 #define		PSF_DIAGNPARAM	7	/* Number of fitted parameters */
 #define		PSF_FWHMMIN	0.1	/* Minimum FWHM for fit (model pixels)*/
 #define		PSF_BETAMIN	0.5	/* Minimum Moffat beta for fit */
+#define		PSF_NSUBPIX	5	/* Oversamp. factor to mimick top-hat */
 
 /*-------------------------------- macros -----------------------------------*/
 
@@ -36,16 +37,16 @@
 double	moffat_parammin[PSF_DIAGNPARAM], moffat_parammax[PSF_DIAGNPARAM];
 
 /*---------------------------------- protos --------------------------------*/
-extern void	psf_boundtounbound(double *param),
+extern void	psf_boundtounbound(float *param),
 		psf_diagnostic(psfstruct *psf),
-		psf_diagprintout(int n_par, double *par, int m_dat,
-			double *fvec, void *data, int iflag,int iter,int nfev),
-		psf_diagresi(double *par, double *fvec, int m, int n,
+		psf_diagprintout(int n_par, float *par, int m_dat,
+			float *fvec, void *data, int iflag,int iter,int nfev),
+		psf_diagresi(float *par, float *fvec, int m, int n,
 			void *adata),
 		psf_moffat(psfstruct *psf, moffatstruct *moffat),
-		psf_unboundtobound(double *param);
+		psf_unboundtobound(float *param);
 
-extern double	psf_normresi(double *par, psfstruct *psf),
+extern double	psf_normresi(float *par, psfstruct *psf),
 		psf_symresi(psfstruct *psf);
 
 #endif
