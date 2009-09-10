@@ -60,7 +60,7 @@ int	plotnum[CPLOT_NTYPES];
 int	plotdev[CPLOT_NTYPES];
 char	plotfilename[MAXCHAR];
 int	plotaaflag;
- 
+
 /****** cplot_check ***********************************************************
 PROTO	int cplot_check(cplotenum cplottype)
 PURPOSE	Check that the specified check-plot type has been requested by user,
