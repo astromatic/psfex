@@ -9,7 +9,7 @@
 *
 *	Contents:	parsing and main loop.
 *
-*	Last modify:	19/06/2009
+*	Last modify:	10/09/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -41,8 +41,6 @@ EXECUTABLE " catalog1 [catalog2,...][@catalog_list1 [@catalog_list2 ...]]\n" \
 "> to dump a default configuration file: " EXECUTABLE " -d \n" \
 "> to dump a default extended configuration file: " EXECUTABLE " -dd \n"
 
-extern void	(*myplparseopts)(int *p_argc, const char **argv, PLINT mode);
-
 extern const char       notokstr[];
 
 /********************************** main ************************************/
@@ -67,9 +65,8 @@ int main(int argc, char *argv[])
     }
 
 #ifdef HAVE_PLPLOT
-  cplot_fixplplot();
   if (argc>2)
-    myplparseopts(&argc, (const char **)argv, PL_PARSE_SKIP);
+    plparseopts(&argc, (const char **)argv, PL_PARSE_SKIP);
 #endif
 
   QMALLOC(argkey, char *, argc);
@@ -113,7 +110,7 @@ int main(int argc, char *argv[])
             fprintf(OUTPUT, "\nSYNTAX: %s", SYNTAX);
 #ifdef HAVE_PLPLOT
             fprintf(OUTPUT, "\nPLPLOT-specific options:\n");
-            myplparseopts(&argc, (const char **)argv, PL_PARSE_SKIP);
+            plparseopts(&argc, (const char **)argv, PL_PARSE_SKIP);
 #endif
             exit(EXIT_SUCCESS);
             break;
