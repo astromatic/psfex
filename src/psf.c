@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	03/09/2009
+*	Last modify:	14/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -219,7 +219,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/09/2009
+VERSION 14/10/2009
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
 			float psfstep, float *pixsize, int nsample)
@@ -323,6 +323,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 
 /* Allocate an array of Moffat function fits */
   QMALLOC(psf->moffat, moffatstruct, nsnap);
+  QMALLOC(psf->pfmoffat, moffatstruct, nsnap);
 
 /* Free temporary arrays */
   if (ndim)
@@ -380,7 +381,7 @@ INPUT   psfstruct pointer.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 29/10/2008
+VERSION 14/10/2009
  ***/
 void	psf_end(psfstruct *psf)
   {
@@ -400,6 +401,7 @@ void	psf_end(psfstruct *psf)
   free(psf->resi);
   free(psf->size);
   free(psf->moffat);
+  free(psf->pfmoffat);
   free(psf->homo_kernel);
   free(psf);
 
@@ -414,7 +416,7 @@ INPUT   psfstruct pointer.
 OUTPUT  psfstruct pointer.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 11/03/2008
+VERSION 14/10/2009
  ***/
 psfstruct *psf_copy(psfstruct *psf)
   {
@@ -451,6 +453,7 @@ psfstruct *psf_copy(psfstruct *psf)
     nsnap *= psf->nsnap;
     }
   QMEMCPY(psf->moffat, newpsf->moffat, moffatstruct, nsnap);
+  QMEMCPY(psf->pfmoffat, newpsf->pfmoffat, moffatstruct, nsnap);
   if (psf->homo_kernel)
     QMEMCPY(psf->homo_kernel, newpsf->homo_kernel, float, psf->npix);
 

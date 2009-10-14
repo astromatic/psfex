@@ -244,6 +244,18 @@
    <xsl:variable name="residualsmin" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residuals" select="count(FIELD[@name='Residuals_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residualsmax" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticitymin" select="count(FIELD[@name='Ellipticity_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticity" select="count(FIELD[@name='Ellipticity_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticitymax" select="count(FIELD[@name='Ellipticity_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbetamin" select="count(FIELD[@name='MoffatBeta_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbeta" select="count(FIELD[@name='MoffatBeta_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbetamax" select="count(FIELD[@name='MoffatBeta_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresidualsmin" select="count(FIELD[@name='Residuals_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresiduals" select="count(FIELD[@name='Residuals_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresidualsmax" select="count(FIELD[@name='Residuals_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymin" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
@@ -276,15 +288,27 @@
       <TH>Sampling</TH>
       <TH>&chi;<sup>2</sup>/d.o.f.</TH>
       <TH>FWHM</TH>
+      <TH>FWHM<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <xsl:if test="$fwhmplotflag &gt; 0">
        <TH>FWHM map</TH>
       </xsl:if>
       <TH>Ellipticity</TH>
       <xsl:if test="$ellipplotflag &gt; 0">
+      <TH>Ellipticity<BR/>
+       <elm>pixel free</elm>
+      </TH>
        <TH>Ellipticity map</TH>
       </xsl:if> 
       <TH style="white-space: nowrap">Moffat &Beta;</TH>
+      <TH style="white-space: nowrap">Moffat &Beta;<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH>Residuals</TH>
+      <TH>Residuals<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH>Asymmetry</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
@@ -392,6 +416,15 @@
 	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/></elmax>
          </elm>
         </td>
+<!-- FWHM pixel-free-->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/></elmax>
+         </elm>
+        </td>
 <!-- FWHM map -->
         <xsl:if test="$fwhmplotflag &gt; 0">
          <td align="center">
@@ -417,6 +450,15 @@
          <elm>
           <elmin><xsl:value-of select="format-number(TD[$ellipticitymin],'##0.00')"/></elmin>
 	  - <elmax><xsl:value-of select="format-number(TD[$ellipticitymax],'##0.00')"/></elmax>
+         </elm>
+        </td>
+<!-- ellipticity pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfellipticity],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfellipticitymin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pfellipticitymax],'##0.00')"/></elmax>
          </elm>
         </td>
 <!-- Ellipticity map -->
@@ -446,6 +488,15 @@
 	  - <elmax><xsl:value-of select="format-number(TD[$betamax],'##0.00')"/></elmax>
          </elm>
         </td>
+<!-- Beta pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfbeta],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfbetamin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pfbetamax],'##0.00')"/></elmax>
+         </elm>
+        </td>
 <!-- Residuals -->
         <td align="center">
          <el><xsl:value-of select="format-number(TD[$residuals],'##0.00')"/></el>
@@ -453,6 +504,15 @@
          <elm>
           <elmin><xsl:value-of select="format-number(TD[$residualsmin],'##0.00')"/></elmin>
  	  - <elmax><xsl:value-of select="format-number(TD[$residualsmax],'##0.00')"/></elmax>
+         </elm>
+        </td>
+<!-- Residuals pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfresiduals],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfresidualsmin],'##0.00')"/></elmin>
+ 	  - <elmax><xsl:value-of select="format-number(TD[$pfresidualsmax],'##0.00')"/></elmax>
          </elm>
         </td>
 <!-- Asymmetry -->
@@ -501,6 +561,18 @@
    <xsl:variable name="residualsmin" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residuals" select="count(FIELD[@name='Residuals_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residualsmax" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticitymin" select="count(FIELD[@name='Ellipticity_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticity" select="count(FIELD[@name='Ellipticity_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfellipticitymax" select="count(FIELD[@name='Ellipticity_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbetamin" select="count(FIELD[@name='MoffatBeta_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbeta" select="count(FIELD[@name='MoffatBeta_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfbetamax" select="count(FIELD[@name='MoffatBeta_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresidualsmin" select="count(FIELD[@name='Residuals_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresiduals" select="count(FIELD[@name='Residuals_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pfresidualsmax" select="count(FIELD[@name='Residuals_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymin" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
@@ -517,9 +589,21 @@
       <TH>Sampling</TH>
       <TH>&chi;<sup>2</sup>/d.o.f.</TH>
       <TH>FWHM</TH>
+      <TH>FWHM<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH>Ellipticity</TH>
+      <TH>Ellipticity<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH style="white-space: nowrap">Moffat &Beta;</TH>
+      <TH style="white-space: nowrap">Moffat &Beta;<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH>Residuals</TH>
+      <TH>Residuals<BR/>
+       <elm>pixel free</elm>
+      </TH>
       <TH>Asymmetry</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
@@ -583,6 +667,15 @@
 	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/></elmax>
          </elm>
         </td>
+<!-- FWHM pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/></elmax>
+         </elm>
+        </td>
 <!-- Ellipticity -->
         <td align="center">
          <el><xsl:value-of select="format-number(TD[$ellipticity],'##0.00')"/></el>
@@ -590,6 +683,15 @@
          <elm>
           <elmin><xsl:value-of select="format-number(TD[$ellipticitymin],'##0.00')"/></elmin>
 	  - <elmax><xsl:value-of select="format-number(TD[$ellipticitymax],'##0.00')"/></elmax>
+         </elm>
+        </td>
+<!-- Ellipticity pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfellipticity],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfellipticitymin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pfellipticitymax],'##0.00')"/></elmax>
          </elm>
         </td>
 <!-- Beta -->
@@ -601,6 +703,15 @@
 	  - <elmax><xsl:value-of select="format-number(TD[$betamax],'##0.00')"/></elmax>
          </elm>
         </td>
+<!-- Beta pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfbeta],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfbetamin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pfbetamax],'##0.00')"/></elmax>
+         </elm>
+        </td>
 <!-- Residuals -->
         <td align="center">
          <el><xsl:value-of select="format-number(TD[$residuals],'##0.00')"/></el>
@@ -608,6 +719,15 @@
          <elm>
           <elmin><xsl:value-of select="format-number(TD[$residualsmin],'##0.00')"/></elmin>
  	  - <elmax><xsl:value-of select="format-number(TD[$residualsmax],'##0.00')"/></elmax>
+         </elm>
+        </td>
+<!-- Residuals pixel-free -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$pfresiduals],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$pfresidualsmin],'##0.00')"/></elmin>
+ 	  - <elmax><xsl:value-of select="format-number(TD[$pfresidualsmax],'##0.00')"/></elmax>
          </elm>
         </td>
 <!-- Asymmetry -->

@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	16/12/2008
+*	Last modify:	14/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,16 +40,16 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 16/12/2008
+VERSION 14/10/2009
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
-   moffatstruct		*moffat;
+   moffatstruct		*moffat, *pfmoffat;
    double		dpos[POLY_MAXDIM];
    float		param[PSF_DIAGNPARAM],
 			*dresi,
 			dstep,dstart, fwhm, temp;
-   int			i,m,n, w,h, npc,nt, nmed;
+   int			i,m,n, w,h, npc,nt, nmed, niter;
 
   nmed = 0;
   npc = psf->poly->ndim;
@@ -63,19 +63,23 @@ void	psf_diagnostic(psfstruct *psf)
   w = psf->size[0];
   h = psf->size[1];
   m = w*h;
-  QCALLOC(dresi, float, m);
-  moffat = psf->moffat;
+  QMALLOC(dresi, float, m);
   dstep = 1.0/psf->nsnap;
   dstart = (1.0-dstep)/2.0;
+
+/*-------------------- "Normal" Moffat profile-fitting ---------------------*/
+
+  moffat = psf->moffat;
+  psf->nsubpix = 1;
   memset(dpos, 0, POLY_MAXDIM*sizeof(float));
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
   psf->moffat_fwhm_min = psf->moffat_ellipticity_min = psf->moffat_beta_min
-		= psf->moffat_residuals_min = psf->moffat_symresiduals_min
+		= psf->moffat_residuals_min = psf->sym_residuals_min
 		= BIG;
   psf->moffat_fwhm_max = psf->moffat_ellipticity_max = psf->moffat_beta_max
-		= psf->moffat_residuals_max = psf->moffat_residuals_max
+		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
 
 /* For each snapshot of the PSF */ 
@@ -112,11 +116,13 @@ void	psf_diagnostic(psfstruct *psf)
     moffat_parammin[6] = PSF_BETAMIN;
     moffat_parammax[6] = 10.0;
     psf_boundtounbound(param);
-    slevmar_dif(psf_diagresi, param, dresi,
+    memset(dresi, 0, m*sizeof(float));
+    niter = slevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	NULL, NULL, NULL, NULL, psf);
     psf_unboundtobound(param);
+
     moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
     moffat[n].xc[1] = param[2];
@@ -158,10 +164,10 @@ void	psf_diagnostic(psfstruct *psf)
       psf->moffat_residuals_min = psf->moffat[n].residuals;
     if (psf->moffat[n].residuals > psf->moffat_residuals_max)
       psf->moffat_residuals_max = psf->moffat[n].residuals;
-    if (psf->moffat[n].symresiduals < psf->moffat_symresiduals_min)
-      psf->moffat_symresiduals_min = psf->moffat[n].symresiduals;
-    if (psf->moffat[n].symresiduals > psf->moffat_symresiduals_max)
-      psf->moffat_symresiduals_max = psf->moffat[n].symresiduals;
+    if (psf->moffat[n].symresiduals < psf->sym_residuals_min)
+      psf->sym_residuals_min = psf->moffat[n].symresiduals;
+    if (psf->moffat[n].symresiduals > psf->sym_residuals_max)
+      psf->sym_residuals_max = psf->moffat[n].symresiduals;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -180,9 +186,121 @@ void	psf_diagnostic(psfstruct *psf)
 	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min);
   psf->moffat_beta = psf->moffat[nmed].beta;
   psf->moffat_residuals = psf->moffat[nmed].residuals;
-  psf->moffat_symresiduals = psf->moffat[nmed].symresiduals;
+  psf->sym_residuals = psf->moffat[nmed].symresiduals;
 
-  free(dresi);
+/*------------------ "Pixel-free" Moffat profile-fitting -------------------*/
+
+  pfmoffat = psf->pfmoffat;
+  psf->nsubpix = PSF_NSUBPIX;
+  memset(dpos, 0, POLY_MAXDIM*sizeof(float));
+  for (i=0; i<npc; i++)
+     dpos[i] = -dstart;
+
+  psf->pfmoffat_fwhm_min = psf->pfmoffat_ellipticity_min = psf->pfmoffat_beta_min
+		= psf->pfmoffat_residuals_min = BIG;
+  psf->pfmoffat_fwhm_max = psf->pfmoffat_ellipticity_max = psf->pfmoffat_beta_max
+		= psf->pfmoffat_residuals_max = -BIG;
+
+/* For each snapshot of the PSF */ 
+  for (n=0; n<nt; n++)
+    {
+    psf_build(psf, dpos);
+/*-- Initialize PSF parameters */
+    fwhm = psf->fwhm / psf->pixstep;
+/*-- Amplitude */
+    param[0] = 	1.0/(psf->fwhm*psf->fwhm);
+    moffat_parammin[0] = param[0]/10.0;
+    moffat_parammax[0] = param[0]*10.0;
+/*-- Xcenter */
+    param[1] = (w-1)/2.0;
+    moffat_parammin[1] = 0.0;
+    moffat_parammax[1] = w - 1.0;
+/*-- Ycenter */
+    param[2] = (h-1)/2.0;
+    moffat_parammin[2] = 0.0;
+    moffat_parammax[2] = h - 1.0;
+/*-- Major axis FWHM (pixels) */
+    param[3] = fwhm;
+    moffat_parammin[3] = fwhm/3.0;
+    moffat_parammax[3] = fwhm*3.0;
+/*-- Major axis FWHM (pixels) */
+    param[4] = fwhm;
+    moffat_parammin[4] = fwhm/3.0;
+    moffat_parammax[4] = fwhm*3.0;
+/*-- Position angle (deg)  */
+    param[5] = 0.0;
+    moffat_parammin[5] = moffat_parammax[5] = 0.0;
+/*-- Moffat beta */
+    param[6] = 3.0;
+    moffat_parammin[6] = PSF_BETAMIN;
+    moffat_parammax[6] = 10.0;
+    psf_boundtounbound(param);
+    memset(dresi, 0, m*sizeof(float));
+    niter = slevmar_dif(psf_diagresi, param, dresi,
+	PSF_DIAGNPARAM, m, 
+	PSF_DIAGMAXITER, 
+	NULL, NULL, NULL, NULL, psf);
+    psf_unboundtobound(param);
+
+    pfmoffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
+    pfmoffat[n].xc[0] = param[1];
+    pfmoffat[n].xc[1] = param[2];
+    if (param[3] > param[4])
+      {
+      pfmoffat[n].fwhm_max = param[3]*psf->pixstep;
+      pfmoffat[n].fwhm_min = param[4]*psf->pixstep;
+      pfmoffat[n].theta = (fmod(param[5]+360.0, 180.0));
+      }
+    else
+      {
+      pfmoffat[n].fwhm_max = param[4]*psf->pixstep;
+      pfmoffat[n].fwhm_min = param[3]*psf->pixstep;
+      pfmoffat[n].theta = (fmod(param[5]+450.0, 180.0));
+      }
+    if (pfmoffat[n].theta > 90.0)
+      pfmoffat[n].theta -= 180.0;
+    pfmoffat[n].beta = param[6];
+    for (i=0; i<npc; i++)
+      pfmoffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
+    pfmoffat[n].residuals = psf_normresi(param, psf);
+    pfmoffat[n].symresiduals = psf_symresi(psf);
+    if ((temp=sqrt(psf->pfmoffat[n].fwhm_min*psf->pfmoffat[n].fwhm_max))
+		< psf->pfmoffat_fwhm_min)
+      psf->pfmoffat_fwhm_min = temp;
+    if (temp > psf->pfmoffat_fwhm_max)
+      psf->pfmoffat_fwhm_max = temp;
+    if ((temp=(psf->pfmoffat[n].fwhm_max-psf->pfmoffat[n].fwhm_min)
+		/ (psf->pfmoffat[n].fwhm_max+psf->pfmoffat[n].fwhm_min))
+		< psf->pfmoffat_ellipticity_min)
+      psf->pfmoffat_ellipticity_min = temp;
+    if (temp > psf->pfmoffat_ellipticity_max)
+      psf->pfmoffat_ellipticity_max = temp;
+    if (psf->pfmoffat[n].beta < psf->pfmoffat_beta_min)
+      psf->pfmoffat_beta_min = psf->pfmoffat[n].beta;
+    if (psf->pfmoffat[n].beta > psf->pfmoffat_beta_max)
+      psf->pfmoffat_beta_max = psf->pfmoffat[n].beta;
+    if (psf->pfmoffat[n].residuals < psf->pfmoffat_residuals_min)
+      psf->pfmoffat_residuals_min = psf->pfmoffat[n].residuals;
+    if (psf->pfmoffat[n].residuals > psf->pfmoffat_residuals_max)
+      psf->pfmoffat_residuals_max = psf->pfmoffat[n].residuals;
+
+    for (i=0; i<npc; i++)
+      if (dpos[i]<dstart-0.01)
+        {
+        dpos[i] += dstep;
+        break;
+        }
+      else
+        dpos[i] = -dstart;
+    }
+
+  psf->pfmoffat_fwhm = sqrt(psf->pfmoffat[nmed].fwhm_min
+		* psf->pfmoffat[nmed].fwhm_max);
+  psf->pfmoffat_ellipticity =
+	(psf->pfmoffat[nmed].fwhm_max-psf->pfmoffat[nmed].fwhm_min)
+	/ (psf->pfmoffat[nmed].fwhm_max+psf->pfmoffat[nmed].fwhm_min);
+  psf->pfmoffat_beta = psf->pfmoffat[nmed].beta;
+  psf->pfmoffat_residuals = psf->pfmoffat[nmed].residuals;
 
   return;
   }
@@ -199,7 +317,7 @@ INPUT	Pointer to the vector of parameters,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/09/2009
+VERSION	14/10/2009
  ***/
 void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
   {
@@ -207,10 +325,11 @@ void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
    float	*loc, *fvect,
 		dx,dy,dy2, ct,st, fac,inva2,invb2, cxx,cyy,cxy, a, beta,
 		dx0,dy0, dxstep,dystep;
-   int		i, x,y, xd,yd, w,h;
+   int		i, x,y, xd,yd, w,h, nsubpix;
 
 //printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
   psf = (psfstruct *)adata;
+  nsubpix = psf->nsubpix;
   psf_unboundtobound(par);
   w = psf->size[0];
   h = psf->size[1];
@@ -222,19 +341,19 @@ void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
   cxx = inva2*ct*ct + invb2*st*st;
   cyy = inva2*st*st + invb2*ct*ct;
   cxy = 2.0*ct*st*(inva2 - invb2);
-  a = par[0] / (PSF_NSUBPIX*PSF_NSUBPIX);
+  a = par[0] / (nsubpix*nsubpix);
   beta = -par[6];
-  dxstep = psf->pixsize[0]/(PSF_NSUBPIX*psf->pixstep);
-  dystep = psf->pixsize[1]/(PSF_NSUBPIX*psf->pixstep);
-  dy0 = -par[2] - 0.5*(PSF_NSUBPIX - 1.0)*dystep;
+  dxstep = psf->pixsize[0]/(nsubpix*psf->pixstep);
+  dystep = psf->pixsize[1]/(nsubpix*psf->pixstep);
+  dy0 = -par[2] - 0.5*(nsubpix - 1.0)*dystep;
   loc = psf->loc;
   fvect = fvec;
   for (i=w*h; i--;)
     *(fvect++) = -*(loc++);
-  for (yd=PSF_NSUBPIX; yd--; dy0+=dystep)
+  for (yd=nsubpix; yd--; dy0+=dystep)
     {
-    dx0 = -par[1] - 0.5*(PSF_NSUBPIX - 1.0)*dxstep;
-    for (xd=PSF_NSUBPIX; xd--; dx0+=dxstep)
+    dx0 = -par[1] - 0.5*(psf->nsubpix - 1.0)*dxstep;
+    for (xd=nsubpix; xd--; dx0+=dxstep)
       {
       fvect = fvec;
       dy = dy0;
@@ -263,7 +382,7 @@ INPUT	Pointer to the vector of fitted parameters,
 OUTPUT	Normalized residuals.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/09/2009
+VERSION	14/10/2009
  ***/
 double	psf_normresi(float *par, psfstruct *psf)
   {
@@ -271,12 +390,13 @@ double	psf_normresi(float *par, psfstruct *psf)
    float	*loc, *fvec,*fvect,
 		dx,dy,dy2, ct,st, fac,inva2,invb2, cxx,cyy,cxy, a, beta,
 		dx0,dy0, dxstep,dystep, val;
-   int		i, x,y, xd,yd, w,h;
+   int		i, x,y, xd,yd, w,h, nsubpix;
 
   w = psf->size[0];
   h = psf->size[1];
   ct = cosf(par[5]*PI/180.0);
   st = sinf(par[5]*PI/180.0);
+  nsubpix = psf->nsubpix;
   QMALLOC(fvec, float, w*h*sizeof(float));
   fac = 4.0*(pow(2.0, par[6]>PSF_BETAMIN? 1.0/par[6] : 1.0/PSF_BETAMIN) - 1.0);
   inva2 = fac/(par[3]>PSF_FWHMMIN? par[3]*par[3] : PSF_FWHMMIN*PSF_FWHMMIN);
@@ -284,19 +404,18 @@ double	psf_normresi(float *par, psfstruct *psf)
   cxx = inva2*ct*ct + invb2*st*st;
   cyy = inva2*st*st + invb2*ct*ct;
   cxy = 2.0*ct*st*(inva2 - invb2);
-  a = par[0] / (PSF_NSUBPIX*PSF_NSUBPIX);
+  a = par[0] / (nsubpix*nsubpix);
   beta = -par[6];
-  dxstep = psf->pixsize[0]/(PSF_NSUBPIX*psf->pixstep);
-  dystep = psf->pixsize[1]/(PSF_NSUBPIX*psf->pixstep);
-  dy0 = -par[2] - 0.5*(PSF_NSUBPIX - 1.0)*dystep;
+  dxstep = psf->pixsize[0]/(nsubpix*psf->pixstep);
+  dystep = psf->pixsize[1]/(nsubpix*psf->pixstep);
+  dy0 = -par[2] - 0.5*(nsubpix - 1.0)*dystep;
   fvect = fvec;
-  loc = psf->loc;
   for (i=w*h; i--;)
-    *(fvect++) = -*(loc++);
-  for (yd=PSF_NSUBPIX; yd--; dy0+=dystep)
+    *(fvect++) = 0.0;
+  for (yd=nsubpix; yd--; dy0+=dystep)
     {
-    dx0 = -par[1] - 0.5*(PSF_NSUBPIX - 1.0)*dxstep;
-    for (xd=PSF_NSUBPIX; xd--; dx0+=dxstep)
+    dx0 = -par[1] - 0.5*(nsubpix - 1.0)*dxstep;
+    for (xd=nsubpix; xd--; dx0+=dxstep)
       {
       fvect = fvec;
       dy = dy0;
@@ -315,14 +434,14 @@ double	psf_normresi(float *par, psfstruct *psf)
   loc = psf->loc;
   for (i=w*h; i--;)
     {
-    val = *(loc++);
-    resi += fabsf(*(fvect++)*val);
+    val = *loc+*fvect;
+    resi += val*fabsf(*(fvect++) - *(loc++));
     norm += val*val;
     }
 
   free(fvec);
 
-  return norm > 0.0? resi / norm : 1.0;
+  return norm > 0.0? 2.0 * resi / norm : 1.0;
   }
 
 
@@ -350,7 +469,7 @@ double	psf_symresi(psfstruct *psf)
     valsym = (double)*(--locsym);
     valmean = val + valsym;
     norm += valmean*valmean;
-    resi += fabs(valmean * (val - valsym));
+    resi += valmean * fabs((val - valsym));
     }
 
   return norm > 0.0? 2.0 * resi / norm : 1.0;
@@ -365,20 +484,21 @@ INPUT	Pointer to the PSF structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/09/2009
+VERSION	14/10/2009
  ***/
 void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   {
    float	*loc,
 		dx,dy,dy2, ct,st, fac,inva2,invb2, cxx,cyy,cxy, a, beta,
 		dx0,dy0, dxstep,dystep, xc,yc;
-   int		i, x,y, xd,yd, w,h;
+   int		i, x,y, xd,yd, w,h, nsubpix;
 
   w = psf->size[0];
   h = psf->size[1];
   xc = moffat->xc[0];
   yc = moffat->xc[1];
-  a = moffat->amplitude*psf->pixstep*psf->pixstep / (PSF_NSUBPIX*PSF_NSUBPIX);
+  nsubpix = psf->nsubpix;
+  a = moffat->amplitude*psf->pixstep*psf->pixstep / (nsubpix*nsubpix);
   beta = -moffat->beta;
   ct = cos(moffat->theta*PI/180.0);
   st = sin(moffat->theta*PI/180.0);
@@ -388,16 +508,16 @@ void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   cxx = inva2*ct*ct + invb2*st*st;
   cyy = inva2*st*st + invb2*ct*ct;
   cxy = 2.0*ct*st*(inva2 - invb2);
-  dxstep = psf->pixsize[0]/(PSF_NSUBPIX*psf->pixstep);
-  dystep = psf->pixsize[1]/(PSF_NSUBPIX*psf->pixstep);
-  dy0 = -yc - 0.5*(PSF_NSUBPIX - 1.0)*dystep;
+  dxstep = psf->pixsize[0]/(nsubpix*psf->pixstep);
+  dystep = psf->pixsize[1]/(nsubpix*psf->pixstep);
+  dy0 = -yc - 0.5*(nsubpix - 1.0)*dystep;
   loc = psf->loc;
   for (i=w*h; i--;)
     *(loc++) = 0.0;
-  for (yd=PSF_NSUBPIX; yd--; dy0+=dystep)
+  for (yd=nsubpix; yd--; dy0+=dystep)
     {
-    dx0 = -xc - 0.5*(PSF_NSUBPIX - 1.0)*dxstep;
-    for (xd=PSF_NSUBPIX; xd--; dx0+=dxstep)
+    dx0 = -xc - 0.5*(nsubpix - 1.0)*dxstep;
+    for (xd=nsubpix; xd--; dx0+=dxstep)
       {
       loc = psf->loc;
       dy = dy0;
