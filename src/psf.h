@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for psf.c.
 *
-*	Last modify:	14/10/2009
+*	Last modify:	15/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -48,14 +48,14 @@ typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE,
 typedef struct moffat
   {
   double	context[POLY_MAXDIM];	/* Context coordinates */
-  double	amplitude;	/* Central amplitude */
-  double	xc[2];		/* Center coordinates */
-  double	fwhm_min;	/* FWHM along the minor axis */
-  double	fwhm_max;	/* FWHM along the major axis */
-  double	theta;		/* Position angle of the major axis / NAXIS1 */
-  double	beta;		/* Moffat beta parameter */
-  double	residuals;	/* Normalized residuals */
-  double	symresiduals;	/* Normalized symmetry residuals */
+  float		amplitude;	/* Central amplitude */
+  float		xc[2];		/* Center coordinates */
+  float		fwhm_min;	/* FWHM along the minor axis */
+  float		fwhm_max;	/* FWHM along the major axis */
+  float		theta;		/* Position angle of the major axis / NAXIS1 */
+  float		beta;		/* Moffat beta parameter */
+  float		residuals;	/* Normalized residuals */
+  float		symresiduals;	/* Normalized symmetry residuals */
   }	moffatstruct;
 
 typedef struct psf
@@ -86,33 +86,36 @@ typedef struct psf
   int		nsubpix;	/* Number of intrapixel samples per axis */
   moffatstruct	*moffat;	/* Array of Moffat fits to PSF */
   moffatstruct	*pfmoffat;	/* Array of pixel-free Moffat fits to PSF */
-  double	moffat_fwhm_min;
-  double	moffat_fwhm;	/* Central Moffat FWHM */
-  double	moffat_fwhm_max;
-  double	moffat_ellipticity_min;
-  double	moffat_ellipticity;	/* Central Moffat ellipticity */
-  double	moffat_ellipticity_max;
-  double	moffat_beta_min;
-  double	moffat_beta;	/* Central Moffat beta */
-  double	moffat_beta_max;
-  double	moffat_residuals_min;
-  double	moffat_residuals;/* Central Moffat residuals */
-  double	moffat_residuals_max;
-  double	pfmoffat_fwhm_min;
-  double	pfmoffat_fwhm;	/* Central pixel-free Moffat FWHM */
-  double	pfmoffat_fwhm_max;
-  double	pfmoffat_ellipticity_min;
-  double	pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity */
-  double	pfmoffat_ellipticity_max;
-  double	pfmoffat_beta_min;
-  double	pfmoffat_beta;	/* Central pixel-free Moffat beta */
-  double	pfmoffat_beta_max;
-  double	pfmoffat_residuals_min;
-  double	pfmoffat_residuals;/* Central pixel-free Moffat residuals */
-  double	pfmoffat_residuals_max;
-  double	sym_residuals_min;
-  double	sym_residuals;/* Symmetry residuals */
-  double	sym_residuals_max;
+  float		moffat_fwhm_min;
+  float		moffat_fwhm;	/* Central Moffat FWHM */
+  float		moffat_fwhm_max;
+  float		moffat_ellipticity_min;
+  float		moffat_ellipticity;	/* Central Moffat ellipticity */
+  float		moffat_ellipticity_max;
+  float		moffat_beta_min;
+  float		moffat_beta;	/* Central Moffat beta */
+  float		moffat_beta_max;
+  float		moffat_residuals_min;
+  float		moffat_residuals;/* Central Moffat residuals */
+  float		moffat_residuals_max;
+  float		moffat_score_min;
+  float		moffat_score;	/* Central pixel-free Moffat score */
+  float		moffat_score_max;
+  float		pfmoffat_fwhm_min;
+  float		pfmoffat_fwhm;	/* Central pixel-free Moffat FWHM */
+  float		pfmoffat_fwhm_max;
+  float		pfmoffat_ellipticity_min;
+  float		pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity */
+  float		pfmoffat_ellipticity_max;
+  float		pfmoffat_beta_min;
+  float		pfmoffat_beta;	/* Central pixel-free Moffat beta */
+  float		pfmoffat_beta_max;
+  float		pfmoffat_residuals_min;
+  float		pfmoffat_residuals;/* Central pixel-free Moffat residuals */
+  float		pfmoffat_residuals_max;
+  float		sym_residuals_min;
+  float		sym_residuals;/* Symmetry residuals */
+  float		sym_residuals_max;
   float		*homo_kernel;		/* PSF homogenization kernel */
   double	homopsf_params[2];	/* Idealised Moffat PSF params*/
   int		homobasis_number;	/* nb of supersampled pixels */
