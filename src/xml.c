@@ -9,7 +9,7 @@
 *
 *	Contents:	XML logging.
 *
-*	Last modify:	14/10/2009
+*	Last modify:	27/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -175,7 +175,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	14/10/2009
+VERSION	27/10/2009
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -577,7 +577,16 @@ int	write_xml_meta(FILE *file, char *error)
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
       }
-
+    else if (neff==0)
+      minrad_min = sampling_min = chi2_min = fwhm_min = ellipticity_min
+	= beta_min = residuals_min = pffwhm_min = pfellipticity_min
+	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pfellipticity_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
+	= beta_max = residuals_max = pffwhm_max = pfellipticity_max
+	= pfbeta_max = pfresiduals_max = symresiduals_max = 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%s</TD><TD>%s</TD><TD>%d</TD>\n"
@@ -865,7 +874,16 @@ int	write_xml_meta(FILE *file, char *error)
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
       }
-
+    else if (neff==0)
+      minrad_min = sampling_min = chi2_min = fwhm_min = ellipticity_min
+	= beta_min = residuals_min = pffwhm_min = pfellipticity_min
+	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pfellipticity_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
+	= beta_max = residuals_max = pffwhm_max = pfellipticity_max
+	= pfbeta_max = pfresiduals_max = symresiduals_max = 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%d</TD>\n"

@@ -85,43 +85,48 @@ void	psf_diagnostic(psfstruct *psf)
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
     {
-    psf_build(psf, dpos);
-/*-- Initialize PSF parameters */
-    fwhm = psf->fwhm / psf->pixstep;
-/*-- Amplitude */
-    param[0] = 	1.0/(psf->fwhm*psf->fwhm);
-    moffat_parammin[0] = param[0]/10.0;
-    moffat_parammax[0] = param[0]*10.0;
-/*-- Xcenter */
-    param[1] = (w-1)/2.0;
-    moffat_parammin[1] = 0.0;
-    moffat_parammax[1] = w - 1.0;
-/*-- Ycenter */
-    param[2] = (h-1)/2.0;
-    moffat_parammin[2] = 0.0;
-    moffat_parammax[2] = h - 1.0;
-/*-- Major axis FWHM (pixels) */
-    param[3] = fwhm;
-    moffat_parammin[3] = fwhm/3.0;
-    moffat_parammax[3] = fwhm*3.0;
-/*-- Major axis FWHM (pixels) */
-    param[4] = fwhm;
-    moffat_parammin[4] = fwhm/3.0;
-    moffat_parammax[4] = fwhm*3.0;
-/*-- Position angle (deg)  */
-    param[5] = 0.0;
-    moffat_parammin[5] = moffat_parammax[5] = 0.0;
-/*-- Moffat beta */
-    param[6] = 3.0;
-    moffat_parammin[6] = PSF_BETAMIN;
-    moffat_parammax[6] = 10.0;
-    psf_boundtounbound(param);
-    memset(dresi, 0, m*sizeof(float));
-    niter = slevmar_dif(psf_diagresi, param, dresi,
+    if (psf->samples_accepted)
+      {
+      psf_build(psf, dpos);
+/*---- Initialize PSF parameters */
+      fwhm = psf->fwhm / psf->pixstep;
+/*---- Amplitude */
+      param[0] = 	1.0/(psf->fwhm*psf->fwhm);
+      moffat_parammin[0] = param[0]/10.0;
+      moffat_parammax[0] = param[0]*10.0;
+/*---- Xcenter */
+      param[1] = (w-1)/2.0;
+      moffat_parammin[1] = 0.0;
+      moffat_parammax[1] = w - 1.0;
+/*---- Ycenter */
+      param[2] = (h-1)/2.0;
+      moffat_parammin[2] = 0.0;
+      moffat_parammax[2] = h - 1.0;
+/*---- Major axis FWHM (pixels) */
+      param[3] = fwhm;
+      moffat_parammin[3] = fwhm/3.0;
+      moffat_parammax[3] = fwhm*3.0;
+/*---- Major axis FWHM (pixels) */
+      param[4] = fwhm;
+      moffat_parammin[4] = fwhm/3.0;
+      moffat_parammax[4] = fwhm*3.0;
+/*---- Position angle (deg)  */
+      param[5] = 0.0;
+      moffat_parammin[5] = moffat_parammax[5] = 0.0;
+/*---- Moffat beta */
+      param[6] = 3.0;
+      moffat_parammin[6] = PSF_BETAMIN;
+      moffat_parammax[6] = 10.0;
+      psf_boundtounbound(param);
+      memset(dresi, 0, m*sizeof(float));
+      niter = slevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	NULL, NULL, NULL, NULL, psf);
-    psf_unboundtobound(param);
+      psf_unboundtobound(param);
+      }
+    else
+      memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
 
     moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
@@ -150,9 +155,9 @@ void	psf_diagnostic(psfstruct *psf)
       psf->moffat_fwhm_min = temp;
     if (temp > psf->moffat_fwhm_max)
       psf->moffat_fwhm_max = temp;
-    if ((temp=(psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min)
-		/ (psf->moffat[n].fwhm_max+psf->moffat[n].fwhm_min))
-		< psf->moffat_ellipticity_min)
+    if ((temp=psf->moffat[n].fwhm_max+psf->moffat[n].fwhm_min) > 0.0)
+      temp = (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min) / temp;
+    if (temp < psf->moffat_ellipticity_min)
       psf->moffat_ellipticity_min = temp;
     if (temp > psf->moffat_ellipticity_max)
       psf->moffat_ellipticity_max = temp;
@@ -181,9 +186,9 @@ void	psf_diagnostic(psfstruct *psf)
 
   psf->moffat_fwhm = sqrt(psf->moffat[nmed].fwhm_min
 		* psf->moffat[nmed].fwhm_max);
-  psf->moffat_ellipticity =
-	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min)
-	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min);
+  temp = psf->moffat[nmed].fwhm_max + psf->moffat[nmed].fwhm_min;
+  psf->moffat_ellipticity = (temp > 0.0)?
+	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min) / temp : 0.0;
   psf->moffat_beta = psf->moffat[nmed].beta;
   psf->moffat_residuals = psf->moffat[nmed].residuals;
   psf->sym_residuals = psf->moffat[nmed].symresiduals;
@@ -204,44 +209,48 @@ void	psf_diagnostic(psfstruct *psf)
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
     {
-    psf_build(psf, dpos);
-/*-- Initialize PSF parameters */
-    fwhm = psf->fwhm / psf->pixstep;
-/*-- Amplitude */
-    param[0] = 	1.0/(psf->fwhm*psf->fwhm);
-    moffat_parammin[0] = param[0]/10.0;
-    moffat_parammax[0] = param[0]*10.0;
-/*-- Xcenter */
-    param[1] = (w-1)/2.0;
-    moffat_parammin[1] = 0.0;
-    moffat_parammax[1] = w - 1.0;
-/*-- Ycenter */
-    param[2] = (h-1)/2.0;
-    moffat_parammin[2] = 0.0;
-    moffat_parammax[2] = h - 1.0;
-/*-- Major axis FWHM (pixels) */
-    param[3] = fwhm;
-    moffat_parammin[3] = fwhm/3.0;
-    moffat_parammax[3] = fwhm*3.0;
-/*-- Major axis FWHM (pixels) */
-    param[4] = fwhm;
-    moffat_parammin[4] = fwhm/3.0;
-    moffat_parammax[4] = fwhm*3.0;
-/*-- Position angle (deg)  */
-    param[5] = 0.0;
-    moffat_parammin[5] = moffat_parammax[5] = 0.0;
-/*-- Moffat beta */
-    param[6] = 3.0;
-    moffat_parammin[6] = PSF_BETAMIN;
-    moffat_parammax[6] = 10.0;
-    psf_boundtounbound(param);
-    memset(dresi, 0, m*sizeof(float));
-    niter = slevmar_dif(psf_diagresi, param, dresi,
+    if (psf->samples_accepted)
+      {
+      psf_build(psf, dpos);
+/*---- Initialize PSF parameters */
+      fwhm = psf->fwhm / psf->pixstep;
+/*---- Amplitude */
+      param[0] = 	1.0/(psf->fwhm*psf->fwhm);
+      moffat_parammin[0] = param[0]/10.0;
+      moffat_parammax[0] = param[0]*10.0;
+/*---- Xcenter */
+      param[1] = (w-1)/2.0;
+      moffat_parammin[1] = 0.0;
+      moffat_parammax[1] = w - 1.0;
+/*---- Ycenter */
+      param[2] = (h-1)/2.0;
+      moffat_parammin[2] = 0.0;
+      moffat_parammax[2] = h - 1.0;
+/*---- Major axis FWHM (pixels) */
+      param[3] = fwhm;
+      moffat_parammin[3] = fwhm/3.0;
+      moffat_parammax[3] = fwhm*3.0;
+/*---- Major axis FWHM (pixels) */
+      param[4] = fwhm;
+      moffat_parammin[4] = fwhm/3.0;
+      moffat_parammax[4] = fwhm*3.0;
+/*---- Position angle (deg)  */
+      param[5] = 0.0;
+      moffat_parammin[5] = moffat_parammax[5] = 0.0;
+/*---- Moffat beta */
+      param[6] = 3.0;
+      moffat_parammin[6] = PSF_BETAMIN;
+      moffat_parammax[6] = 10.0;
+      psf_boundtounbound(param);
+      memset(dresi, 0, m*sizeof(float));
+      niter = slevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	NULL, NULL, NULL, NULL, psf);
-    psf_unboundtobound(param);
-
+      psf_unboundtobound(param);
+      }
+    else
+      memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
     pfmoffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     pfmoffat[n].xc[0] = param[1];
     pfmoffat[n].xc[1] = param[2];
@@ -269,9 +278,9 @@ void	psf_diagnostic(psfstruct *psf)
       psf->pfmoffat_fwhm_min = temp;
     if (temp > psf->pfmoffat_fwhm_max)
       psf->pfmoffat_fwhm_max = temp;
-    if ((temp=(psf->pfmoffat[n].fwhm_max-psf->pfmoffat[n].fwhm_min)
-		/ (psf->pfmoffat[n].fwhm_max+psf->pfmoffat[n].fwhm_min))
-		< psf->pfmoffat_ellipticity_min)
+    if ((temp=psf->pfmoffat[n].fwhm_max+psf->pfmoffat[n].fwhm_min) > 0.0)
+      temp = (psf->pfmoffat[n].fwhm_max-psf->pfmoffat[n].fwhm_min) / temp;
+    if (temp < psf->pfmoffat_ellipticity_min)
       psf->pfmoffat_ellipticity_min = temp;
     if (temp > psf->pfmoffat_ellipticity_max)
       psf->pfmoffat_ellipticity_max = temp;
@@ -296,9 +305,9 @@ void	psf_diagnostic(psfstruct *psf)
 
   psf->pfmoffat_fwhm = sqrt(psf->pfmoffat[nmed].fwhm_min
 		* psf->pfmoffat[nmed].fwhm_max);
-  psf->pfmoffat_ellipticity =
-	(psf->pfmoffat[nmed].fwhm_max-psf->pfmoffat[nmed].fwhm_min)
-	/ (psf->pfmoffat[nmed].fwhm_max+psf->pfmoffat[nmed].fwhm_min);
+  temp = psf->pfmoffat[nmed].fwhm_max + psf->pfmoffat[nmed].fwhm_min;
+  psf->pfmoffat_ellipticity = (temp > 0.0)?
+	(psf->pfmoffat[nmed].fwhm_max-psf->pfmoffat[nmed].fwhm_min)/temp : 0.0;
   psf->pfmoffat_beta = psf->pfmoffat[nmed].beta;
   psf->pfmoffat_residuals = psf->pfmoffat[nmed].residuals;
 

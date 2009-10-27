@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	03/09/2009
+*	Last modify:	27/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -439,10 +439,10 @@ void	makeit(void)
 	psf->samples_accepted, psf->samples_loaded,
 	psf->pixstep,
 	psf->chi2,
-	sqrt(psf->moffat[nmed].fwhm_min*psf->moffat[nmed].fwhm_max),
-	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min)
-	/ (psf->moffat[nmed].fwhm_max+psf->moffat[nmed].fwhm_min),
-	psf->moffat[nmed].residuals, psf->moffat[nmed].symresiduals);
+	psf->moffat_fwhm,
+	psf->moffat_ellipticity,
+	psf->moffat_residuals,
+	psf->sym_residuals);
 /*---- Save "Check-images" */
       for (i=0; i<prefs.ncheck_type; i++)
         if (prefs.check_type[i])

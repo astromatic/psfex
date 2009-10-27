@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	27/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -363,7 +363,7 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/03/2008
+VERSION 27/10/2009
  ***/
 void	field_psfsave(fieldstruct *field, char *filename)
   {
@@ -371,6 +371,7 @@ void	field_psfsave(fieldstruct *field, char *filename)
    tabstruct	*tab;
    keystruct	*key;
    psfstruct	*psf;
+   float	zero = 0.0;
    char		*head,
 		str[80];
    int		i, ext, temp;
@@ -425,9 +426,11 @@ void	field_psfsave(fieldstruct *field, char *filename)
 
 /*-- Add and write important scalars as FITS keywords */
     addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
-    fitswrite(head, "PSF_FWHM", &psf->fwhm, H_FLOAT, T_FLOAT);
+    fitswrite(head, "PSF_FWHM", psf->samples_accepted? &psf->fwhm : &zero,
+	H_FLOAT, T_FLOAT);
     addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
-    fitswrite(head, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
+    fitswrite(head, "PSF_SAMP", psf->samples_accepted? &psf->pixstep : &zero,
+	H_FLOAT, T_FLOAT);
     addkeywordto_head(tab, "PSFNAXIS", "Dimensionality of the PSF data");
     fitswrite(head, "PSFNAXIS", &psf->dim, H_INT, T_LONG);
     for (i=0; i<psf->dim; i++)
