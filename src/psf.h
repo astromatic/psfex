@@ -79,6 +79,7 @@ typedef struct psf
   float		fwhm;		/* Initial guess of the FWHM */
   int		*pixmask;	/* Pixel mask for local bases */
   float		*basis;		/* Basis vectors */
+  float		*basiscoeff;	/* Basis vector coefficients */
   int		nbasis;		/* Number of basis vectors */
   int		ndata;		/* Size of the design matrix along data axis */
   int		nsnap;		/* Total number of snapshots */

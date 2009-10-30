@@ -9,7 +9,7 @@
 *
 *	Contents:	Handling of multiple PSFs.
 *
-*	Last modify:	27/10/2009
+*	Last modify:	30/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -363,7 +363,7 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 27/10/2009
+VERSION 30/10/2009
  ***/
 void	field_psfsave(fieldstruct *field, char *filename)
   {
@@ -440,7 +440,7 @@ void	field_psfsave(fieldstruct *field, char *filename)
       fitswrite(head, str, &psf->size[i], H_INT, T_LONG);
       }
 
-/*-- Create and fill the arrays */
+/*-- PSF pixels */
     key = new_key("PSF_MASK");
     key->naxis = psf->dim;
     QMALLOC(key->naxisn, int, key->naxis);
@@ -454,6 +454,23 @@ void	field_psfsave(fieldstruct *field, char *filename)
     key->ptr = psf->comp;
     add_key(key, tab, 0);
 
+/*-- Basis coefficient (if applicable) */
+    if (psf->basiscoeff)
+      {
+      key = new_key("PSF_COEFFS");
+      key->naxis = psf->dim - 1;
+      QMALLOC(key->naxisn, int, key->naxis);
+      key->naxisn[0] = psf->nbasis;
+      if (key->naxis>1)
+        key->naxisn[1] = psf->size[2];
+      strcat(key->comment, "PSF basis vector coefficients");
+      key->htype = H_FLOAT;
+      key->ttype = T_FLOAT;
+      key->nbytes = psf->nbasis*psf->size[2]*t_size[T_FLOAT];
+      key->nobj = 1;
+      key->ptr = psf->basiscoeff;
+      add_key(key, tab, 0);
+      }
     save_tab(cat, tab);
 /*-- But don't touch my arrays!! */
     blank_keys(tab);

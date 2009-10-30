@@ -396,6 +396,7 @@ void	psf_end(psfstruct *psf)
   poly_end(psf->poly);
   free(psf->pixmask);
   free(psf->basis);
+  free(psf->basiscoeff);
   free(psf->comp);
   free(psf->loc);
   free(psf->resi);
@@ -416,7 +417,7 @@ INPUT   psfstruct pointer.
 OUTPUT  psfstruct pointer.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/10/2009
+VERSION 30/10/2009
  ***/
 psfstruct *psf_copy(psfstruct *psf)
   {
@@ -444,6 +445,9 @@ psfstruct *psf_copy(psfstruct *psf)
     QMEMCPY(psf->pixmask, newpsf->pixmask, int, npix);
   if (psf->basis)
     QMEMCPY(psf->basis, newpsf->basis, float, psf->nbasis*npix);
+  if (psf->basiscoeff)
+    QMEMCPY(psf->basiscoeff, newpsf->basiscoeff, float,
+	psf->nbasis*psf->poly->ncoeff);
   QMEMCPY(psf->comp, newpsf->comp, float, psf->npix);
   QMEMCPY(psf->loc, newpsf->loc, float, npix);
   QMEMCPY(psf->resi, newpsf->resi, float, npix);
@@ -855,7 +859,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2009
+VERSION 30/10/2009
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -869,7 +873,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 			*betamat,*betamatt,*betamat2, *coeffmat,*coeffmatt,
 			dx,dy, dval, norm, tikfac;
    float		*vig,*vigt,*vigt2, *wvig,
-			*vecvig,*vecvigt, *ppix, *vec,
+			*vecvig,*vecvigt, *ppix, *vec, *bcoeff,
 			vigstep;
    int			*desindex,*desindext,*desindext2,
 			*desindex0,*desindex02;
@@ -1071,8 +1075,17 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     }
 
 //  NFPRINTF(OUTPUT,"Updating the PSF...");
+  if (psf->basiscoeff)
+    {
+    free(psf->basiscoeff);
+    psf->basiscoeff = NULL;
+    }
   if (!psf->pixmask)
+    {
     memset(psf->comp, 0, npix*ncoeff*sizeof(float));
+    QMALLOC(psf->basiscoeff, float, nunknown);
+    bcoeff = psf->basiscoeff;
+    }
   QMALLOC(betamat2, double, ncoeff);
   for (j=0; j<npsf; j++)
     {
@@ -1084,6 +1097,9 @@ int	psf_refine(psfstruct *psf, setstruct *set)
       dval = *(betamatt++);
       for (i=npix; i--;)
         *(ppix++) += dval**(vec++);
+      if (psf->basiscoeff)
+/*---- Copy the basis coefficients (to be written later in PSF file) */
+        *(bcoeff++) = (float)dval;
       }
     }
 

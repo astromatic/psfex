@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	15/02/2009
+*	Last modify:	30/10/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -118,7 +118,7 @@ INPUT	Pointer to the full context,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/02/2009
+VERSION 30/10/2009
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
 		fieldstruct **fields, int ext, int catindex, int ncat)
@@ -130,9 +130,10 @@ void context_apply(contextstruct *context, psfstruct *psf,
 				29.0,31.0,37.0,41.0,43.0,47.0,53.0,59.0,61.0};
    double		dpos[MAXCONTEXT],
 			dval;
-   float		*comp, *comp2, *comp2t;
+   float		*comp, *comp2, *comp2t, *bcoeff2;
    int			*polycopyflag, *polycopyflagt,
-			c,c2, e, i, n,n2, p, npc, npix,comp2size,ncontext2;
+			c,c2, e, i, n,n2, p, npc, npix,comp2size,ncontext2,
+			bcoeff2size;
 
   ncat += catindex;
   for (p=catindex; p<ncat; p++)
@@ -189,6 +190,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
 /* Merge PSF components for each PSF */
   npix = psf->size[0]*psf->size[1];
   comp2size = npix*poly2->ncoeff;
+  bcoeff2size = psf->nbasis*poly2->ncoeff;
   npc = context->npc;
   for (p=catindex; p<ncat; p++)
     {
@@ -202,6 +204,8 @@ void context_apply(contextstruct *context, psfstruct *psf,
         dpos[c] = 1.0;
     poly_func(poly, dpos);
     QCALLOC(comp2, float, comp2size);
+    if (psf->basiscoeff)
+      QCALLOC(bcoeff2, float, bcoeff2size);
     polycopyflagt = polycopyflag;
     for (n2=0; n2<poly2->ncoeff; n2++)
       for (n=0; n<poly->ncoeff; n++)
@@ -212,6 +216,8 @@ void context_apply(contextstruct *context, psfstruct *psf,
           dval = poly->basis[n];
           for (i=npix; i--;)
             *(comp2t++) += dval**(comp++);
+          if (psf->basiscoeff)
+            bcoeff2[n2] += dval*psf->basiscoeff[n];
           }
 /*-- Replace the new PSF components */
     if (ext==ALL_EXTENSIONS)
@@ -222,15 +228,23 @@ void context_apply(contextstruct *context, psfstruct *psf,
         if (e)
           {
           QMEMCPY(comp2, psf2->comp, float, comp2size);
+          if (psf->basiscoeff)
+            QMEMCPY(bcoeff2, psf2->basiscoeff, float, bcoeff2size);
           }
         else
+          {
           psf2->comp = comp2;
+          if (psf->basiscoeff)
+            psf2->basiscoeff = bcoeff2;
+          }
         }
     else
       {
       fields[p]->psf[ext] = psf2 = psf_inherit(context2, psf);
       free(psf2->comp);
       psf2->comp = comp2;
+      if (psf->basiscoeff)
+        psf2->basiscoeff = bcoeff2;
       }
     }
 
