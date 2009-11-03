@@ -91,7 +91,7 @@ void	psf_diagnostic(psfstruct *psf)
 /*---- Initialize PSF parameters */
       fwhm = psf->fwhm / psf->pixstep;
 /*---- Amplitude */
-      param[0] = 	1.0/(psf->fwhm*psf->fwhm);
+      param[0] = 1.0/(psf->fwhm*psf->fwhm);
       moffat_parammin[0] = param[0]/10.0;
       moffat_parammax[0] = param[0]*10.0;
 /*---- Xcenter */
@@ -128,6 +128,7 @@ void	psf_diagnostic(psfstruct *psf)
     else
       memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
 
+    moffat[n].nsubpix = psf->nsubpix;
     moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     moffat[n].xc[0] = param[1];
     moffat[n].xc[1] = param[2];
@@ -215,7 +216,7 @@ void	psf_diagnostic(psfstruct *psf)
 /*---- Initialize PSF parameters */
       fwhm = psf->fwhm / psf->pixstep;
 /*---- Amplitude */
-      param[0] = 	1.0/(psf->fwhm*psf->fwhm);
+      param[0] = 1.0/(psf->fwhm*psf->fwhm);
       moffat_parammin[0] = param[0]/10.0;
       moffat_parammax[0] = param[0]*10.0;
 /*---- Xcenter */
@@ -251,6 +252,8 @@ void	psf_diagnostic(psfstruct *psf)
       }
     else
       memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
+
+    pfmoffat[n].nsubpix = psf->nsubpix;
     pfmoffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
     pfmoffat[n].xc[0] = param[1];
     pfmoffat[n].xc[1] = param[2];
@@ -493,7 +496,7 @@ INPUT	Pointer to the PSF structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	14/10/2009
+VERSION	03/11/2009
  ***/
 void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   {
@@ -506,7 +509,7 @@ void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
   h = psf->size[1];
   xc = moffat->xc[0];
   yc = moffat->xc[1];
-  nsubpix = psf->nsubpix;
+  nsubpix = moffat->nsubpix;
   a = moffat->amplitude*psf->pixstep*psf->pixstep / (nsubpix*nsubpix);
   beta = -moffat->beta;
   ct = cos(moffat->theta*PI/180.0);

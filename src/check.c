@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	03/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/03/2009
+VERSION 03/11/2009
  ***/
 void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -534,7 +534,7 @@ void	check_write(fieldstruct *field, char *checkname,
         nr *= psf->nsnap;	/* nr is the true number of Moffats */
       for (n=0; n<nt; n++)
         {
-        psf_moffat(psf, &psf->moffat[n%nr]);
+        psf_moffat(psf, &psf->pfmoffat[n%nr]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)
@@ -568,7 +568,7 @@ void	check_write(fieldstruct *field, char *checkname,
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) = *(fpix++);
-        psf_moffat(psf, &psf->moffat[n%nr]);
+        psf_moffat(psf, &psf->pfmoffat[n%nr]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)

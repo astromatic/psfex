@@ -441,7 +441,7 @@ void	makeit(void)
 	psf->chi2,
 	psf->moffat_fwhm,
 	psf->moffat_ellipticity,
-	psf->moffat_residuals,
+	psf->pfmoffat_residuals,
 	psf->sym_residuals);
 /*---- Save "Check-images" */
       for (i=0; i<prefs.ncheck_type; i++)

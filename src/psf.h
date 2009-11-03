@@ -56,6 +56,7 @@ typedef struct moffat
   float		beta;		/* Moffat beta parameter */
   float		residuals;	/* Normalized residuals */
   float		symresiduals;	/* Normalized symmetry residuals */
+  int		nsubpix;	/* Number of supersampled pixels */
   }	moffatstruct;
 
 typedef struct psf

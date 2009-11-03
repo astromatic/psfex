@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	10/09/2009
+*	Last modify:	03/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -604,13 +604,13 @@ OUTPUT  -.
 NOTES   see http://plplot.sourceforge.net/docbook-manual/
             plplot-html-5.5.3/contour-plots.html#contour-plots-c
 AUTHOR  E. Bertin (IAP)
-VERSION 29/10/2008
+VERSION 03/11/2009
 ***/
 static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
 {
  wcsstruct	**wcs;
  double	 	rawpos[NAXIS], wcspos[NAXIS], wcspos2[NAXIS];
- int		i, lng0,lat0, lng1,lat1, naxis;
+ int		i, lng0,lat0, lng1,lat1, naxis, nsnap;
 
 
   wcs = (wcsstruct **)pltr_data;
@@ -629,8 +629,9 @@ static void distort_map(PLFLT x,PLFLT y,PLFLT *tx,PLFLT *ty, void *pltr_data)
     lng1 = 0;
   if (lat1==-1)
     lat1 = 1;
-  rawpos[lng0] = x*wcs[0]->naxisn[lng0]/(prefs.context_nsnap-1) + 0.5;
-  rawpos[lat0] = y*wcs[0]->naxisn[lat0]/(prefs.context_nsnap-1) + 0.5;
+  nsnap = prefs.context_nsnap > 1? prefs.context_nsnap - 1 : 1;
+  rawpos[lng0] = x*wcs[0]->naxisn[lng0]/nsnap + 0.5;
+  rawpos[lat0] = y*wcs[0]->naxisn[lat0]/nsnap + 0.5;
   raw_to_wcs(wcs[0], rawpos, wcspos);
   wcspos2[lng1] = wcspos[lng0];
   wcspos2[lat1] = wcspos[lat0];
@@ -649,7 +650,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/02/2009
+VERSION	03/11/2009
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -744,16 +745,16 @@ int	cplot_fwhm(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in FWHM is 1e-5 */
+/* Lower bound to variability in FWHM is 1e-4 */
   if (!flag)
     fwhmmin = fwhmmax = ARCSEC/DEG;
-  if ((mfwhm=(fwhmmin+fwhmmax)/2.0) < 1.0e-10*ARCSEC/DEG
-       || (dfwhm=(fwhmmax-fwhmmin))/mfwhm < 1.0e-5)
-    {
-    dfwhm = 1.0e-5;
-    fwhmmin = mfwhm - dfwhm/2.0;
-    fwhmmax = mfwhm + dfwhm/2.0;
-    }
+  if ((mfwhm=(fwhmmin+fwhmmax)/2.0) < 1.0e-10*ARCSEC/DEG)
+    mfwhm = 1.0e-10*ARCSEC/DEG;
+  if ((dfwhm=fwhmmax-fwhmmin) < 1.0e-4*mfwhm)
+    dfwhm = 1.0e-4*mfwhm;
+  fwhmmin = mfwhm - dfwhm/2.0;
+  fwhmmax = mfwhm + dfwhm/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = fwhmmin + (i-0.5) * dfwhm / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -882,7 +883,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/02/2009
+VERSION	03/11/2009
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -977,16 +978,16 @@ int	cplot_ellipticity(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in ellipticity is 1e-5 */
+/* Lower bound to variability in ellipticity is 1e-4 */
   if (!flag)
     ellipmin = ellipmax = 0.0;
-  if ((mellip=(ellipmin+ellipmax)/2.0) < 1.0e-10
-       || (dellip=(ellipmax-ellipmin))/mellip < 1.0e-5)
-    {
-    dellip = 1.0e-5;
-    ellipmin = mellip - dellip/2.0;
-    ellipmax = mellip + dellip/2.0;
-    }
+  if ((mellip=(ellipmin+ellipmax)/2.0) < 1.0e-10)
+    mellip = 1.0e-10;
+  if ((dellip=ellipmax-ellipmin) < 1.0e-4*mellip)
+    dellip = 1.0e-4*mellip;
+  ellipmin = mellip - dellip/2.0;
+  ellipmax = mellip + dellip/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = ellipmin + (i-0.5) * dellip / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1072,8 +1073,10 @@ int	cplot_ellipticity(fieldstruct *field)
   plmtex("b", 2.0, 0.5, 0.5, "PSF ellipticity");
 
 /* Draw right colour scale */
-  ellipmin = ellipmin*100.0;	/* convert to percentage */
-  ellipmax = ellipmax*100.0;
+  mellip /= 100.0;			/* convert to percentage */
+  ellipmin = ellipmin/mellip - 100.0;
+  ellipmax = ellipmax/mellip - 100.0;
+  dellip /= mellip;
   plwind(0.0,1.0,ellipmin,ellipmax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
@@ -1099,7 +1102,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/02/2009
+VERSION	03/11/2009
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1180,12 +1183,12 @@ int	cplot_moffatresi(fieldstruct *field)
       for (i=0; i<naxis; i++)
         raw[i] = wcs->naxisn[i]/2.0 + 0.5;
       if (psf->cx >= 0)
-        raw[0] = (psf->moffat[n].context[psf->cx]-psf->contextoffset[psf->cx])
+        raw[0] = (psf->pfmoffat[n].context[psf->cx]-psf->contextoffset[psf->cx])
 		/ psf->contextscale[psf->cx];
       if (psf->cy >= 0)
-        raw[1] = (psf->moffat[n].context[psf->cy]-psf->contextoffset[psf->cy])
+        raw[1] = (psf->pfmoffat[n].context[psf->cy]-psf->contextoffset[psf->cy])
 		/ psf->contextscale[psf->cy];
-      aresi = psf->moffat[n].residuals;
+      aresi = psf->pfmoffat[n].residuals;
       if (aresi<resimin)
         resimin = aresi;
       if (aresi>resimax)
@@ -1193,16 +1196,16 @@ int	cplot_moffatresi(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in residuals is 1e-5 */
+/* Lower bound to variability in residuals is 1e-4 */
   if (!flag)
     resimin = resimax = 0.0;
-  if ((mresi=(resimin+resimax)/2.0) < 1.0e-10
-       || (dresi=(resimax-resimin))/mresi < 1.0e-6)
-    {
-    dresi = 1.0e-5;
-    resimin = mresi - dresi/2.0;
-    resimax = mresi + dresi/2.0;
-    }
+  if ((mresi=(resimin+resimax)/2.0) < 1.0e-10)
+    mresi = 1.0e-10;
+  if ((dresi=resimax-resimin) < 1.0e-4*mresi)
+    dresi = 1.0e-4*mresi;
+  resimin = mresi - dresi/2.0;
+  resimax = mresi + dresi/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1246,7 +1249,7 @@ int	cplot_moffatresi(fieldstruct *field)
 		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
               {
               n2 = psf->nsnap>1? n : 0;
-              dval += psf->moffat[n2].residuals;
+              dval += psf->pfmoffat[n2].residuals;
               nresi++;
               }
           resi[i][j] = dval / nresi ;
@@ -1285,8 +1288,6 @@ int	cplot_moffatresi(fieldstruct *field)
   plmtex("b", 2.0, 0.5, 0.5, "Fit residuals");
 
 /* Draw right colour scale */
-  resimin = resimin*100.0;	/* convert to percentage */
-  resimax = resimax*100.0;
   plwind(0.0,1.0,resimin,resimax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
@@ -1312,7 +1313,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/02/2009
+VERSION	03/11/2009
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1406,16 +1407,16 @@ int	cplot_asymresi(fieldstruct *field)
       }
     }
 
-/* Lower bound to variability in residuals is 1e-5 */
+/* Lower bound to variability in residuals is 1e-4 */
   if (!flag)
     resimin = resimax = 0.0;
-  if ((mresi=(resimin+resimax)/2.0) < 1.0e-10
-       || (dresi=(resimax-resimin))/mresi < 1.0e-5)
-    {
-    dresi = 1.0e-5;
-    resimin = mresi - dresi/2.0;
-    resimax = mresi + dresi/2.0;
-    }
+  if ((mresi=(resimin+resimax)/2.0) < 1.0e-10)
+    mresi = 1.0e-10;
+  if ((dresi=resimax-resimin) < 1.0e-4*mresi)
+    dresi = 1.0e-4*mresi;
+  resimin = mresi - dresi/2.0;
+  resimax = mresi + dresi/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1498,6 +1499,10 @@ int	cplot_asymresi(fieldstruct *field)
   plmtex("b", 2.0, 0.5, 0.5, "Asymmetry");
 
 /* Draw right colour scale */
+  mresi /= 100.0;			/* convert to percentage */
+  resimin = resimin/mresi - 100.0;
+  resimax = resimax/mresi - 100.0;
+  dresi /= mresi;
   resimin = resimin*100.0;	/* convert to percentage */
   resimax = resimax*100.0;
   plwind(0.0,1.0,resimin,resimax);
@@ -1525,7 +1530,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	30/03/2009
+VERSION	03/11/2009
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1541,7 +1546,7 @@ int	cplot_counts(fieldstruct *field)
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
 		**icount,
-		i,j, e, n,nt, naxis, nsnap, flag;
+		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTS) == RETURN_ERROR)
     {
@@ -1604,14 +1609,14 @@ int	cplot_counts(fieldstruct *field)
         cmax = dval;
       }
 
-/* Lower bound to variability in FWHM is 1e-5 */
-  if ((mc=(cmin+cmax)/2.0) <  1.0e-5
-       || (dc=(cmax-cmin))/mc < 1.0e-5)
-    {
-    dc = 1.0e-5;
-    cmin = mc - dc/2.0;
-    cmax = mc + dc/2.0;
-    }
+/* Lower bound to variability in counts is 1e-4 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
+    mc = 1.0e-10;
+  if ((dc=cmax-cmin) < 1.0e-4*mc)
+    dc = 1.0e-4*mc;
+  cmin = mc - dc/2.0;
+  cmax = mc + dc/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1620,25 +1625,30 @@ int	cplot_counts(fieldstruct *field)
   plscmap1l(1, 3, cpoint, r, g, b, NULL);
 
 /* Now the real 2D FWHM mapping */
+  nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
     wcs = field->wcs[e];
-    plAlloc2dGrid(&count, nsnap, nsnap);
+    plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-    xstep = wcs->naxisn[0] / (nsnap-1);
-    ystep = wcs->naxisn[1] / (nsnap-1);
-    for (j=0; j<nsnap; j++)
-      for (i=0; i<nsnap; i++)
-        count[i][j] = (PLFLT)icount[e][j*nsnap+i];
-
+    xstep = wcs->naxisn[0] / (nsnap2-1);
+    ystep = wcs->naxisn[1] / (nsnap2-1);
+    if (nsnap > 1)
+      for (j=0; j<nsnap2; j++)
+        for (i=0; i<nsnap2; i++)
+          count[i][j] = (PLFLT)icount[e][j*nsnap+i];
+    else
+      for (j=0; j<nsnap2; j++)
+        for (i=0; i<nsnap2; i++)
+          count[i][j] = (PLFLT)icount[e][0];
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap, nsnap, NULL,
+    plshades(count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-    plFree2dGrid(count, nsnap, nsnap);
+    plFree2dGrid(count, nsnap2, nsnap2);
     plcol(7);
     plwid(lwid);
     cplot_drawbounds(wcs, wcsout);
@@ -1679,7 +1689,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	30/03/2009
+VERSION	03/11/2009
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1695,7 +1705,7 @@ int	cplot_countfrac(fieldstruct *field)
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
 		**iacount,**ilcount,
-		i,j, e, n,nt, naxis, nsnap, flag;
+		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTFRAC) == RETURN_ERROR)
     {
@@ -1759,14 +1769,14 @@ int	cplot_countfrac(fieldstruct *field)
         cmax = dval;
       }
 
-/* Lower bound to variability in FWHM is 1e-5 */
-  if ((mc=(cmin+cmax)/2.0) <  1.0e-5
-       || (dc=(cmax-cmin))/mc < 1.0e-5)
-    {
-    dc = 1.0e-5;
-    cmin = mc - dc/2.0;
-    cmax = mc + dc/2.0;
-    }
+/* Lower bound to variability in counts fraction is 1e-4 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
+    mc = 1.0e-10;
+  if ((dc=cmax-cmin) < 1.0e-4*mc)
+    dc = 1.0e-4*mc;
+  cmin = mc - dc/2.0;
+  cmax = mc + dc/2.0;
+
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
   cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
@@ -1775,29 +1785,30 @@ int	cplot_countfrac(fieldstruct *field)
   plscmap1l(1, 3, cpoint, r, g, b, NULL);
 
 /* Now the real 2D FWHM mapping */
+  nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
     wcs = field->wcs[e];
-    plAlloc2dGrid(&count, nsnap, nsnap);
+    plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
-    xstep = wcs->naxisn[0] / (nsnap-1);
-    ystep = wcs->naxisn[1] / (nsnap-1);
-    for (j=0; j<nsnap; j++)
-      for (i=0; i<nsnap; i++)
+    xstep = wcs->naxisn[0] / (nsnap2-1);
+    ystep = wcs->naxisn[1] / (nsnap2-1);
+    for (j=0; j<nsnap2; j++)
+      for (i=0; i<nsnap2; i++)
         {
-        n = j*nsnap + i;
+        n = (nsnap>1)? j*nsnap + i : 0;
         count[i][j] = (PLFLT)(ilcount[e][n] > 0?
 			100.0*iacount[e][n] / ilcount[e][n] : 0.0);
         }
 
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap, nsnap, NULL,
+    plshades(count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
-    plFree2dGrid(count, nsnap, nsnap);
+    plFree2dGrid(count, nsnap2, nsnap2);
     plcol(7);
     plwid(lwid);
     cplot_drawbounds(wcs, wcsout);

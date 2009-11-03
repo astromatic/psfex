@@ -134,7 +134,7 @@ char *default_prefs[] =
 "#-------------------------------- PSF model ----------------------------------",
 " ",
 "BASIS_TYPE      PIXEL_AUTO      # NONE, PIXEL, GAUSS-LAGUERRE or FILE",
-"BASIS_NUMBER    16              # Basis number or parameter",
+"BASIS_NUMBER    20              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
 "*NEWBASIS_TYPE   NONE            # Create new basis: NONE, PCA_INDEPENDENT",
