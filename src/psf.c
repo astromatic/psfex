@@ -9,7 +9,7 @@
 *
 *	Contents:	Stuff related to building the PSF.
 *
-*	Last modify:	14/10/2009
+*	Last modify:	03/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -474,7 +474,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/06/2008
+VERSION 03/11/2009
  ***/
 void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -500,7 +500,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
 
   ncoeff = poly->ncoeff;
   npix = psf->size[0]*psf->size[1];
-  QMALLOC(image, float, nsample*npix);
+  QCALLOC(image, float, nsample*npix);
   QMALLOC(weight, float, nsample*npix);
   QMALLOC(pstack, double, nsample);
   QMALLOC(wstack, double, nsample);

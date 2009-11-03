@@ -9,7 +9,7 @@
 *
 *	Contents:       Handle memory allocation for FITS bodies.
 *
-*	Last modify:	29/06/2006
+*	Last modify:	02/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -36,7 +36,6 @@ size_t	body_maxram = BODY_DEFRAM,
 
 int	body_vmnumber;
 
-double	bufdata0[DATA_BUFSIZE/sizeof(double)];
 char	body_swapdirname[MAXCHARS] = BODY_DEFSWAPDIR;
 
 /******* alloc_body ***********************************************************
@@ -185,23 +184,26 @@ void	free_body(tabstruct *tab)
 
 /******* read_body ************************************************************
 PROTO	read_body(tabstruct *tab, PIXTYPE *ptr, long size)
-PURPOSE	Read values from the body of a FITS table.
+PURPOSE	Read floating point values from the body of a FITS table.
 INPUT	A pointer to the tab structure,
 	a pointer to the array in memory,
 	the number of elements to be read.
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/11/2003
+VERSION	02/11/2009
  ***/
 void	read_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
   {
   catstruct		*cat;
+  static double		bufdata0[DATA_BUFSIZE/sizeof(double)];
   unsigned char		cuval, cublank;
   char			*bufdata,
 			cval, cblank;
   unsigned short	suval, sublank;
   short			val16, sval, sblank;
+  ULONGLONG		lluval, llublank;
+  LONGLONG		llval, llblank;
   unsigned int		iuval, iublank;
   int			curval, dval, blankflag, ival, iblank;
   
@@ -321,6 +323,38 @@ void	read_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
 	      }
             break;
 
+#ifdef HAVE_LONG_LONG_INT
+          case BP_LONGLONG:
+            if (bswapflag)
+              swapbytes(bufdata, 8, spoonful);
+            if (blankflag)
+	      {
+              if (tab->bitsgn)
+                {
+                llblank = (LONGLONG)tab->blank;
+                for (i=spoonful; i--; bufdata += sizeof(LONGLONG))
+                  *(ptr++) = ((llval = *((LONGLONG *)bufdata)) == llblank)?
+			-BIG : ival*bs + bz;
+                }
+              else
+                {
+                llublank = (ULONGLONG)tab->blank;
+                for (i=spoonful; i--; bufdata += sizeof(ULONGLONG))
+                  *(ptr++) = ((lluval = *((ULONGLONG *)bufdata)) == llublank)?
+			-BIG : iuval*bs + bz;
+                }
+	      }
+            else
+	      {
+              if (tab->bitsgn)
+                for (i=spoonful; i--; bufdata += sizeof(LONGLONG))
+                  *(ptr++) = *((LONGLONG *)bufdata)*bs + bz;
+              else
+                for (i=spoonful; i--; bufdata += sizeof(ULONGLONG))
+                  *(ptr++) = *((ULONGLONG *)bufdata)*bs + bz;
+	      }
+            break;
+#endif
           case BP_FLOAT:
             if (bswapflag)
               swapbytes(bufdata, 4, spoonful);
@@ -328,7 +362,6 @@ void	read_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
               *(ptr++) = ((0x7f800000&*(unsigned int *)bufdata) == 0x7f800000)?
 			-BIG : *((float *)bufdata)*bs + bz;
             break;
-
           case BP_DOUBLE:
             if (bswapflag)
 	      {
@@ -454,6 +487,182 @@ void	read_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
   }
 
 
+/******* read_ibody ***********************************************************
+PROTO	read_ibody(tabstruct *tab, FLAGTYPE *ptr, long size)
+PURPOSE	Read integer values from the body of a FITS table.
+INPUT	A pointer to the tab structure,
+	a pointer to the array in memory,
+	the number of elements to be read.
+OUTPUT	-.
+NOTES	.
+AUTHOR	E. Bertin (IAP)
+VERSION	02/11/2009
+ ***/
+void	read_ibody(tabstruct *tab, FLAGTYPE *ptr, size_t size)
+  {
+   catstruct	*cat;
+   static int	bufdata0[DATA_BUFSIZE/sizeof(int)];
+   char		*bufdata;
+   short	val16;
+   int		i, bowl, spoonful, npix, curval, dval;
+
+/* a NULL cat structure indicates that no data can be read */
+  if (!(cat = tab->cat))
+    return;
+
+  switch(tab->compress_type)
+    {
+/*-- Uncompressed image */
+    case COMPRESS_NONE:
+      bowl = DATA_BUFSIZE/tab->bytepix;
+      spoonful = size<bowl?size:bowl;
+      for(; size>0; size -= spoonful)
+        {
+        if (spoonful>size)
+          spoonful = size;
+        bufdata = (char *)bufdata0;
+        QFREAD(bufdata, spoonful*tab->bytepix, cat->file, cat->filename);
+        switch(tab->bitpix)
+          {
+          case BP_BYTE:
+            for (i=spoonful; i--;)
+              *(ptr++) = (FLAGTYPE)*((unsigned char *)bufdata++);
+            break;
+
+          case BP_SHORT:
+            if (bswapflag)
+              swapbytes(bufdata, 2, spoonful);
+            for (i=spoonful; i--; bufdata += sizeof(unsigned short))
+              *(ptr++) = (FLAGTYPE)*((unsigned short *)bufdata);
+            break;
+
+          case BP_LONG:
+            if (bswapflag)
+              swapbytes(bufdata, 4, spoonful);
+            for (i=spoonful; i--; bufdata += sizeof(unsigned long))
+              *(ptr++) = (FLAGTYPE)*((unsigned long *)bufdata);
+            break;
+
+#ifdef HAVE_LONG_LONG_INT
+          case BP_LONGLONG:
+            if (bswapflag)
+              swapbytes(bufdata, 8, spoonful);
+            for (i=spoonful; i--; bufdata += sizeof(ULONGLONG))
+              *(ptr++) = (FLAGTYPE)*((ULONGLONG *)bufdata);
+            break;
+#endif
+          case BP_FLOAT:
+          case BP_DOUBLE:
+            error(EXIT_FAILURE,"*Error*: I was expecting integers in ",
+				cat->filename);
+            break;
+          default:
+            error(EXIT_FAILURE,"*FATAL ERROR*: unknown BITPIX type in ",
+				"readdata()");
+            break;
+          }
+        }
+      break;
+
+/*-- Compressed image */
+    case COMPRESS_BASEBYTE:
+      if (!tab->compress_buf)
+        QMALLOC(tab->compress_buf, char, FBSIZE);
+      bufdata = tab->compress_bufptr;
+      curval = tab->compress_curval;
+      npix = tab->compress_npix;
+      while (size--)
+        {
+        if (!(npix--))
+          {
+          if (curval != tab->compress_checkval)
+            error(EXIT_FAILURE, "*Error*: invalid BASEBYTE checksum in ",
+		cat->filename);
+          bufdata = tab->compress_buf;
+          QFREAD(bufdata, FBSIZE, cat->file, cat->filename);
+          curval = 0;
+          if (bswapflag)
+            swapbytes(bufdata, 4, 1);
+          tab->compress_checkval = *((int *)bufdata);
+         bufdata += 4;
+         if (bswapflag)
+           swapbytes(bufdata, 2, 1);
+          npix = (int)(*((short *)bufdata))-1;
+          bufdata+=2;
+          }
+        if ((dval=(int)*(bufdata++))==-128)
+          {
+          if (bswapflag)
+            swapbytes(bufdata, 2, 1);
+          memcpy(&val16, bufdata, 2);
+          dval = (int)val16;
+          if (dval==-32768)
+            {
+            bufdata += 2;
+            if (bswapflag)
+              swapbytes(bufdata, 4, 1);
+            memcpy(&dval,bufdata,4);
+            bufdata += 4;
+            }
+          else
+            bufdata += 2;
+          }
+        *(ptr++) = (FLAGTYPE)dval;
+        curval += dval;
+        }
+      tab->compress_curval = curval;
+      tab->compress_bufptr = bufdata;
+      tab->compress_npix = npix;
+      break;
+
+    case COMPRESS_PREVPIX:
+      if (!tab->compress_buf)
+        QMALLOC(tab->compress_buf, char, FBSIZE);
+      bufdata = tab->compress_bufptr;
+      curval = tab->compress_curval;
+      npix = tab->compress_npix;
+      while (size--)
+        {
+        if (!(npix--))
+          {
+          if (curval != tab->compress_checkval)
+            error(EXIT_FAILURE, "*Error*: invalid PREV_PIX checksum in ",
+		cat->filename);
+          bufdata = tab->compress_buf;
+          QFREAD(bufdata, FBSIZE, cat->file, cat->filename);
+          if (bswapflag)
+            swapbytes(bufdata, 2, 3);
+          curval = (int)*(short *)bufdata;
+          npix = (int)*(short *)(bufdata+=2)-1;
+          tab->compress_checkval = (int)(*(short *)(bufdata+=2));
+          bufdata+=4;
+          }
+        if ((dval=(int)*(bufdata++))==-128)
+          {
+          if (bswapflag)
+            swapbytes(bufdata, 2, 1);
+          memcpy(&val16, bufdata, 2);
+          curval = (int)val16;
+          bufdata += 2;
+          }
+        else
+          curval += dval;
+        *(ptr++) = (FLAGTYPE)curval;
+        }
+      tab->compress_curval = curval;
+      tab->compress_bufptr = bufdata;
+      tab->compress_npix = npix;
+      break;
+
+    default:
+      error(EXIT_FAILURE,"*Internal Error*: unknown compression mode in ",
+				"readdata()");
+    }
+
+  return;
+  }
+
+
 /******* write_body ***********************************************************
 PROTO	write_body(tabstruct *tab, PIXTYPE *ptr, long size)
 PURPOSE	Write values to a FITS body.
@@ -463,10 +672,11 @@ INPUT	A pointer to the tab structure,
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	29/06/2006
+VERSION	02/11/2009
  ***/
 void	write_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
   {
+  static double	bufdata0[DATA_BUFSIZE/sizeof(double)];
   catstruct	*cat;
   char		*cbufdata0;
   size_t	i, bowl, spoonful;
@@ -542,6 +752,24 @@ void	write_body(tabstruct *tab, PIXTYPE *ptr, size_t size)
               swapbytes(cbufdata0, 4, spoonful);
             break;
 
+#ifdef HAVE_LONG_LONG_INT
+          case BP_LONGLONG:
+           if (tab->bitsgn)
+              {
+               LONGLONG	*bufdata = (LONGLONG *)cbufdata0;
+              for (i=spoonful; i--;)
+                *(bufdata++) = (LONGLONG)((*(ptr++)-bz)/bs+0.49999);
+              }
+            else
+              {
+               ULONGLONG	*bufdata = (ULONGLONG *)cbufdata0;
+              for (i=spoonful; i--;)
+                *(bufdata++) = (ULONGLONG)((*(ptr++)-bz)/bs+0.49999);
+              }
+            if (bswapflag)
+              swapbytes(cbufdata0, 8, spoonful);
+            break;
+#endif
           case BP_FLOAT:
             {
              float	*bufdata = (float *)cbufdata0;
