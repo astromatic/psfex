@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	14/10/2009
+*	Last modify:	04/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,13 +40,13 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 14/10/2009
+VERSION 04/11/2009
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
    moffatstruct		*moffat, *pfmoffat;
    double		dpos[POLY_MAXDIM];
-   float		param[PSF_DIAGNPARAM],
+   float		param[PSF_DIAGNPARAM], lm_opts[5],
 			*dresi,
 			dstep,dstart, fwhm, temp;
    int			i,m,n, w,h, npc,nt, nmed, niter;
@@ -81,6 +81,12 @@ void	psf_diagnostic(psfstruct *psf)
   psf->moffat_fwhm_max = psf->moffat_ellipticity_max = psf->moffat_beta_max
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
+
+  lm_opts[0] = 1.0e-6;
+  lm_opts[1] = 1.0e-17;
+  lm_opts[2] = 1.0e-17;
+  lm_opts[3] = 1.0e-17;
+  lm_opts[4] = 1.0e-5;
 
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
@@ -122,7 +128,7 @@ void	psf_diagnostic(psfstruct *psf)
       niter = slevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
-	NULL, NULL, NULL, NULL, psf);
+	lm_opts, NULL, NULL, NULL, psf);
       psf_unboundtobound(param);
       }
     else
@@ -247,7 +253,7 @@ void	psf_diagnostic(psfstruct *psf)
       niter = slevmar_dif(psf_diagresi, param, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
-	NULL, NULL, NULL, NULL, psf);
+	lm_opts, NULL, NULL, NULL, psf);
       psf_unboundtobound(param);
       }
     else
