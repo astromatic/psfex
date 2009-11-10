@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	04/11/2009
+*	Last modify:	05/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,7 +40,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 04/11/2009
+VERSION 05/11/2009
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -82,11 +82,11 @@ void	psf_diagnostic(psfstruct *psf)
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
 
-  lm_opts[0] = 1.0e-6;
+  lm_opts[0] = 1.0e-17;
   lm_opts[1] = 1.0e-17;
   lm_opts[2] = 1.0e-17;
   lm_opts[3] = 1.0e-17;
-  lm_opts[4] = 1.0e-5;
+  lm_opts[4] = 1.0e-3;
 
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
@@ -157,7 +157,7 @@ void	psf_diagnostic(psfstruct *psf)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     moffat[n].residuals = psf_normresi(param, psf);
     moffat[n].symresiduals = psf_symresi(psf);
-    if ((temp=sqrt(psf->moffat[n].fwhm_min*psf->moffat[n].fwhm_max))
+    if ((temp=0.5*(psf->moffat[n].fwhm_min+psf->moffat[n].fwhm_max))
 		< psf->moffat_fwhm_min)
       psf->moffat_fwhm_min = temp;
     if (temp > psf->moffat_fwhm_max)
@@ -191,8 +191,8 @@ void	psf_diagnostic(psfstruct *psf)
         dpos[i] = -dstart;
     }
 
-  psf->moffat_fwhm = sqrt(psf->moffat[nmed].fwhm_min
-		* psf->moffat[nmed].fwhm_max);
+  psf->moffat_fwhm = 0.5*(psf->moffat[nmed].fwhm_min
+		+ psf->moffat[nmed].fwhm_max);
   temp = psf->moffat[nmed].fwhm_max + psf->moffat[nmed].fwhm_min;
   psf->moffat_ellipticity = (temp > 0.0)?
 	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min) / temp : 0.0;
@@ -282,7 +282,7 @@ void	psf_diagnostic(psfstruct *psf)
       pfmoffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
     pfmoffat[n].residuals = psf_normresi(param, psf);
     pfmoffat[n].symresiduals = psf_symresi(psf);
-    if ((temp=sqrt(psf->pfmoffat[n].fwhm_min*psf->pfmoffat[n].fwhm_max))
+    if ((temp=0.5*(psf->pfmoffat[n].fwhm_min+psf->pfmoffat[n].fwhm_max))
 		< psf->pfmoffat_fwhm_min)
       psf->pfmoffat_fwhm_min = temp;
     if (temp > psf->pfmoffat_fwhm_max)
@@ -312,8 +312,8 @@ void	psf_diagnostic(psfstruct *psf)
         dpos[i] = -dstart;
     }
 
-  psf->pfmoffat_fwhm = sqrt(psf->pfmoffat[nmed].fwhm_min
-		* psf->pfmoffat[nmed].fwhm_max);
+  psf->pfmoffat_fwhm = 0.5*(psf->pfmoffat[nmed].fwhm_min
+		+ psf->pfmoffat[nmed].fwhm_max);
   temp = psf->pfmoffat[nmed].fwhm_max + psf->pfmoffat[nmed].fwhm_min;
   psf->pfmoffat_ellipticity = (temp > 0.0)?
 	(psf->pfmoffat[nmed].fwhm_max-psf->pfmoffat[nmed].fwhm_min)/temp : 0.0;

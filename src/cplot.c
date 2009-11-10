@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	03/11/2009
+*	Last modify:	09/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -857,7 +857,6 @@ int	cplot_fwhm(fieldstruct *field)
   mfwhm /= 100.0;			/* convert to percentage */
   fwhmmin = fwhmmin/mfwhm - 100.0;
   fwhmmax = fwhmmax/mfwhm - 100.0;
-  dfwhm /= mfwhm;
   plwind(0.0,1.0,fwhmmin,fwhmmax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
@@ -1076,7 +1075,6 @@ int	cplot_ellipticity(fieldstruct *field)
   mellip /= 100.0;			/* convert to percentage */
   ellipmin = ellipmin/mellip - 100.0;
   ellipmax = ellipmax/mellip - 100.0;
-  dellip /= mellip;
   plwind(0.0,1.0,ellipmin,ellipmax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
@@ -1102,7 +1100,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	09/11/2009
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1288,6 +1286,14 @@ int	cplot_moffatresi(fieldstruct *field)
   plmtex("b", 2.0, 0.5, 0.5, "Fit residuals");
 
 /* Draw right colour scale */
+  mresi /= 100.0;			/* convert to percentage */
+  resimin = resimin/mresi - 100.0;
+  resimax = resimax/mresi - 100.0;
+  plwind(0.0,1.0,resimin,resimax);
+  plschr(0.0, 0.5);
+  plbox("", 0.0, 0, "cmstv", 0.0, 0);
+  plschr(0.0, 0.5);
+  plmtex("r", 5.0, 0.5, 0.5, "%");
   plwind(0.0,1.0,resimin,resimax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);
@@ -1313,7 +1319,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	09/11/2009
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1502,9 +1508,6 @@ int	cplot_asymresi(fieldstruct *field)
   mresi /= 100.0;			/* convert to percentage */
   resimin = resimin/mresi - 100.0;
   resimax = resimax/mresi - 100.0;
-  dresi /= mresi;
-  resimin = resimin*100.0;	/* convert to percentage */
-  resimax = resimax*100.0;
   plwind(0.0,1.0,resimin,resimax);
   plschr(0.0, 0.5);
   plbox("", 0.0, 0, "cmstv", 0.0, 0);

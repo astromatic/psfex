@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	03/11/2009
+*	Last modify:	10/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/11/2009
+VERSION 10/11/2009
  ***/
 void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -530,16 +530,27 @@ void	check_write(fieldstruct *field, char *checkname,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      for (nr=1, i=npc; (i--)>0;)
-        nr *= psf->nsnap;	/* nr is the true number of Moffats */
+      dstep = 1.0/psf->nsnap;
+      dstart = (1.0-dstep)/2.0;
+      memset(dpos, 0, POLY_MAXDIM*sizeof(double));
+      for (i=0; i<npc; i++)
+        dpos[i] = -dstart;
       for (n=0; n<nt; n++)
         {
-        psf_moffat(psf, &psf->pfmoffat[n%nr]);
+        psf_moffat(psf, &psf->pfmoffat[n]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) = *(fpix++);
+        for (i=0; i<npc; i++)
+          if (dpos[i]<dstart-0.01)
+            {
+            dpos[i] += dstep;
+            break;
+            }
+          else
+            dpos[i] = -dstart;
         }
       break;
  
@@ -558,8 +569,11 @@ void	check_write(fieldstruct *field, char *checkname,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
-      for (nr=1, i=npc; (i--)>0;)
-        nr *= psf->nsnap;	/* nr is the true number of Moffats */
+      dstep = 1.0/psf->nsnap;
+      dstart = (1.0-dstep)/2.0;
+      memset(dpos, 0, POLY_MAXDIM*sizeof(double));
+      for (i=0; i<npc; i++)
+        dpos[i] = -dstart;
       for (n=0; n<nt; n++)
         {
         psf_build(psf, dpos);
@@ -568,12 +582,20 @@ void	check_write(fieldstruct *field, char *checkname,
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) = *(fpix++);
-        psf_moffat(psf, &psf->pfmoffat[n%nr]);
+        psf_moffat(psf, &psf->pfmoffat[n]);
         pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
         fpix = psf->loc;
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) -= *(fpix++);
+        for (i=0; i<npc; i++)
+          if (dpos[i]<dstart-0.01)
+            {
+            dpos[i] += dstep;
+            break;
+            }
+          else
+            dpos[i] = -dstart;
         }
       break;
    case PSF_SUBSYM:
@@ -591,6 +613,11 @@ void	check_write(fieldstruct *field, char *checkname,
       tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
       QCALLOC(pix0, float, tab->tabsize);
       tab->bodybuf = (char *)pix0; 
+      dstep = 1.0/psf->nsnap;
+      dstart = (1.0-dstep)/2.0;
+      memset(dpos, 0, POLY_MAXDIM*sizeof(double));
+      for (i=0; i<npc; i++)
+        dpos[i] = -dstart;
       for (n=0; n<nt; n++)
         {
         psf_build(psf, dpos);
@@ -600,6 +627,14 @@ void	check_write(fieldstruct *field, char *checkname,
         for (y=h; y--; pix += step)
           for (x=w; x--;)
             *(pix++) = *(fpix++)-*(--fpixsym);
+        for (i=0; i<npc; i++)
+          if (dpos[i]<dstart-0.01)
+            {
+            dpos[i] += dstep;
+            break;
+            }
+          else
+            dpos[i] = -dstart;
         }
       break;
     default:

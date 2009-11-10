@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	10/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -350,14 +350,17 @@ setstruct *read_samples(setstruct *set, char *filename,
    char			**kstr,
 			*head, *buf;
    unsigned short	*flags;
-   double		contextval[MAXCONTEXT], *cmin, *cmax, dval, sn;
+   double		contextval[MAXCONTEXT],
+			*dxm,*dym, *cmin, *cmax, dval, sn;
    float		*xm, *ym, *vignet,*vignett, *flux, *fluxmax, *fluxrad,
 			*elong,
 			backnoise, backnoise2, gain, minsn,maxelong;
    static int		ncat;
-   int			i,j, n, nsample,nsamplemax,
+   int			*lxm,*lym,
+			i,j, n, nsample,nsamplemax,
 			vigw, vigh, vigsize, nobj, nt,
 			maxbad, maxbadflag, ldflag, ext2, pc;
+   short 		*sxm,*sym;
 
 
   maxbad = prefs.badpix_nmax;
@@ -438,16 +441,35 @@ setstruct *read_samples(setstruct *set, char *filename,
 		filename);
 
 /* Init the single-row tab */
+  dxm = dym = NULL;
+  xm = ym = NULL;
+  lxm = lym = NULL;
+  sxm = sym = NULL;
   keytab = init_readobj(tab, &buf);
 
   if (!(key = name_to_key(keytab, "X_IMAGE")))
     error(EXIT_FAILURE, "*Error*: X_IMAGE parameter not found in catalog ",
 		filename);
-  xm = (float *)key->ptr;
+  if (key->ttype == T_DOUBLE)
+    dxm = (double *)key->ptr;
+  else if (key->ttype == T_FLOAT)
+    xm = (float *)key->ptr;
+  else if (key->ttype == T_LONG)
+    lxm = (int *)key->ptr;
+  else
+    sxm = (short *)key->ptr;
+
   if (!(key = name_to_key(keytab, "Y_IMAGE")))
     error(EXIT_FAILURE, "*Error*: Y_IMAGE parameter not found in catalog ",
 		filename);
-  ym = (float *)key->ptr;
+   if (key->ttype == T_DOUBLE)
+    dym = (double *)key->ptr;
+  else if (key->ttype == T_FLOAT)
+    ym = (float *)key->ptr;
+  else if (key->ttype == T_LONG)
+    lym = (int *)key->ptr;
+  else
+    sym = (short *)key->ptr;
 
   if (!(key = name_to_key(keytab, "FLUX_RADIUS")))
     error(EXIT_FAILURE, "*Error*: FLUX_RADIUS parameter not found in catalog ",
@@ -588,8 +610,22 @@ setstruct *read_samples(setstruct *set, char *filename,
       sample->norm = *flux;
       sample->backnoise2 = backnoise2;
       sample->gain = gain;
+      if (dxm)
+        sample->x = *dxm;
+      else if (xm)
       sample->x = *xm;
-      sample->y = *ym;
+      else if (lxm)
+        sample->x = *lxm;
+      else
+        sample->x = *sxm;
+      if (dym)
+        sample->y = *dym;
+      else if (ym)
+        sample->y = *ym;
+      else if (lym)
+        sample->y = *lym;
+      else
+        sample->y = *sym;
       sample->dx = sample->x - (int)(sample->x+0.49999);
       sample->dy = sample->y - (int)(sample->y+0.49999);
       for (i=0; i<set->ncontext; i++)
