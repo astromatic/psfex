@@ -144,7 +144,7 @@ char *default_prefs[] =
 "*PSF_PIXELSIZE  1.0              # Effective pixel size in pixel step units",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
-"PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?",
+"*PSF_RECENTER    N               # Allow recentering of PSF-candidates Y/N ?",
 "*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
 " ",
 "#----------------------------- PSF variability -----------------------------",

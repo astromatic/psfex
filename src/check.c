@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	10/11/2009
+*	Last modify:	19/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 10/11/2009
+VERSION 19/11/2009
  ***/
 void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -66,7 +66,7 @@ void	check_write(fieldstruct *field, char *checkname,
    double		dstep,dstart, dval1,dval2, scalefac;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,j,l,x,y, w,h,n, npc,nt,nr, nw,nh,np,
+   int			i,j,l,x,y, w,h,n, npc,nt, nw,nh,np,
 			step, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */

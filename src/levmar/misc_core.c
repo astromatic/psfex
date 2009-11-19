@@ -702,7 +702,8 @@ int info;
                 }
                 else{
                         fprintf(stderr, "LAPACK error: the leading minor of order %d is not positive definite,\n%s()\n", info,
-                                                RCAT("and the Cholesky factorization could not be completed in ", LEVMAR_CHOLESKY));
+                                                RCAT("and the Cholesky factorization could not be completed in ", 
+						LEVMAR_CHOLESKY));
                 }
     return LM_ERROR;
   }

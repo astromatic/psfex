@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	30/03/2009
+*	Last modify:	16/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -23,7 +23,12 @@
 
 /*--------------------------------- constants -------------------------------*/
 
-#define	LSAMPLE_DEFSIZE	1000		/* Sample stacksize at the beginning */
+#define	LSAMPLE_DEFSIZE		1000	/* Sample stacksize at the beginning */
+#define	RECENTER_NITERMAX	16	/* Max. number of recentering steps */
+#define	RECENTER_NSIG		4	/* Recentering measurement radius */
+#define	RECENTER_OVERSAMP	3	/* Oversampling for recentering */
+#define	RECENTER_STEPMIN	0.001	/* Min. recentering coordinate update */
+#define	RECENTER_GRADFAC	2.0	/* Gradient descent accel. factor */
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -77,6 +82,9 @@ void		end_set(setstruct *set),
 		free_samples(setstruct *set),
  		malloc_samples(setstruct *set, int nsample),
 		make_weights(setstruct *set, samplestruct *sample),
-		realloc_samples(setstruct *set, int nsample);
+		realloc_samples(setstruct *set, int nsample),
+		recenter_sample(samplestruct *sample, setstruct *set,
+			float fluxrad);
 
 #endif
+

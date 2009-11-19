@@ -9,7 +9,7 @@
 *
 *	Contents:	Manage observation contexts.
 *
-*	Last modify:	30/10/2009
+*	Last modify:	19/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -118,7 +118,7 @@ INPUT	Pointer to the full context,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/10/2009
+VERSION 19/11/2009
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
 		fieldstruct **fields, int ext, int catindex, int ncat)
@@ -190,6 +190,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
 /* Merge PSF components for each PSF */
   npix = psf->size[0]*psf->size[1];
   comp2size = npix*poly2->ncoeff;
+  bcoeff2 = NULL;			/* To avoid gcc -Wall warnings */
   bcoeff2size = psf->nbasis*poly2->ncoeff;
   npc = context->npc;
   for (p=catindex; p<ncat; p++)

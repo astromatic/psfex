@@ -619,7 +619,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/03/2008
+VERSION 19/11/2009
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -859,7 +859,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/10/2009
+VERSION 19/11/2009
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -1075,6 +1075,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     }
 
 //  NFPRINTF(OUTPUT,"Updating the PSF...");
+  bcoeff = NULL;		/* To avoid gcc -Wall warnings */
   if (psf->basiscoeff)
     {
     free(psf->basiscoeff);

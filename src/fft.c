@@ -9,7 +9,7 @@
 *
 *       Contents:       Routines dealing with FFT.
 *
-*       Last modify:    26/06/2009
+*       Last modify:    18/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <fftw3.h>
+#include FFTW_H
 
 #include "define.h"
 #include "globals.h"

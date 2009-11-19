@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	10/11/2009
+*	Last modify:	17/11/2009
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -640,6 +640,7 @@ setstruct *read_samples(setstruct *set, char *filename,
           cmax[i] = dval;
         }
       make_weights(set, sample);
+      recenter_sample(sample, set, *fluxrad);
       nsample++;
       }
     }
@@ -669,6 +670,144 @@ setstruct *read_samples(setstruct *set, char *filename,
   ncat++;
 
   return set;
+  }
+
+
+/****** recenter_sample ******************************************************
+PROTO   void recenter_samples(samplestruct sample,
+		setstruct *set, float fluxrad)
+PURPOSE Recenter sample image using windowed barycenter.
+INPUT   sample structure pointer,
+	set structure pointer,
+	flux radius.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 16/11/2009
+*/
+void	recenter_sample(samplestruct *sample, setstruct *set, float fluxrad)
+
+  {
+   double	tv, dxpos, dypos;
+   float	*ima,*imat,*weight,*weightt,
+		pix, var, locpix, locarea, sig,twosig2, raper,raper2,
+		offsetx,offsety, mx,my, mx2ph,my2ph,
+		rintlim,rintlim2,rextlim2, scalex,scaley,scale2,
+		dx,dy, dx1,dy2, r2;
+   int		i, x,y,x2,y2, w,h, sx,sy, xmin,xmax,ymin,ymax, pos;
+
+  sig = fluxrad*2.0/2.35; /* From half-FWHM to sigma */
+  twosig2 = 2.0*sig*sig;
+
+  w = set->vigsize[0];
+  h = set->vigsize[1];
+/* Integration radius */
+  raper = RECENTER_NSIG*sig;
+  raper2 = raper*raper;
+/* Internal radius of the oversampled annulus (<r-sqrt(2)/2) */
+  rintlim = raper - 0.75;
+  rintlim2 = (rintlim>0.0)? rintlim*rintlim: 0.0;
+/* External radius of the oversampled annulus (>r+sqrt(2)/2) */
+  rextlim2 = (raper + 0.75)*(raper + 0.75);
+  scaley = scalex = 1.0/RECENTER_OVERSAMP;
+  scale2 = scalex*scaley;
+  offsetx = 0.5*(scalex-1.0);
+  offsety = 0.5*(scaley-1.0);
+/* Use isophotal centroid as a first guess */
+  mx = sample->dx + (float)(w/2);
+  my = sample->dy + (float)(h/2);
+
+  for (i=0; i<RECENTER_NITERMAX; i++)
+    {
+    xmin = (int)(mx-raper+0.499999);
+    xmax = (int)(mx+raper+1.499999);
+    ymin = (int)(my-raper+0.499999);
+    ymax = (int)(my+raper+1.499999);
+    mx2ph = mx*2.0 + 0.49999;
+    my2ph = my*2.0 + 0.49999;
+
+    if (xmin < 0)
+      xmin = 0;
+    if (xmax > w)
+      xmax = w;
+    if (ymin < 0)
+      ymin = 0;
+    if (ymax > h)
+      ymax = h;
+    tv = 0.0;
+    dxpos = dypos = 0.0;
+    ima = sample->vig;
+    weight = sample->vigweight;
+    for (y=ymin; y<ymax; y++)
+      {
+      imat= ima + (pos = y*w + xmin);
+      weightt = weight + pos;
+      dy = y - my;
+      for (x=xmin; x<xmax; x++, imat++, weightt++)
+        {
+        dx = x - mx;
+        if ((r2=dx*dx+dy*dy)<rextlim2)
+          {
+          if (RECENTER_OVERSAMP>1 && r2> rintlim2)
+            {
+            dx += offsetx;
+            dy += offsety;
+            locarea = 0.0;
+            for (sy=RECENTER_OVERSAMP; sy--; dy+=scaley)
+              {
+              dx1 = dx;
+              dy2 = dy*dy;
+              for (sx=RECENTER_OVERSAMP; sx--; dx1+=scalex)
+                if (dx1*dx1+dy2<raper2)
+                  locarea += scale2;
+              }
+            }
+          else
+            locarea = 1.0;
+          locarea *= expf(-r2/twosig2);
+/*-------- Here begin tests for pixel and/or weight overflows. Things are a */
+/*-------- bit intricated to have it running as fast as possible in the most */
+/*-------- common cases */
+          pix = *imat;
+          if ((var=*weightt)==0.0)
+            {
+            if ((x2=(int)(mx2ph-x))>=0 && x2<w
+		&& (y2=(int)(my2ph-y))>=0 && y2<h
+		&& (var=*(weight + (pos = y2*w + x2)))>0.0)
+              {
+              var = 1.0/var;
+              pix = *(ima+pos);
+              }
+            else
+              pix = var = 0.0;
+            }
+          dx = x - mx;
+          dy = y - my;
+          locpix = locarea*pix;
+          tv += locpix;
+          dxpos += locpix*dx;
+          dypos += locpix*dy;
+          }
+        }
+      }
+
+    if (tv>0.0)
+      {
+      mx += (dxpos /= tv)*RECENTER_GRADFAC;
+      my += (dypos /= tv)*RECENTER_GRADFAC;
+      }
+    else
+      break;
+
+/*-- Stop here if position does not change */
+    if (dxpos*dxpos+dypos*dypos < RECENTER_STEPMIN*RECENTER_STEPMIN)
+      break;
+    }
+
+  sample->dx = mx - (float)(w/2);
+  sample->dy = my - (float)(h/2);
+
+  return;
   }
 
 
