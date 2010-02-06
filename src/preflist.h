@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	03/09/2009
+*	Last modify:	05/02/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -49,6 +49,8 @@ pkeystruct key[] =
   {"BASIS_SCALE", P_FLOAT, &prefs.basis_scale, 0,0, 0.0,1.0e3},
   {"BASIS_TYPE", P_KEY, &prefs.basis_type, 0,0, 0.0,0.0,
    {"NONE", "PIXEL", "GAUSS-LAGUERRE", "FILE", "PIXEL_AUTO", ""}},
+  {"CENTER_KEYS", P_STRINGLIST, prefs.center_key, 0,0,0.0,0.0,
+    {""}, 2, 2, &prefs.ncenter_key},
   {"CHECKIMAGE_CUBE", P_BOOL, &prefs.check_cubeflag},
   {"CHECKIMAGE_NAME", P_STRINGLIST, prefs.check_name, 0,0,0.0,0.0,
     {""}, 0, MAXCHECK, &prefs.ncheck_name},
@@ -87,6 +89,8 @@ pkeystruct key[] =
 	{"NONE", "PCA_INDEPENDENT", "PCA_COMMON", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
+  {"PHOTFLUX_KEY", P_STRING, prefs.photflux_key},
+  {"PHOTFLUXERR_KEY", P_STRING, prefs.photfluxerr_key},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
     {""}, 0, MAXCONTEXT, &prefs.ngroup_deg},
   {"PSFVAR_KEYS", P_STRINGLIST, prefs.context_name, 0,0,0.0,0.0,
@@ -141,20 +145,23 @@ char *default_prefs[] =
 "*                                # or PCA_COMMON",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
-"*PSF_PIXELSIZE  1.0              # Effective pixel size in pixel step units",
+"*PSF_PIXELSIZE   1.0             # Effective pixel size in pixel step units",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
+"CENTER_KEYS     X_IMAGE,Y_IMAGE # Catalogue parameters for source pre-centering",
 "*PSF_RECENTER    N               # Allow recentering of PSF-candidates Y/N ?",
+"PHOTFLUX_KEY    FLUX_APER(1)    # Catalogue parameter for photometric norm.",
+"PHOTFLUXERR_KEY FLUXERR_APER(1) # Catalogue parameter for photometric error",
 "*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
 " ",
 "#----------------------------- PSF variability -----------------------------",
 " ",
-"PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params",
-"PSFVAR_GROUPS  1,1              # Group tag for each context key",
-"PSFVAR_DEGREES 2                # Polynom degree for each group",
-"*PSFVAR_NSNAP   9                # Number of PSF snapshots per axis",
-"*HIDDENMEF_TYPE COMMON           # INDEPENDENT or COMMON",
-"*STABILITY_TYPE EXPOSURE         # EXPOSURE or SEQUENCE",
+"PSFVAR_KEYS     X_IMAGE,Y_IMAGE # Catalogue or FITS (preceded by :) params",
+"PSFVAR_GROUPS   1,1             # Group tag for each context key",
+"PSFVAR_DEGREES  2               # Polynom degree for each group",
+"*PSFVAR_NSNAP    9               # Number of PSF snapshots per axis",
+"*HIDDENMEF_TYPE  COMMON          # INDEPENDENT or COMMON",
+"*STABILITY_TYPE  EXPOSURE        # EXPOSURE or SEQUENCE",
 " ",
 "#----------------------------- Sample selection ------------------------------",
 " ",
@@ -183,8 +190,8 @@ char *default_prefs[] =
 "                                # JPEG, AQT, PDF or SVG",
 "*CHECKPLOT_RES       0           # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS Y           # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE     FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION    # NONE, FWHM or ELLIPTICITY",
-"CHECKPLOT_NAME         fwhm, ellipticity, counts, countfrac",
+"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION # or NONE",
+"CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

@@ -46,7 +46,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2009
+VERSION 05/02/2010
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -86,6 +86,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   moffat->fwhm_min = moffat->fwhm_max = homopsf_params[0];
   moffat->theta = 0.0;
   moffat->beta = homopsf_params[1];
+  moffat->nsubpix = 1;
   psf_moffat(psf, moffat);
   target = NULL;		/* to avoid gcc -Wall warnings */
   QMEMCPY(psf->loc, target, float, npix);

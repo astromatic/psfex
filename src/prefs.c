@@ -9,7 +9,7 @@
 *
 *	Contents:	Functions to handle the configuration file.
 *
-*	Last modify:	03/09/2009
+*	Last modify:	05/02/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -69,7 +69,8 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
 
   {
    FILE          *infile;
-   char          *cp, str[MAXCHARL], *keyword, *value, **dp;
+   char          str[MAXCHARL], errstr[MAXCHAR],
+		*cp,  *keyword, *value, **dp;
    int           i, ival, nkey, warn, argi, flagc, flagd, flage, flagz;
    float         dval;
 #ifdef	HAVE_GETENV
@@ -229,7 +230,11 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
 			!= RETURN_ERROR)
               *(int *)(key[nkey].ptr) = ival;
             else
-              error(EXIT_FAILURE, keyword, " set to an unknown keyword");
+              {
+              sprintf(errstr, "*Error*: %s set to an unknown keyword: ",
+			keyword);
+              error(EXIT_FAILURE, errstr, value);
+              }
             break;
 
           case P_BOOLLIST:
@@ -299,7 +304,11 @@ void    readprefs(char *filename, char **argkey, char **argval, int narg)
 			!= RETURN_ERROR)
                 ((int *)(key[nkey].ptr))[i] = ival;
               else
-                error(EXIT_FAILURE, keyword, " set to an unknown keyword");
+                 {
+                sprintf(errstr, "*Error*: %s set to an unknown keyword: ",
+			keyword);
+                error(EXIT_FAILURE, errstr, value);
+                }
               value = strtok((char *)NULL, notokstr);
               }
             if (i<key[nkey].nlistmin)
@@ -525,6 +534,14 @@ void	useprefs()
   if (!prefs.autoselect_flag && !prefs.psf_step)
     warning("SAMPLE_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",
 		" PSF_SAMPLING will default to 1 pixel");
+
+/*---------------------------- Measurement arrays --------------------------*/
+  strcpy(prefs.photflux_rkey, prefs.photflux_key);
+  strtok(prefs.photflux_rkey,"([{}])");
+  prefs.photflux_num = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) : 1;
+  strcpy(prefs.photfluxerr_rkey, prefs.photfluxerr_key);
+  strtok(prefs.photfluxerr_rkey,"([{}])");
+  prefs.photfluxerr_num = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) : 1;
 
 /*------------------------------- Contexts ---------------------------------*/
   if ((prefs.group_deg[0]!=0) && prefs.ncontext_group != prefs.ncontext_name)

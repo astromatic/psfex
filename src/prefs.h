@@ -9,7 +9,7 @@
 *
 *	Contents:	global type definitions.
 *
-*	Last modify:	03/09/2009
+*	Last modify:	05/02/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -69,13 +69,20 @@ typedef struct
   int		npsf_pixsize;			/* nb of params */
   int		badpix_flag;			/* Filter bad pixels? */
   int		badpix_nmax;			/* Max number of bad pixels */
-  enum {VAR_NONE, VAR_SEEING}	var_type;	/* PSF variability type */
+  char		photflux_key[MAXCHAR];		/* Name of phot. flux key */
+  char		photflux_rkey[MAXCHAR];		/* Reduced phot. flux key */
+  int		photflux_num;			/* Phot. aperture # */
+  char		photfluxerr_key[MAXCHAR];	/* Name of phot. flux err. key*/
+  char		photfluxerr_rkey[MAXCHAR];	/* Reduced phot. flux err. key*/
+  int		photfluxerr_num;		/* Phot.flux err. aperture # */
 /* Vector basis */
   basistypenum	basis_type;			/* PSF vector basis set */
   int		basis_number;			/* nb of supersampled pixels */
   char		basis_name[MAXCHAR];		/* PSF vector basis filename */
   double	basis_scale;			/* Gauss-Laguerre beta param */
 /* Re-centering */
+  char		*(center_key[2]);		/* Names of centering keys */
+  int		ncenter_key;			/* nb of params */
   int		autoselect_flag;		/* Auto. select FWHMs ? */
   int		recenter_flag;			/* Recenter PSF-candidates? */
 /* Check-images */
@@ -85,6 +92,7 @@ typedef struct
   int		ncheck_name;			/* nb of params */
   int		check_cubeflag;			/* check-images as datacubes?*/
 /* PSF variability */
+  enum {VAR_NONE, VAR_SEEING}	var_type;	/* PSF variability type */
   char		*(context_name[MAXCONTEXT]);	/* Names of context-keys */
   int		ncontext_name;			/* nb of params */
   int		context_group[MAXCONTEXT];	/* Context group */
@@ -93,7 +101,7 @@ typedef struct
   int		group_deg[MAXCONTEXT];		/* Degree for each group */
   int		ngroup_deg;			/* nb of params */
   enum	{HIDDEN_MEF_INDEPENDENT, HIDDEN_MEF_COMMON}
-		hidden_mef_type;			/* Mosaic handling for hiddens*/
+		hidden_mef_type;		/* Mosaic handling for hiddens*/
   enum	{STABILITY_EXPOSURE, STABILITY_SEQUENCE}
 		stability_type;			/* PSF stability range*/
   enum	{PSF_MEF_INDEPENDENT, PSF_MEF_COMMON}

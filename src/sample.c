@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	17/11/2009
+*	Last modify:	05/02/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -352,7 +352,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    unsigned short	*flags;
    double		contextval[MAXCONTEXT],
 			*dxm,*dym, *cmin, *cmax, dval, sn;
-   float		*xm, *ym, *vignet,*vignett, *flux, *fluxmax, *fluxrad,
+   float		*xm, *ym, *vignet,*vignett, *flux, *fluxerr, *fluxrad,
 			*elong,
 			backnoise, backnoise2, gain, minsn,maxelong;
    static int		ncat;
@@ -447,9 +447,12 @@ setstruct *read_samples(setstruct *set, char *filename,
   sxm = sym = NULL;
   keytab = init_readobj(tab, &buf);
 
-  if (!(key = name_to_key(keytab, "X_IMAGE")))
-    error(EXIT_FAILURE, "*Error*: X_IMAGE parameter not found in catalog ",
-		filename);
+  if (!(key = name_to_key(keytab, prefs.center_key[0])))
+    {
+    sprintf(str, "*Error*: %s parameter not found in catalogue ",
+	prefs.center_key[0]);
+    error(EXIT_FAILURE, str, filename);
+    }
   if (key->ttype == T_DOUBLE)
     dxm = (double *)key->ptr;
   else if (key->ttype == T_FLOAT)
@@ -459,9 +462,12 @@ setstruct *read_samples(setstruct *set, char *filename,
   else
     sxm = (short *)key->ptr;
 
-  if (!(key = name_to_key(keytab, "Y_IMAGE")))
-    error(EXIT_FAILURE, "*Error*: Y_IMAGE parameter not found in catalog ",
-		filename);
+  if (!(key = name_to_key(keytab, prefs.center_key[1])))
+    {
+    sprintf(str, "*Error*: %s parameter not found in catalogue ",
+	prefs.center_key[0]);
+    error(EXIT_FAILURE, str, filename);
+    }
    if (key->ttype == T_DOUBLE)
     dym = (double *)key->ptr;
   else if (key->ttype == T_FLOAT)
@@ -476,15 +482,47 @@ setstruct *read_samples(setstruct *set, char *filename,
 		filename);
   fluxrad = (float *)key->ptr;
 
-  if (!(key = name_to_key(keytab, "FLUX_APER")))
-    error(EXIT_FAILURE, "*Error*: FLUX_APER parameter not found in catalog ",
-		filename);
+  if (!(key = name_to_key(keytab, prefs.photflux_rkey)))
+    {
+    sprintf(str, "*Error*: %s parameter not found in catalogue ",
+	prefs.photflux_rkey);
+    error(EXIT_FAILURE, str, filename);
+    }
   flux = (float *)key->ptr;
+  n = prefs.photflux_num - 1;
+  if (n)
+    {
+    if (key->naxis==1 && n<key->naxisn[0])
+      flux += n;
+    else
+      {
+      sprintf(str, "Not enough apertures for %s in catalogue %s: ",
+	prefs.photflux_rkey,
+	filename);
+      warning(str, "using first aperture");
+      }
+    }
 
-  if (!(key = name_to_key(keytab, "FLUX_MAX")))
-    error(EXIT_FAILURE,"*Error*: FLUX_MAX parameter not found in catalog ",
-		filename);
-  fluxmax = (float *)key->ptr;
+  if (!(key = name_to_key(keytab, prefs.photfluxerr_rkey)))
+    {
+    sprintf(str, "*Error*: %s parameter not found in catalogue ",
+	prefs.photfluxerr_rkey);
+    error(EXIT_FAILURE, str, filename);
+    }
+  fluxerr = (float *)key->ptr;
+  n = prefs.photfluxerr_num - 1;
+  if (n)
+    {
+    if (key->naxis==1 && n<key->naxisn[0])
+      fluxerr += n;
+    else
+      {
+      sprintf(str, "Not enough apertures for %s in catalogue %s: ",
+	prefs.photfluxerr_rkey,
+	filename);
+      warning(str, "using first aperture");
+      }
+    }
 
   if (!(key = name_to_key(keytab, "ELONGATION")))
     error(EXIT_FAILURE, "*Error*: ELONGATION parameter not found in catalog ",
@@ -562,7 +600,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 	ncat, str2, n,nsample);
 //      NFPRINTF(OUTPUT, str);
       }
-    sn = (double)(backnoise>0.0? *fluxmax/backnoise : BIG);
+    sn = (double)(*fluxerr>0.0? *flux / *fluxerr : BIG);
 /*---- Apply some selection over flags, fluxes... */
     if (!(*flags&prefs.flag_mask)
 	&& sn>minsn

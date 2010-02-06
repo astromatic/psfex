@@ -970,7 +970,14 @@ int	write_xml_meta(FILE *file, char *error)
 		"obs.param;phot.flux.sb;arith.ratio;instr.det.psf","%.6g");
     write_xmlconfigparam(file, "PSF_Size", "pix",
 		"meta.number;instr.pixel;instr.det.psf","%d");
+    write_xmlconfigparam(file, "Center_Keys", "",
+		"meta.id;src;instr.det.psf", "%s");
     write_xmlconfigparam(file, "PSF_Recenter", "", "meta.code","%c");
+    write_xmlconfigparam(file, "PhotFlux_Key", "",
+		"meta.id;src;instr.det.psf", "%s");
+    write_xmlconfigparam(file, "PhotFluxErr_Key", "",
+		"meta.id;src;instr.det.psf", "%s");
+    write_xmlconfigparam(file, "MEF_Type", "", "meta.code","%s");
 
 /*-- PSF dependencies */
     write_xmlconfigparam(file, "PSFVar_Keys", "",
@@ -981,9 +988,12 @@ int	write_xml_meta(FILE *file, char *error)
 		"stat.fit.param;instr.det.psf", "%d");
     write_xmlconfigparam(file, "PSFVar_NSnap", "",
 		"stat.fit.param;instr.det.psf", "%d");
+    write_xmlconfigparam(file, "HiddenMEF_Type", "", "meta.code","%s");
+    write_xmlconfigparam(file, "Stability_Type", "", "meta.code","%s");
 
 /*-- Sample selection */
     write_xmlconfigparam(file, "Sample_AutoSelect", "", "meta.code","%c");
+    write_xmlconfigparam(file, "SampleVar_Type", "", "meta.code","%s");
     write_xmlconfigparam(file, "Sample_FWHMRange", "pix",
 		"phys.size.diameter;instr.det.psf","%.6g");
     write_xmlconfigparam(file, "Sample_Variability", "",
@@ -1001,6 +1011,7 @@ int	write_xml_meta(FILE *file, char *error)
     write_xmlconfigparam(file, "HomoBasis_Number", "", "meta.number","%d");
     write_xmlconfigparam(file, "HomoBasis_Scale", "", "arith.factor","%.6g");
     write_xmlconfigparam(file, "HomoPSF_Params", "", "stat.param","%.6g");
+    write_xmlconfigparam(file, "HomoKernel_Dir", "", "meta.id;meta.file","%s");
     write_xmlconfigparam(file, "HomoKernel_Suffix", "",
 		"meta.id;meta.file","%s");
 
@@ -1018,6 +1029,7 @@ int	write_xml_meta(FILE *file, char *error)
     write_xmlconfigparam(file, "CheckImage_Cube", "", "meta.code","%c");
 
 /*-- Miscellaneous */
+    write_xmlconfigparam(file, "PSF_Dir", "", "meta.id;meta.file","%s");
     write_xmlconfigparam(file, "PSF_Suffix", "", "meta.id;meta.file","%s");
     write_xmlconfigparam(file, "Verbose_Type", "", "meta.code","%s");
     write_xmlconfigparam(file, "Write_XML", "", "meta.code","%s");

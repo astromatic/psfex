@@ -311,11 +311,13 @@ psfstruct	*psf_init(contextstruct *context, int *size,
       if (!strcmp(psf->contextname[d], "X_IMAGE")
 		|| !strcmp(psf->contextname[d], "XWIN_IMAGE")
 		|| !strcmp(psf->contextname[d], "XPSF_IMAGE")
+		|| !strcmp(psf->contextname[d], "XMODEL_IMAGE")
 		|| !strcmp(psf->contextname[d], "XPEAK_IMAGE"))
         psf->cx = d;
       else if (!strcmp(psf->contextname[d], "Y_IMAGE")
 		|| !strcmp(psf->contextname[d], "YWIN_IMAGE")
 		|| !strcmp(psf->contextname[d], "YPSF_IMAGE")
+		|| !strcmp(psf->contextname[d], "YMODEL_IMAGE")
 		|| !strcmp(psf->contextname[d], "YPEAK_IMAGE"))
         psf->cy = d;
       }
