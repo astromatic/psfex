@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for field.c.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -57,6 +57,9 @@ typedef struct field
   double	maxradius;		/* Maxium radius */
   int		**lcount;		/* Count detections that are loaded */
   int		**acount;		/* Count detections that are accepted */
+  int		**count;		/* Count detections in stats */
+  double	**modchi2;		/* Sum of chi2's per image area */
+  double	**modresi;		/* Sum of res. indices per image area */
   }	fieldstruct;
 
 /*---------------------------------- protos --------------------------------*/
@@ -68,7 +71,8 @@ extern void		field_count(fieldstruct **fields, setstruct *set,
 				int counttype),
 			field_end(fieldstruct *field),
 			field_locate(fieldstruct *field),
-			field_psfsave(fieldstruct *field, char *filename);
+			field_psfsave(fieldstruct *field, char *filename),
+			field_stats(fieldstruct **fields, setstruct *set);
 
 void			context_apply(contextstruct *context, psfstruct *psf,
 				fieldstruct **fields, int ext, int catindex,

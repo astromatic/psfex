@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for producing check-images.
 *
-*	Last modify:	08/07/2008
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -32,9 +32,9 @@ typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
 	checkenum;
 
 /*---------------------------------- protos --------------------------------*/
-extern void		check_write(fieldstruct *field,	char *checkname,
-				checkenum checktype, int ext, int next,
-				int cubeflag);
+extern void		check_write(fieldstruct *field,	setstruct *set,
+				char *checkname, checkenum checktype,
+				int ext, int next, int cubeflag);
 
 #endif
 

@@ -621,7 +621,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/11/2009
+VERSION 08/04/2010
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -632,10 +632,10 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			*cvigx,*cvigxt, *cvigy,*cvigyt,
 			nm1, chi2, dx,dy, ddx,ddy, dval,dvalx,dvaly,dwval,
 			radmin2,radmax2, hcw,hch, yb, mx2,my2,mxy,
-			xc,yc,rmax2,x,y, mse, xi2, xyi;
+			xc,yc,rmax2,x,y, mse, xi2, xyi, resival, resinorm;
    float		*vigresi, *vig, *vigw, *fresi,*fresit, *vigchi,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
-			norm, fval, vigstep, psf_extraccu2, wval;
+			norm, fval, vigstep, psf_extraccu2, wval, sval;
    int			i,j,n,ix,iy, ndim,npix,nsample, cw,ch,ncpix, okflag,
 			accuflag, nchi2;
 
@@ -784,7 +784,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     norm = (xi2>0.0)? xyi/xi2 : sample->norm;
 
 /*-- Subtract the PSF model and compute Chi2 */
-    chi2 = 0.0;
+    chi2 = mse = resival = resinorm = 0.0;
     dresit = dresi;
     psf_extraccu2 = prof_accuracy*prof_accuracy*norm*norm;
     xc = (double)(set->vigsize[0]/2)+sample->dx;
@@ -798,7 +798,6 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     vigw = sample->vigweight;
     vigresi=sample->vigresi;
     vigchi = sample->vigchi;
-    mse = 0.0;
     for (iy=set->vigsize[1]; iy--; y+=1.0)
       {
       x = -xc;
@@ -817,12 +816,16 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
             nchi2++;
             chi2 += (double)(*vigchi=wval*fval*fval);
             *dresit += fval;
+            sval = *vig+*vigresi*norm;
+            resival += sval*fabsf(fval);
+            resinorm += sval*sval;
             }
           }
         }
       }
 
     sample->chi2 = (nchi2> 1)? chi2/(nchi2-1) : chi2;
+    sample->modresi = (resinorm > 0.0)? 2.0*resival/resinorm : resival;
     }
 
 /* Normalize and convert to floats the Residual array */

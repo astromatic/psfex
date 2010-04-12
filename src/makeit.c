@@ -9,7 +9,7 @@
 *
 *	Contents:	Main program.
 *
-*	Last modify:	27/10/2009
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -423,10 +423,10 @@ void	makeit(void)
         psf->chi2 = set2->nsample? psf_chi2(psf, set2) : 0.0;
         }
       psf->samples_accepted = set2->nsample;
-      fields[c]->set = set2;
-/*---- Compute diagnostics */
+/*---- Compute diagnostics and field statistics */
       psf_diagnostic(psf);
       nmed = psf->nmed;
+      field_stats(fields, set2);
 /*---- Display stats for current catalog/extension */
       if (next>1)
         sprintf(str, "[%d/%d]", ext+1, next);
@@ -449,7 +449,7 @@ void	makeit(void)
           {
           sprintf(str, "Saving CHECK-image #%d...", i+1);
           NFPRINTF(OUTPUT, str);
-          check_write(fields[c], prefs.check_name[i], prefs.check_type[i],
+          check_write(fields[c], set2, prefs.check_name[i], prefs.check_type[i],
 		ext, next, prefs.check_cubeflag);
           }
 /*---- Free memory */
@@ -515,6 +515,8 @@ void	makeit(void)
     cplot_asymresi(fields[c]);
     cplot_counts(fields[c]);
     cplot_countfrac(fields[c]);
+    cplot_modchi2(fields[c]);
+    cplot_modresi(fields[c]);
 #endif
 /*-- Update XML */
     if (prefs.xml_flag)
@@ -602,34 +604,34 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   if (set->nsample>1)
     {
     psf_clean(psf, set, 0.2);
-
+ 
 /*-- Make the basic PSF-model (2nd pass) */
 //    NFPRINTF(OUTPUT,"Modeling the PSF (2/3)...");
     psf_make(psf, set, 0.1);
     psf_refine(psf, set);
     }
-
+ 
 /* Remove bad PSF candidates */
   if (set->nsample>1)
     {
     psf_clean(psf, set, 0.1);
-
+ 
 /*-- Make the basic PSF-model (3rd pass) */
 //    NFPRINTF(OUTPUT,"Modeling the PSF (3/3)...");
     psf_make(psf, set, 0.05);
     psf_refine(psf, set);
     }
-
+ 
 /* Remove bad PSF candidates */
   if (set->nsample>1)
     psf_clean(psf, set, 0.05);
-
+ 
   psf->samples_accepted = set->nsample;
-
+ 
 /* Refine the PSF-model */
   psf_make(psf, set, prefs.prof_accuracy);
   psf_refine(psf, set);
-
+ 
 /* Clip the PSF-model */
   psf_clip(psf);
 

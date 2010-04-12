@@ -9,7 +9,7 @@
 *
 *	Contents:	Production of check-images for the PSF.
 *
-*	Last modify:	19/11/2009
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -42,6 +42,7 @@ PROTO	void	check_write(fieldstruct *field, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
 PURPOSE	Write a FITS image for check.
 INPUT	Pointer to the field,
+	Pointer to the set,
 	Check-image filename,
 	Check-image type,
 	Extension number,
@@ -50,13 +51,12 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/11/2009
+VERSION 08/04/2010
  ***/
-void	check_write(fieldstruct *field, char *checkname,
+void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
   {
    psfstruct		*psf;
-   setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
    samplestruct		*sample;
@@ -98,7 +98,6 @@ void	check_write(fieldstruct *field, char *checkname,
   sprintf(str, "chip%02d", ext+1);
 
   psf = field->psf[ext];
-  set = field->set;
   tab = new_tab(str);
   head = tab->headbuf;
   tab->bitpix =  BP_FLOAT;

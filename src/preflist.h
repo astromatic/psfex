@@ -9,7 +9,7 @@
 *
 *	Contents:	Keywords for the configuration file.
 *
-*	Last modify:	05/02/2010
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -71,7 +71,7 @@ pkeystruct key[] =
     {""}, 1, 2, &prefs.ncplot_res},
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
     {"NONE", "FWHM", "ELLIPTICITY", "MOFFAT_RESIDUALS", "ASYMMETRY",
-	"COUNTS", "COUNT_FRACTION", ""},
+	"COUNTS", "COUNT_FRACTION", "CHI2", "RESIDUALS", ""},
     0, MAXCHECK, &prefs.ncplot_type},
   {"HIDDENMEF_TYPE", P_KEY, &prefs.hidden_mef_type, 0,0, 0.0,0.0,
 	{"INDEPENDENT", "COMMON", ""}},
@@ -190,8 +190,8 @@ char *default_prefs[] =
 "                                # JPEG, AQT, PDF or SVG",
 "*CHECKPLOT_RES       0           # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS Y           # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION # or NONE",
-"CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac",
+"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION, CHI2, RESIDUALS # or NONE",
+"CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac, chi2, resi",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

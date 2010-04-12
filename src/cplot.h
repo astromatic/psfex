@@ -9,7 +9,7 @@
 *
 *	Contents:	Include file for cplot.c
 *
-*	Last modify:	10/09/2009
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -45,7 +45,8 @@
 /*-------------------------------- macros -----------------------------------*/
 /*--------------------------------- typedefs --------------------------------*/
 typedef enum {CPLOT_NONE, CPLOT_FWHM, CPLOT_ELLIPTICITY, CPLOT_MOFFATRESI,
-		CPLOT_ASYMRESI, CPLOT_COUNTS, CPLOT_COUNTFRAC}
+		CPLOT_ASYMRESI, CPLOT_COUNTS, CPLOT_COUNTFRAC, CPLOT_CHI2,
+		CPLOT_MODRESI}
 		cplotenum;
 
 typedef enum {CPLOT_NULL, CPLOT_XWIN, CPLOT_TK, CPLOT_XTERM, CPLOT_PLMETA,
@@ -59,7 +60,9 @@ typedef struct {cplotdevenum device; char *devname; char *extension;}
 /*---------------------------------- svgp -----------------------------------*/
 /*------------------------------- functions ---------------------------------*/
 
-extern int		cplot_countfrac(fieldstruct *field),
+extern int		cplot_modchi2(fieldstruct *field),
+			cplot_modresi(fieldstruct *field),
+			cplot_countfrac(fieldstruct *field),
 			cplot_counts(fieldstruct *field),
 			cplot_check(cplotenum cplottype),
 			cplot_drawbounds(wcsstruct *wcsin, wcsstruct *wcsout),

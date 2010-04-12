@@ -9,7 +9,7 @@
 *
 *	Contents:       Call a plotting library (PLPlot).
 *
-*	Last modify:	09/11/2009
+*	Last modify:	08/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -1627,7 +1627,7 @@ int	cplot_counts(fieldstruct *field)
   cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
   plscmap1l(1, 3, cpoint, r, g, b, NULL);
 
-/* Now the real 2D FWHM mapping */
+/* Now the real 2D count mapping */
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
@@ -1787,7 +1787,7 @@ int	cplot_countfrac(fieldstruct *field)
   cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
   plscmap1l(1, 3, cpoint, r, g, b, NULL);
 
-/* Now the real 2D FWHM mapping */
+/* Now the real 2D count mapping */
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
@@ -1844,5 +1844,321 @@ int	cplot_countfrac(fieldstruct *field)
   return RETURN_OK;
   }
 
+/****** cplot_modchi2 ********************************************************
+PROTO	int cplot_modchi2(fieldstruct *field)
+PURPOSE	Plot an x,y map of the average fit chi2/dof.
+INPUT	Pointer to the field.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	08/04/2010
+ ***/
+int	cplot_modchi2(fieldstruct *field)
+  {
+   wcsstruct	*wcsptr[2],
+		*wcs, *wcsout;
+   PLFLT	**count,
+		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		cmin,cmax, mc,dc;
+   PLINT	lwid;
+   char		*ctype[NAXIS],
+		str[64];
+   double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
+		**chi2,
+		xmin,ymin,xmax,ymax, xstep,ystep, dval;
+   int		naxisn[NAXIS],
+		**scount,
+		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
+
+  if (cplot_init(field->rcatname, 1,1, CPLOT_CHI2) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_CHI2);
+    return RETURN_OK;
+    }
+
+  wcs = field->wcs[0];
+  if (!wcs || wcs->naxis<2)
+    return RETURN_ERROR;
+  naxis = wcs->naxis;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(ctype[i], char, 16); 
+    strncpy(ctype[i],wcs->ctype[i], 16);
+    crpix[i] = 50.0;
+    cdelt[i] = field->maxradius/50.0;
+    if (i==wcs->lng)
+      cdelt[i] = -cdelt[i];	/* Put East to the left */
+    naxisn[i] = 100;
+    }
+
+  wcsout = create_wcs(ctype,field->meanwcspos,crpix,cdelt,naxisn, naxis);
+
+  xmin = 0.5;
+  xmax = 100.5;
+  ymin = 0.5;
+  ymax = 100.5;
+  lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+  plwid(lwid);
+  plfont(2);
+  plcol(15);
+  plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
+  sprintf(str, "#uField \"%s\": #gx#u2#d/d.o.f. map", field->rtcatname);
+  plschr(0.0, 1.0);
+  pllab("","", str);
+  plwid(0);
+  plcol(7);
+  cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
+
+  pllsty(1);
+  plcol(15);
+  plscmap1n(256);
+
+  cmin = BIG;
+  cmax = -BIG;
+
+/* First pass through the data to find min and max chi2 */
+  flag = 0;
+  scount = field->count;
+  chi2 = field->modchi2;
+  nsnap = prefs.context_nsnap;
+  nt = nsnap*nsnap;
+  for (e=0; e<field->next; e++)
+    for (n=0; n<nt; n++)
+      {
+      dval = scount[e][n] > 0? chi2[e][n] / scount[e][n] : 0.0;
+      if (dval < cmin)
+        cmin = dval;
+      if (dval > cmax)
+        cmax = dval;
+      }
+
+/* Lower bound to variability in chi2 fraction is 1e-4 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
+    mc = 1.0e-10;
+  if ((dc=cmax-cmin) < 1.0e-4*mc)
+    dc = 1.0e-4*mc;
+  cmin = mc - dc/2.0;
+  cmax = mc + dc/2.0;
+
+  for (i=0; i<CPLOT_NSHADES; i++)
+    clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
+  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
+  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
+  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+
+/* Now the real 2D chi2 mapping */
+  nsnap2 = nsnap>1? nsnap : 2;
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    plAlloc2dGrid(&count, nsnap2, nsnap2);
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (nsnap2-1);
+    ystep = wcs->naxisn[1] / (nsnap2-1);
+    for (j=0; j<nsnap2; j++)
+      for (i=0; i<nsnap2; i++)
+        {
+        n = (nsnap>1)? j*nsnap + i : 0;
+        count[i][j] = (PLFLT)(scount[e][n] > 0? chi2[e][n]/scount[e][n] : 0.0);
+        }
+
+    wcsptr[0] = wcs;
+    wcsptr[1] = wcsout;
+    plshades(count, nsnap2, nsnap2, NULL,
+	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
+             ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
+    plFree2dGrid(count, nsnap2, nsnap2);
+    plcol(7);
+    plwid(lwid);
+    cplot_drawbounds(wcs, wcsout);
+    }
+
+/* Draw left colour scale */
+  plAlloc2dGrid(&count, 2, CPLOT_NSHADES);
+  for (j=0; j<CPLOT_NSHADES; j++)
+    count[0][j] = count[1][j] = cmin + j * dc/(CPLOT_NSHADES-1);
+
+  plvpor(0.91,0.935,0.115,0.885);
+  plwind(0.0,1.0,cmin,cmax);
+  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plcol(15);
+  plschr(0.0, 0.5);
+  plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
+  plschr(0.0, 0.6);
+  plmtex("l", 5.0, 0.5, 0.5, "<#gx#u2#d/d.o.f.>");
+
+  plFree2dGrid(count, 2, CPLOT_NSHADES);
+  plend();
+  end_wcs(wcsout);
+  for (i=0; i<naxis; i++)
+    free(ctype[i]);
+
+  cplot_modchi2(field);		/* Recursive stuff */
+
+  return RETURN_OK;
+  }
+
+
+/****** cplot_modresi *******************************************************
+PROTO	int cplot_modresi(fieldstruct *field)
+PURPOSE	Plot an x,y map of the average fit chi2/dof.
+INPUT	Pointer to the field.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	08/04/2010
+ ***/
+int	cplot_modresi(fieldstruct *field)
+  {
+   wcsstruct	*wcsptr[2],
+		*wcs, *wcsout;
+   PLFLT	**count,
+		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		cmin,cmax, mc,dc;
+   PLINT	lwid;
+   char		*ctype[NAXIS],
+		str[64];
+   double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
+		**resi,
+		xmin,ymin,xmax,ymax, xstep,ystep, dval;
+   int		naxisn[NAXIS],
+		**scount,
+		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
+
+  if (cplot_init(field->rcatname, 1,1, CPLOT_MODRESI) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_MODRESI);
+    return RETURN_OK;
+    }
+
+  wcs = field->wcs[0];
+  if (!wcs || wcs->naxis<2)
+    return RETURN_ERROR;
+  naxis = wcs->naxis;
+  for (i=0; i<naxis; i++)
+    {
+    QMALLOC(ctype[i], char, 16); 
+    strncpy(ctype[i],wcs->ctype[i], 16);
+    crpix[i] = 50.0;
+    cdelt[i] = field->maxradius/50.0;
+    if (i==wcs->lng)
+      cdelt[i] = -cdelt[i];	/* Put East to the left */
+    naxisn[i] = 100;
+    }
+
+  wcsout = create_wcs(ctype,field->meanwcspos,crpix,cdelt,naxisn, naxis);
+
+  xmin = 0.5;
+  xmax = 100.5;
+  ymin = 0.5;
+  ymax = 100.5;
+  lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+  plwid(lwid);
+  plfont(2);
+  plcol(15);
+  plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
+  sprintf(str, "#uField \"%s\": map of residuals", field->rtcatname);
+  plschr(0.0, 1.0);
+  pllab("","", str);
+  plwid(0);
+  plcol(7);
+  cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
+
+  pllsty(1);
+  plcol(15);
+  plscmap1n(256);
+
+  cmin = BIG;
+  cmax = -BIG;
+
+/* First pass through the data to find min and max chi2 */
+  flag = 0;
+  scount = field->count;
+  resi = field->modresi;
+  nsnap = prefs.context_nsnap;
+  nt = nsnap*nsnap;
+  for (e=0; e<field->next; e++)
+    for (n=0; n<nt; n++)
+      {
+      dval = scount[e][n] > 0? resi[e][n] / scount[e][n] : 0.0;
+      if (dval < cmin)
+        cmin = dval;
+      if (dval > cmax)
+        cmax = dval;
+      }
+
+/* Lower bound to variability in chi2 fraction is 1e-4 */
+  if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
+    mc = 1.0e-10;
+  if ((dc=cmax-cmin) < 1.0e-4*mc)
+    dc = 1.0e-4*mc;
+  cmin = mc - dc/2.0;
+  cmax = mc + dc/2.0;
+
+  for (i=0; i<CPLOT_NSHADES; i++)
+    clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
+  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
+  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
+  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+
+/* Now the real 2D chi2 mapping */
+  nsnap2 = nsnap>1? nsnap : 2;
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    plAlloc2dGrid(&count, nsnap2, nsnap2);
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (nsnap2-1);
+    ystep = wcs->naxisn[1] / (nsnap2-1);
+    for (j=0; j<nsnap2; j++)
+      for (i=0; i<nsnap2; i++)
+        {
+        n = (nsnap>1)? j*nsnap + i : 0;
+        count[i][j] = (PLFLT)(scount[e][n] > 0? resi[e][n]/scount[e][n] : 0.0);
+        }
+
+    wcsptr[0] = wcs;
+    wcsptr[1] = wcsout;
+    plshades(count, nsnap2, nsnap2, NULL,
+	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
+             ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
+	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
+    plFree2dGrid(count, nsnap2, nsnap2);
+    plcol(7);
+    plwid(lwid);
+    cplot_drawbounds(wcs, wcsout);
+    }
+
+/* Draw left colour scale */
+  plAlloc2dGrid(&count, 2, CPLOT_NSHADES);
+  for (j=0; j<CPLOT_NSHADES; j++)
+    count[0][j] = count[1][j] = cmin + j * dc/(CPLOT_NSHADES-1);
+
+  plvpor(0.91,0.935,0.115,0.885);
+  plwind(0.0,1.0,cmin,cmax);
+  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
+	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plcol(15);
+  plschr(0.0, 0.5);
+  plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
+  plschr(0.0, 0.6);
+  plmtex("l", 5.0, 0.5, 0.5, "normalized residuals");
+
+  plFree2dGrid(count, 2, CPLOT_NSHADES);
+  plend();
+  end_wcs(wcsout);
+  for (i=0; i<naxis; i++)
+    free(ctype[i]);
+
+  cplot_modresi(field);		/* Recursive stuff */
+
+  return RETURN_OK;
+  }
 
 

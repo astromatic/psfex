@@ -9,7 +9,7 @@
 *
 *	Contents:	Read and filter input samples from catalogs.
 *
-*	Last modify:	05/02/2010
+*	Last modify:	12/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -268,7 +268,26 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
   free(fwhmmin);
   free(fwhmmax);
   free(fwhmmode);
-
+/*
+  if (set->badflags)
+    printf("%d detections discarded with bad SExtractor flags\n",
+	set->badflags);
+  if (set->badsn)
+    printf("%d detections discarded with S/N too low\n",
+	set->badsn);
+  if (set->badfrmin)
+    printf("%d detections discarded with FWHM too small\n",
+	set->badfrmin);
+  if (set->badfrmax)
+    printf("%d detections discarded with FWHM too large\n",
+	set->badfrmax);
+  if (set->badelong)
+    printf("%d detections discarded with elongation too high\n",
+	set->badelong);
+  if (set->badpix)
+    printf("%d detections discarded with too many bad pixels\n\n\n",
+	set->badpix);
+*/
   return set;
   }
 
@@ -359,7 +378,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    int			*lxm,*lym,
 			i,j, n, nsample,nsamplemax,
 			vigw, vigh, vigsize, nobj, nt,
-			maxbad, maxbadflag, ldflag, ext2, pc;
+			maxbad, maxbadflag, ldflag, ext2, pc, contflag;
    short 		*sxm,*sym;
 
 
@@ -602,85 +621,110 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     sn = (double)(*fluxerr>0.0? *flux / *fluxerr : BIG);
 /*---- Apply some selection over flags, fluxes... */
-    if (!(*flags&prefs.flag_mask)
-	&& sn>minsn
-	&& *fluxrad>frmin && *fluxrad<frmax
-	&& *elong<maxelong)
+    contflag = 0;
+    if (*flags&prefs.flag_mask)
       {
-/*---- ... and check the integrity of the sample */
-      j = 0;
-      vignett = vignet;
-      for (i=vigsize; i--; vignett++)
-        if (*vignett <= -BIG)
-          j++;
-      if (maxbadflag && j > maxbad)
-        continue; 
-    
-/*---- Allocate memory for the first shipment */
-      if (!set->sample)
-        {
-        nsample = 0;
-        nsamplemax = LSAMPLE_DEFSIZE;
-        malloc_samples(set, nsamplemax);
-        }
-      else
-        {
-        if (set->vigsize[0] != vigw || set->vigsize[1] != vigh)
-          error(EXIT_FAILURE, "*Error*: Incompatible VIGNET size found in ",
-		filename);
-        }
-
-/*---- Increase storage space to receive new candidates if needed */
-      if (nsample>=nsamplemax)
-        {
-         int	nadd=(int)(1.62*nsamplemax);
-        nsamplemax = nadd>nsamplemax?nadd:nsamplemax+1;
-        realloc_samples(set, nsamplemax);
-        }
-
-      sample = set->sample + nsample;
-      sample->catindex = catindex;
-      sample->extindex = ext;
-
-/*---- Copy the vignet to the training set */
-      memcpy(sample->vig, vignet, vigsize*sizeof(float));
-
-      sample->norm = *flux;
-      sample->backnoise2 = backnoise2;
-      sample->gain = gain;
-      if (dxm)
-        sample->x = *dxm;
-      else if (xm)
-      sample->x = *xm;
-      else if (lxm)
-        sample->x = *lxm;
-      else
-        sample->x = *sxm;
-      if (dym)
-        sample->y = *dym;
-      else if (ym)
-        sample->y = *ym;
-      else if (lym)
-        sample->y = *lym;
-      else
-        sample->y = *sym;
-      sample->dx = sample->x - (int)(sample->x+0.49999);
-      sample->dy = sample->y - (int)(sample->y+0.49999);
-      for (i=0; i<set->ncontext; i++)
-        {
-        dval = sample->context[i];
-        ttypeconv(contextvalp[i], &dval, contexttyp[i], T_DOUBLE);
-        sample->context[i] = dval;
-/*------ Update min and max */
-        if (dval<cmin[i])
-          cmin[i] = dval;
-        if (dval>cmax[i])
-          cmax[i] = dval;
-        }
-      make_weights(set, sample);
-      recenter_sample(sample, set, *fluxrad);
-      nsample++;
+      contflag++;
+      set->badflags++;
       }
+    if (sn<minsn)
+      {
+      contflag++;
+      set->badsn++;
+      }
+    if (*fluxrad<frmin)
+      {
+      contflag++;
+      set->badfrmin++;
+      }
+    if (*fluxrad>frmax)
+      {
+      contflag++;
+      set->badfrmax++;
+      }
+    if (*elong>maxelong)
+      {
+      contflag++;
+      set->badelong++;
+      }
+    if (contflag)
+      continue;
+/*-- ... and check the integrity of the sample */
+    j = 0;
+    vignett = vignet;
+    for (i=vigsize; i--; vignett++)
+      if (*vignett <= -BIG)
+        j++;
+    if (maxbadflag && j > maxbad)
+      {
+      set->badpix++;
+      continue; 
+      }
+    
+/*-- Allocate memory for the first shipment */
+    if (!set->sample)
+      {
+      nsample = 0;
+      nsamplemax = LSAMPLE_DEFSIZE;
+      malloc_samples(set, nsamplemax);
+      }
+    else
+      {
+      if (set->vigsize[0] != vigw || set->vigsize[1] != vigh)
+        error(EXIT_FAILURE, "*Error*: Incompatible VIGNET size found in ",
+		filename);
+      }
+
+/*-- Increase storage space to receive new candidates if needed */
+    if (nsample>=nsamplemax)
+      {
+       int	nadd=(int)(1.62*nsamplemax);
+      nsamplemax = nadd>nsamplemax?nadd:nsamplemax+1;
+      realloc_samples(set, nsamplemax);
+      }
+
+    sample = set->sample + nsample;
+    sample->catindex = catindex;
+    sample->extindex = ext;
+
+/*-- Copy the vignet to the training set */
+    memcpy(sample->vig, vignet, vigsize*sizeof(float));
+
+    sample->norm = *flux;
+    sample->backnoise2 = backnoise2;
+    sample->gain = gain;
+    if (dxm)
+      sample->x = *dxm;
+    else if (xm)
+      sample->x = *xm;
+    else if (lxm)
+      sample->x = *lxm;
+    else
+      sample->x = *sxm;
+    if (dym)
+      sample->y = *dym;
+    else if (ym)
+      sample->y = *ym;
+    else if (lym)
+      sample->y = *lym;
+    else
+      sample->y = *sym;
+    sample->dx = sample->x - (int)(sample->x+0.49999);
+    sample->dy = sample->y - (int)(sample->y+0.49999);
+    for (i=0; i<set->ncontext; i++)
+      {
+      dval = sample->context[i];
+      ttypeconv(contextvalp[i], &dval, contexttyp[i], T_DOUBLE);
+      sample->context[i] = dval;
+/*---- Update min and max */
+      if (dval<cmin[i])
+        cmin[i] = dval;
+      if (dval>cmax[i])
+        cmax[i] = dval;
+      }
+    make_weights(set, sample);
+    recenter_sample(sample, set, *fluxrad);
+    nsample++;
     }
 
 /* Update the scaling */

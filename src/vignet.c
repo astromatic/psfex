@@ -9,7 +9,7 @@
 *
 *	Contents:	Function related to vignet manipulations.
 *
-*	Last modify:	31/10/2003
+*	Last modify:	09/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -29,19 +29,36 @@
 #include	"fits/fitscat.h"
 #include	"vignet.h"
 
-/***************************** vignet_resample ******************************/
-/*
-Scale and shift a small image through sinc interpolation, with adjustable
-spatial wavelength cut-off.
-Image parts which lie outside boundaries are set to 0.
-*/
+
+/****** vignet_resample ******************************************************
+PROTO	int	vignet_resample(float *pix1, int w1, int h1,
+		float *pix2, int w2, int h2, double dx, double dy, float step2,
+		float stepi)
+PURPOSE	Scale and shift a small image through sinc interpolation, with
+	adjustable spatial wavelength cut-off. Image parts which lie outside
+	boundaries are set to 0.
+
+INPUT	Input raster,
+	input raster width,
+	input raster height,
+	output raster,
+	output raster width,
+	output raster height,
+	shift in x,
+	shift in y,
+	output pixel scale.	
+OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	09/04/2010
+ ***/
 int	vignet_resample(float *pix1, int w1, int h1,
 		float *pix2, int w2, int h2, double dx, double dy, float step2,
 		float stepi)
   {
    static float	*statpix2;
    double	*mask,*maskt, xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, x,y, dxm,dym,
-		val, dstepi;
+		val, dstepi, norm;
    float	*pix12, *pixin,*pixin0, *pixout,*pixout0;
    int		i,j,k,n,t, *start,*startt, *nmask,*nmaskt,
 		ixs2,iys2, ix2,iy2, dix2,diy2, nx2,ny2, iys1a, ny1, hmw,hmh,
@@ -132,8 +149,13 @@ int	vignet_resample(float *pix1, int w1, int h1,
       n=t;
     *(startt++) = ix;
     *(nmaskt++) = n;
+    norm = 0.0;
     for (x=dxm, i=n; i--; x+=dstepi)
-      *(maskt++) = INTERPF(x)*dstepi;
+      norm +=( *(maskt++) = INTERPF(x));
+    norm = norm>0.0? dstepi/norm : dstepi;
+    maskt -= n;
+    for (i=n; i--;)
+      *(maskt++) *= norm;
     }
 
   QCALLOC(pix12, float, nx2*ny1);	/* Intermediary frame-buffer */
@@ -183,8 +205,13 @@ int	vignet_resample(float *pix1, int w1, int h1,
       n=t;
     *(startt++) = iy;
     *(nmaskt++) = n;
+    norm = 0.0;
     for (y=dym, i=n; i--; y+=dstepi)
-      *(maskt++) = INTERPF(y)*dstepi;
+      norm += (*(maskt++) = INTERPF(y));
+    norm = norm>0.0? dstepi/norm : dstepi;
+    maskt -= n;
+    for (i=n; i--;)
+      *(maskt++) *= norm;
     }
 
 /* Initialize destination buffer to zero if pix2 != NULL */

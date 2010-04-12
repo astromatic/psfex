@@ -9,7 +9,7 @@
 *
 *	Contents:	Type definitions related to samples
 *
-*	Last modify:	16/11/2009
+*	Last modify:	12/04/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -47,6 +47,7 @@ typedef struct sample
   float		backnoise2;		/* Variance of the background noise */
   float		gain;			/* conversion factor (e-/ADU) */
   float		chi2;			/* Chi2 of the fit */
+  float		modresi;		/* Residual index */
   double	*context;		/* Context vector */
   }	samplestruct;
 
@@ -64,6 +65,12 @@ typedef struct set
   double	*contextoffset;		/* Offset to apply to context data */
   double	*contextscale;		/* Scaling to apply to context data */
   float		fwhm;			/* FWHM of the PSF core */
+  int		badflags;		/* # discarded with bad SEx flags */
+  int		badsn;			/* # discarded with S/N too low*/
+  int		badfrmin;		/* # discarded with radius too small */
+  int		badfrmax;		/* # discarded with radius too large */
+  int		badelong;		/* # discarded with too much elong. */
+  int		badpix;			/* # discarded with too many bad pix. */
   }	setstruct;
 
 /*-------------------------------- protos -----------------------------------*/
