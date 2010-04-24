@@ -21,7 +21,7 @@
 #define	INTERPLIM	3.0	/* Interpolation limit */
 #define	INTERPFAC	3.0	/* Interpolation envelope factor */
 
-#define	INTERPF(x)	(x==0.0?1.0 \
+#define	INTERPF(x)	(x<1e-5 && x>-1e-5? 1.0 \
 			:(x>INTERPLIM?0.0:(x<-INTERPLIM?0.0 \
 			:sin(PI*x)*sin(PI/INTERPFAC*x)/(PI*PI/INTERPFAC*x*x))))
 
