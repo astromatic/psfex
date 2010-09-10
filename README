@@ -16,7 +16,7 @@ analyse must be created with SExtractor.
   FLUX_RADIUS
   FLAGS
   FLUX_APER(1)
-  FLUX_MAX
+  FLUXERR_APER(1)
   ELONGATION
   VIGNET(35,35)
   The VIGNET size (here, 35x35 pixels) sets the maximum size of the fittable
@@ -39,58 +39,54 @@ PSF_ACCURACY:      Accuracy to expect from pixel values. This represents more
                    value of PSF_ACCURACY if the intra-pixel response is a bit
                    bumpy (e.g. old NICMOS detectors). The default is 0.01 (1%).
 
-PSF_NSUPER:        Maximum number of super-resolved pixels. This is useful only
-                   for under- or critically sampled images (otherwise simply
-                   set it to 0). The larger PSF_NSUPER, the longer the time
-                   it will take to compute a refined (i.e., oversampled) model
-                   of the PSF, but the more accurate the result will be. Pixels
+BASIS_NUMBER:      sqrt of the maximum number of super-resolved pixels. Pixels
                    are super-resolved in priority in the brightest areas of the
                    PSF, and then in the darker portions.
 
 PSF selection
 -------------
-* PSF_FWHMRANGE:   the range in FWHM in which the PSF candidate stars are
+* SAMPLE_FWHMRANGE:the range in FWHM in which the PSF candidate stars are
                    selected. Allows the bigger galaxies and artifacts such as
                    cosmic-ray impacts to be rejected early in the processing.
-* PSF_VARIABILITY: The larger this parameter, the wider the fluctuations in
+* SAMPLE_VARIABILITY:
+                   The larger this parameter, the wider the fluctuations in
                    FWHM are allowed among PSF candidate stars. For instance,
                    0.2 means that a 20% peak-to-peak variation of the FWHM is
                    allowed.
-* PSF_MINSN:       The minimum peak Signal-to-Noise Ratio for a non-saturated
-                   candidate star to be eligible for contributing to the PSF
-                   model.
-* PSF_MAXELONG:    Maximum elongation (major_axis/minor_axis) for a
+* SAMPLE_MINSN:    The minimum Signal-to-Noise Ratio (on aperture fluxes) for a
                    non-saturated candidate star to be eligible for contributing
                    to the PSF model.
+* SAMPLE_MAXELLIP: Maximum ellipticity (A-B)/(A+B) for a non-saturated candidate
+                   star to be eligible for contributing to the PSF model.
 
 Modeling the PSF variability
 ----------------------------
 
-* CONTEXT_KEYS:    List of "keys" (SExtractor parameters) on which the PSF is
+* PSFVAR_KEYS:     List of "keys" (SExtractor parameters) on which the PSF is
                    supposed to depend (e.g. X_IMAGE,Y_IMAGE for a spatial
                    mapping of the PSF). Use an empty string ("") to specify a
                    constant PSF.
 
-* CONTEXT_GROUPS:  Some context keys can be grouped together in a such way that
+* PSFVAR_GROUPS:   Some context keys can be grouped together in a such way that
                    the associated polynom degree does not excede a given value.
-                   CONTEXT_GROUPS defines the index of the group to which each
-                   CONTEXT_KEY belongs. This index designates the position of
-                   the group in the list of GROUP_DEGREES. For instance, to
+                   PSFVAR_GROUPS defines the index of the group to which each
+                   PSFVAR_KEYS belongs. This index designates the position of
+                   the group in the list of PSFVAR_DEGREES. For instance, to
                    make the PSF vary with pixel coordinates x and y as a 3rd
                    order polynomial (that is, 10 parameters: cste,x,y,x2,xy,y2,
                    x3,x2y,xy2,y3), one should use the following configuration:
  
-                   CONTEXT_KEYS		X_IMAGE,Y_IMAGE  
-                   CONTEXT_GROUPS	1,1
-                   GROUP_DEGREES	3
+                   PSFVAR_KEYS		X_IMAGE,Y_IMAGE  
+                   PSFVAR_GROUPS	1,1
+                   PSFVAR_DEGREES	3
 
                    If one wants to allow the PSF to vary with both x,y in a
                    quadratic way, and the airmass in a linear way, one should
                    use
 
-                   CONTEXT_KEYS   X_IMAGE,Y_IMAGE,:AIRMASS
-                   CONTEXT_GROUPS 1,1,2
-                   GROUP_DEGREES  2,1
+                   PSFVAR_KEYS   X_IMAGE,Y_IMAGE,:AIRMASS
+                   PSFVAR_GROUPS 1,1,2
+                   PSFVAR_DEGREES  2,1
 
                    The colon before the AIRMASS parameter indicates that
                    AIRMASS should be interpreted as a FITS keyword of the
@@ -102,14 +98,15 @@ Modeling the PSF variability
 A typical session
 -----------------
 Building a model of the PSF:
-% sex -c prepsf.sex foo.fits -CATALOG_NAME prepsf.cat
-% psfex prepsf.cat -PSF_NAME foo.psf
+% sex -c psf.sex foo.fits -CATALOG_NAME mypsf.cat
+% psfex mypsf.cat
 
 Using it in SExtractor (this is not recommended for serious science use at
 the moment):
-% sex -PSF_NAME foo.psf foo.fits
+% sex -PSF_NAME mypsf.psf foo.fits
 
-Please report any bug or strange behaviour to the TERAPIX forum:
-http://terapix.iap.fr/forum
+Please report any bug or strange behaviour to the AstrOmatic forum:
+http://astromatic.net/forum
 
 					Emmanuel Bertin.
+

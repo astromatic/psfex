@@ -9,7 +9,7 @@
 *
 *	Contents:	global definitions.
 *
-*	Last modify:	30/03/2009
+*	Last modify:	10/09/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -25,7 +25,7 @@
 #define         EXECUTABLE      "psfex"
 #define		MYVERSION	VERSION
 #define         COPYRIGHT       "Emmanuel BERTIN <bertin@iap.fr>"
-#define		WEBSITE		"http://astromatic.iap.fr/software/psfex"
+#define		WEBSITE		"http://astromatic.net/software/psfex"
 #define		INSTITUTE	"IAP http://www.iap.fr"
 
 /*----------------------------- Internal constants --------------------------*/

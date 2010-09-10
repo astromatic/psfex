@@ -9,7 +9,7 @@
 *
 *	Contents:	Include for diagnostic.c.
 *
-*	Last modify:	15/10/2009
+*	Last modify:	26/07/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -37,14 +37,14 @@
 float	moffat_parammin[PSF_DIAGNPARAM], moffat_parammax[PSF_DIAGNPARAM];
 
 /*---------------------------------- protos --------------------------------*/
-extern void	psf_boundtounbound(float *param),
+extern void	psf_boundtounbound(float *param, double *dparam),
 		psf_diagnostic(psfstruct *psf),
 		psf_diagprintout(int n_par, float *par, int m_dat,
 			float *fvec, void *data, int iflag,int iter,int nfev),
-		psf_diagresi(float *par, float *fvec, int m, int n,
+		psf_diagresi(double *par, double *fvec, int m, int n,
 			void *adata),
 		psf_moffat(psfstruct *psf, moffatstruct *moffat),
-		psf_unboundtobound(float *param);
+		psf_unboundtobound(double *dparam, float *param);
 
 extern double	psf_normresi(float *par, psfstruct *psf),
 		psf_symresi(psfstruct *psf);

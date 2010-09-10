@@ -9,7 +9,7 @@
 *
 *	Contents:	PSF diagnostics.
 *
-*	Last modify:	05/11/2009
+*	Last modify:	26/07/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -40,14 +40,16 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 05/11/2009
+VERSION 26/07/2010
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
    moffatstruct		*moffat, *pfmoffat;
-   double		dpos[POLY_MAXDIM];
-   float		param[PSF_DIAGNPARAM], lm_opts[5],
-			*dresi,
+   double		lm_opts[5],
+			dpos[POLY_MAXDIM],
+			dparam[PSF_DIAGNPARAM],
+			*dresi;
+   float		param[PSF_DIAGNPARAM],
 			dstep,dstart, fwhm, temp;
    int			i,m,n, w,h, npc,nt, nmed, niter;
 
@@ -63,7 +65,7 @@ void	psf_diagnostic(psfstruct *psf)
   w = psf->size[0];
   h = psf->size[1];
   m = w*h;
-  QMALLOC(dresi, float, m);
+  QMALLOC(dresi, double, m);
   dstep = 1.0/psf->nsnap;
   dstart = (1.0-dstep)/2.0;
 
@@ -82,10 +84,10 @@ void	psf_diagnostic(psfstruct *psf)
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
 
-  lm_opts[0] = 1.0e-17;
-  lm_opts[1] = 1.0e-17;
-  lm_opts[2] = 1.0e-17;
-  lm_opts[3] = 1.0e-17;
+  lm_opts[0] = 1.0e-3;
+  lm_opts[1] = 1.0e-12;
+  lm_opts[2] = 1.0e-12;
+  lm_opts[3] = 1.0e-12;
   lm_opts[4] = 1.0e-3;
 
 /* For each snapshot of the PSF */ 
@@ -118,18 +120,18 @@ void	psf_diagnostic(psfstruct *psf)
       moffat_parammax[4] = fwhm*3.0;
 /*---- Position angle (deg)  */
       param[5] = 0.0;
-      moffat_parammin[5] = moffat_parammax[5] = 0.0;
+      moffat_parammin[5] = moffat_parammax[5] = 90.0;
 /*---- Moffat beta */
       param[6] = 3.0;
       moffat_parammin[6] = PSF_BETAMIN;
       moffat_parammax[6] = 10.0;
-      psf_boundtounbound(param);
-      memset(dresi, 0, m*sizeof(float));
-      niter = slevmar_dif(psf_diagresi, param, dresi,
+      psf_boundtounbound(param, dparam);
+      memset(dresi, 0, m*sizeof(double));
+      niter = dlevmar_dif(psf_diagresi, dparam, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	lm_opts, NULL, NULL, NULL, psf);
-      psf_unboundtobound(param);
+      psf_unboundtobound(dparam,param);
       }
     else
       memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
@@ -243,18 +245,18 @@ void	psf_diagnostic(psfstruct *psf)
       moffat_parammax[4] = fwhm*3.0;
 /*---- Position angle (deg)  */
       param[5] = 0.0;
-      moffat_parammin[5] = moffat_parammax[5] = 0.0;
+      moffat_parammin[5] = moffat_parammax[5] = 90.0;
 /*---- Moffat beta */
       param[6] = 3.0;
       moffat_parammin[6] = PSF_BETAMIN;
       moffat_parammax[6] = 10.0;
-      psf_boundtounbound(param);
-      memset(dresi, 0, m*sizeof(float));
-      niter = slevmar_dif(psf_diagresi, param, dresi,
+      psf_boundtounbound(param, dparam);
+      memset(dresi, 0, m*sizeof(double));
+      niter = dlevmar_dif(psf_diagresi, dparam, dresi,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	lm_opts, NULL, NULL, NULL, psf);
-      psf_unboundtobound(param);
+      psf_unboundtobound(dparam, param);
       }
     else
       memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
@@ -335,12 +337,14 @@ INPUT	Pointer to the vector of parameters,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	14/10/2009
+VERSION	26/07/2010
  ***/
-void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
+void	psf_diagresi(double *dparam, double *fvec, int m, int n, void *adata)
   {
    psfstruct	*psf;
-   float	*loc, *fvect,
+   double	*fvect;
+   float	par[PSF_DIAGNPARAM],
+		*loc,
 		dx,dy,dy2, ct,st, fac,inva2,invb2, cxx,cyy,cxy, a, beta,
 		dx0,dy0, dxstep,dystep;
    int		i, x,y, xd,yd, w,h, nsubpix;
@@ -348,7 +352,7 @@ void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
 //printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
   psf = (psfstruct *)adata;
   nsubpix = psf->nsubpix;
-  psf_unboundtobound(par);
+  psf_unboundtobound(dparam, par);
   w = psf->size[0];
   h = psf->size[1];
   ct = cosf(par[5]*PI/180.0);
@@ -367,7 +371,7 @@ void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
   loc = psf->loc;
   fvect = fvec;
   for (i=w*h; i--;)
-    *(fvect++) = -*(loc++);
+    *(fvect++) = -(double)*(loc++);
   for (yd=nsubpix; yd--; dy0+=dystep)
     {
     dx0 = -par[1] - 0.5*(psf->nsubpix - 1.0)*dxstep;
@@ -380,13 +384,13 @@ void	psf_diagresi(float *par, float *fvec, int m, int n, void *adata)
         dy2 = dy*dy;
         dx = dx0;
         for (x=w; x--; dx+=1.0)
-          *(fvect++) += a*powf(1.0+cxx*dx*dx + cyy*dy2 + cxy*dx*dy, beta);
+          *(fvect++) += (double)(a*powf(1.0+cxx*dx*dx+cyy*dy2+cxy*dx*dy, beta));
         }
       }
     }
 
 
-  psf_boundtounbound(par);
+  psf_boundtounbound(par, dparam);
 
   return;
   }
@@ -544,7 +548,7 @@ void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
         dy2 = dy*dy;
         dx = dx0;
         for (x=w; x--; dx+=1.0)
-          *(loc++) += a*pow(1.0+cxx*dx*dx + cyy*dy2 + cxy*dx*dy, beta);
+          *(loc++) += a*powf(1.0+cxx*dx*dx + cyy*dy2 + cxy*dx*dy, beta);
         }
       }
     }
@@ -556,12 +560,13 @@ void	psf_moffat(psfstruct *psf, moffatstruct *moffat)
 /****** psf_boundtounbound **************************************************
 PROTO	void psf_boundtounbound(profitstruct *profit)
 PURPOSE	Convert parameters from bounded to unbounded space.
-INPUT	Pointer to the vector of parameters.
+INPUT	Pointer to the input vector of parameters,
+	pointer to the output vector of parameters.
 OUTPUT	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/07/2007
+VERSION	26/07/2010
  ***/
-void    psf_boundtounbound(float *param)
+void    psf_boundtounbound(float *param, double *dparam)
   {
    double       num,den;
    int          p;
@@ -571,8 +576,10 @@ void    psf_boundtounbound(float *param)
       {
       num = param[p] - moffat_parammin[p];
       den = moffat_parammax[p] - param[p];
-      param[p] = num>1e-100? (den>1e-100? log(num/den): 200.0) : -200.0;
+      dparam[p] = num>1e-50? (den>1e-50? log(num/den): 50.0) : -50.0;
       }
+    else if (moffat_parammax[p] > 0.0 || moffat_parammax[p] < 0.0)
+        dparam[p] = param[p] / moffat_parammax[p];
 
   return;
 
@@ -582,20 +589,23 @@ void    psf_boundtounbound(float *param)
 /****** psf_unboundtobound **************************************************
 PROTO	void profit_unboundtobound(profitstruct *profit)
 PURPOSE	Convert parameters from unbounded to bounded space.
-INPUT	Pointer to the vector of parameters.
+INPUT	Pointer to the input vector of parameters,
+	pointer to the output vector of parameters.
 OUTPUT	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/07/2007
+VERSION	26/07/2010
  ***/
-void    psf_unboundtobound(float *param)
+void    psf_unboundtobound(double *dparam, float *param)
   {
    int          p;
 
   for (p=0; p<PSF_DIAGNPARAM; p++)
-    if (moffat_parammin[p]!=moffat_parammax[p])
-      param[p] = (moffat_parammax[p] - moffat_parammin[p])
-                / (1.0 + exp(-(param[p]>200.0? 200.0 : param[p])))
-                + moffat_parammin[p];
+    param[p] = (moffat_parammin[p]!=moffat_parammax[p])?
+		(moffat_parammax[p] - moffat_parammin[p])
+			/ (1.0 + exp(-(dparam[p]>50.0? 50.0
+				: (dparam[p]<-50.0? -50.0: dparam[p]))))
+			+ moffat_parammin[p]
+		: dparam[p]*moffat_parammax[p];
 
   return;
   }

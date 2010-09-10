@@ -9,7 +9,7 @@
 *
 *	Contents:	Function related to vignet manipulations.
 *
-*	Last modify:	09/04/2010
+*	Last modify:	10/09/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 */
@@ -50,7 +50,7 @@ INPUT	Input raster,
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	09/04/2010
+VERSION	10/09/2010
  ***/
 int	vignet_resample(float *pix1, int w1, int h1,
 		float *pix2, int w2, int h2, double dx, double dy, float step2,
@@ -152,7 +152,7 @@ int	vignet_resample(float *pix1, int w1, int h1,
     norm = 0.0;
     for (x=dxm, i=n; i--; x+=dstepi)
       norm +=( *(maskt++) = INTERPF(x));
-    norm = norm>0.0? dstepi/norm : dstepi;
+    norm = norm>0.0? 1.0/norm : dstepi;
     maskt -= n;
     for (i=n; i--;)
       *(maskt++) *= norm;
@@ -208,7 +208,7 @@ int	vignet_resample(float *pix1, int w1, int h1,
     norm = 0.0;
     for (y=dym, i=n; i--; y+=dstepi)
       norm += (*(maskt++) = INTERPF(y));
-    norm = norm>0.0? dstepi/norm : dstepi;
+    norm = norm>0.0? 1.0/norm : dstepi;
     maskt -= n;
     for (i=n; i--;)
       *(maskt++) *= norm;
