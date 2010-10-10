@@ -1,9 +1,20 @@
+Dark Energy Survey Data Management project <http://cosmology.illinois.edu>
+	Support for versions 3.x
+
+French Ministry of Research Grant 04-5500 (“ACI masse de donn´ees”)
+	Support for versions 2.x
+
+TERAPIX project <http://terapix.iap.fr>
+	Support for versions 1.x.
+
 Chiara Marmo <marmo@iap.fr>
 	Providing the VOTable to HTML XSLT filter and testing.
 
 Gregory Semah <semah@iap.fr>:
+Valérie de Lapparent <lapparen@iap.fr>
+Shantanu Desai <shantanu@illinois.edu>
 	Testing
-ESO
-	Financial support
+
 Too many people to list
 	Help in discovering bugs or bringing suggestions
+

@@ -1,10 +1,41 @@
-# Makefile.am for the levmar Levenberg-Marquardt fitting library
-# Copyright (C) 2008 Emmanuel Bertin.
-# levmar code by Manolis Lourakis <lourakis@ics.forth.gr> 
-# http://www.ics.forth.gr/~lourakis/levmar/
+#
+#				Makefile.am
+#
+# LevMar Makefile.am. Process this file with automake to generate a Makefile
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#	This file part of:	AstrOmatic FITS/LDAC library
+#
+#	Copyright:		(C) 2007-2010 IAP/CNRS/UPMC
+#
+#	Authors:		Emmanuel Bertin (this Makefile.am)
+#				Manolis Lourakis (LevMar library)
+#
+#	Licenses:		GNU General Public License
+#
+#	AstrOmatic software is free software: you can redistribute it and/or
+#	modify it under the terms of the GNU General Public License as
+#	published by the Free Software Foundation, either version 3 of the
+#	License, or (at your option) any later version.
+#	AstrOmatic software is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#	You should have received a copy of the GNU General Public License
+#	along with AstrOmatic software.
+#	If not, see <http://www.gnu.org/licenses/>.
+#
+#	Last modified:		10/10/2010
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 noinst_LIBRARIES	= liblevmar.a
-liblevmar_a_SOURCES	= Axb.c lmbc.c lm.c lmblec.c lmlec.c misc.c \
-			  compiler.h lm.h misc.h
+liblevmar_a_SOURCES	= Axb.c lmbc.c lm.c lmblec.c lmbleic.c lmlec.c misc.c \
+			  compiler.h levmar.h misc.h
 EXTRA_liblevmar_a_SOURCES = Axb_core.c lmbc_core.c lm_core.c \
-			  lmblec_core.c lmlec_core.c misc_core.c \
-			  LICENSE README README.txt lmdemo.c
+			  lmblec_core.c lmbleic_core.c lmlec_core.c \
+			  misc_core.c \
+			  LICENSE README README.txt \
+			  Makefile.icc Makefile.vc levmar.vcproj lmdemo.vcproj \
+			  expfit.c lmdemo.c lm.h matlab

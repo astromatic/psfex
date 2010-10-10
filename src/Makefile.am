@@ -1,5 +1,33 @@
-# Program Makefile for PSFEx
-# Copyright (C) 2002-2008 Emmanuel Bertin.
+#
+#				Makefile.am
+#
+# src Makefile.am. Process this file with automake to generate a Makefile
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#
+#	This file part of:	PSFEx
+#
+#	Copyright:		(C) 2002-2010 IAP/CNRS/UPMC
+#
+#	Author:			Emmanuel Bertin (IAP)
+#
+#	License:		GNU General Public License
+#
+#	PSFEx is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+# 	(at your option) any later version.
+#	PSFEx is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#	You should have received a copy of the GNU General Public License
+#	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
+#
+#	Last modified:		10/10/2010
+#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 SUBDIRS			= fits levmar wcs
 if USE_PLPLOT
 CPLOTSOURCE		= cplot.c
@@ -17,3 +45,4 @@ psfex_LDADD		= $(top_builddir)/src/fits/libfits.a \
 			  $(top_builddir)/src/wcs/libwcs_c.a
 
 DATE=`date +"%Y-%m-%d"`
+

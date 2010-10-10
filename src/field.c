@@ -1,18 +1,32 @@
-  /*
- 				field.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				field.c
 *
-*	Part of:	PSFEx
+* Manage multiple PSFs.
 *
-*	Author:		E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	Handling of multiple PSFs.
+*	This file part of:	PSFEx
 *
-*	Last modify:	08/04/2010
+*	Copyright:		(C) 2007-2010 IAP/CNRS/UPMC
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
@@ -182,7 +196,7 @@ INPUT   Pointer to field structure.
 OUTPUT  A pointer to the created field structure.
 NOTES   Global preferences are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/03/2008
+VERSION 05/10/2010
 */
 void	field_locate(fieldstruct *field)
   {
@@ -239,7 +253,7 @@ void	field_locate(fieldstruct *field)
       wcsmean[i] = asin(sindelta/field->next)/DEG;
     else
       wcsmean[i] /= field->next;
-    field->meanwcsscale[i] = dhmedian(scale[i], field->next);
+    field->meanwcsscale[i] = dqmedian(scale[i], field->next);
     }
 
 /* Compute the radius of the field and mean airmass */
@@ -263,58 +277,44 @@ void	field_locate(fieldstruct *field)
   return;
   }
 
+/*i**** dqcmp **************************************************************
+PROTO	int	dqcmp(const void *p1, const void *p2)
+PURPOSE	Sorting function for qsort().
+INPUT	Pointer to first element,
+	pointer to second element.
+OUTPUT	1 if *p1>*p2, 0 if *p1=*p2, and -1 otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	05/10/2010
+ ***/
+static int	dqcmp(const void *p1, const void *p2)
+  {
+   double	d1=*((double *)p1),
+		d2=*((double *)p2);
+  return d1>d2? 1 : (d1<d2? -1 : 0);
+  }
 
-/****** dhmedian **************************************************************
-PROTO	double   dhmedian(double *ra, int n)
-PURPOSE	Compute the median of an array of doubles, using the Heapsort
-	algorithm (based on Num.Rec algo.).
+
+/****** dqmedian **************************************************************
+PROTO	double   dqmedian(double *ra, int n)
+PURPOSE	Compute the median of an array of doubles, using qsort().
 INPUT	Pointer to the array,
 	Number of array elements.
 OUTPUT	Median of the array.
 NOTES	Warning: the order of input data is modified!.
 AUTHOR	E. Bertin (IAP)
-VERSION	22/07/2002
+VERSION	05/10/2010
  ***/
-double   dhmedian(double *ra, int n)
+double   dqmedian(double *ra, int n)
 
   {
-   int		l, j, ir, i;
-   double	rra;
+   int dqcmp(const void *p1, const void *p2);
 
-
+  qsort(ra, n, sizeof(double), dqcmp);
   if (n<2)
     return *ra;
-  ra--;
-  for (l = ((ir=n)>>1)+1;;)
-    {
-    if (l>1)
-      rra = ra[--l];
-    else
-      {
-      rra = ra[ir];
-      ra[ir] = ra[1];
-      if (--ir == 1)
-        {
-        ra[1] = rra;
-        return n&1? ra[n/2+1] : (ra[n/2]+ra[n/2+1])/2.0;
-        }
-      }
-    for (j = (i=l)<<1; j <= ir;)
-      {
-      if (j < ir && ra[j] < ra[j+1])
-        ++j;
-      if (rra < ra[j])
-        {
-        ra[i] = ra[j];
-        j += (i=j);
-        }
-      else
-        j = ir + 1;
-      }
-    ra[i] = rra;
-    }
-
-/* (the 'return' is inside the loop!!) */
+  else
+    return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
   }
 
 

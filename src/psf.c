@@ -1,18 +1,33 @@
-  /*
- 				psf.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				psf.c
 *
-*	Part of:	PSFEx
+* PSF management and modelling.
 *
-*	Author:		E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	Stuff related to building the PSF.
+*	This file part of:	PSFEx
 *
-*	Last modify:	03/11/2009
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
+*				(C) 1997 ESO
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
@@ -1176,7 +1191,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2009
+VERSION 05/10/2010
  ***/
 void	psf_makebasis(psfstruct *psf, setstruct *set,
 			basistypenum basis_type, int nvec)
@@ -1204,7 +1219,7 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
       QMEMCPY(psf->comp, psforder, float, npix);
       for (psfordert=psforder, i=npix; i--; psfordert++)
         *psfordert = fabs(*psfordert);
-      hmedian(psforder, npix);
+      fqmedian(psforder, npix);
       psfthresh = psforder[npix-npsf];
       free(psforder);
 
@@ -1252,7 +1267,7 @@ void	psf_makebasis(psfstruct *psf, setstruct *set,
 
 /*-- Size of the compressed design matrix along the "data" axis */
       psf->ndata = (1+(int)(INTERPW*psf->pixstep))
-		*(1+(int)(INTERPH*psf->pixstep))+1;
+		*(1+(int)(INTERPW*psf->pixstep))+1;
       break;
 
     case BASIS_GAUSS_LAGUERRE:

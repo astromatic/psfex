@@ -1,18 +1,33 @@
- /*
- 				main.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				main.c
 *
-*	Part of:	PSFEx
+* Command line parsing.
 *
-*	Author:		E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	parsing and main loop.
+*	This file part of:	PSFEx
 *
-*	Last modify:	10/09/2009
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
+*				(C) 1997 ESO
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
@@ -58,9 +73,11 @@ int main(int argc, char *argv[])
 
   if (argc<2)
     {
-    fprintf(OUTPUT, "\n         %s  Version %s (%s)\n", BANNER,MYVERSION,DATE);
-    fprintf(OUTPUT, "\nby %s\n", COPYRIGHT);
-    fprintf(OUTPUT, "visit %s\n", WEBSITE);
+    fprintf(OUTPUT, "\n         %s  version %s (%s)\n", BANNER,MYVERSION,DATE);
+    fprintf(OUTPUT, "\nby %s\n", AUTHORS);
+    fprintf(OUTPUT, "Copyright %s\n", COPYRIGHT);
+    fprintf(OUTPUT, "\nvisit %s\n", WEBSITE);
+    fprintf(OUTPUT, "\n%s\n", DISCLAIMER);
     error(EXIT_SUCCESS, "SYNTAX: ", SYNTAX);
     }
 

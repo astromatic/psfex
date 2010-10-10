@@ -1,22 +1,39 @@
- /*
- 				misc.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				misc.c
 *
-*	Part of:	PSFEx
+* Miscellaneous functions.
 *
-*	Author:		E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	miscellaneous functions.
+*	This file part of:	PSFEx
 *
-*	Last modify:	10/04/2003
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
+*				(C) 1997 ESO
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
 #endif
+
+#include	<stdlib.h>
 
 #include	"define.h"
 #include	"types.h"
@@ -24,18 +41,18 @@
 
 
 /******* fast_median **********************************************************
-PROTO   float fast_median(float *arr, int n)
-PURPOSE Fast median from an input array, optimized version based on the
-        select() routine (Numerical Recipes, 2nd ed. Section 8.5 and
-        http://www.eso.org/~ndevilla/median/). If n is even, then the result
-        is the average of the 2 "central" values.
-INPUT   Input pixel array ptr,
-        number of input pixels,
-OUTPUT  Value of the median.
-NOTES   n must be >0. Warning: changes the order of data (but does not sort
-        them)!
-AUTHOR  E. Bertin (IAP), optimized from N.Devillard's code
-VERSION 10/04/2003
+PROTO	float fast_median(float *arr, int n)
+PURPOSE	Fast median from an input array, based on the quick-select algorithm
+	described by N. Devillard at
+	http://ansi.c.sources.free.fr/median/median/index.html. If n is even,
+	then the result is the average of the 2 "central" values.
+INPUT	Input pixel array ptr,
+	number of input pixels,
+OUTPUT	Value of the median.
+NOTES	n must be >0. Warning: changes the order of data (but does not sort
+	them)!
+AUTHOR	E. Bertin (IAP)
+VERSION	10/04/2003
  ***/
 #define MEDIAN_SWAP(a,b) { register float t=(a);(a)=(b);(b)=t; }
 
@@ -120,50 +137,43 @@ float fast_median(float *arr, int n)
 
 #undef MEDIAN_SWAP
 
-/******************************** hmedian ***********************************/
-/*
-Median using Heapsort algorithm (for float arrays) (based on Num.Rec algo.).
-Warning: changes the order of data!
-*/
-float	hmedian(float *ra, int n)
+/*i**** fqcmp **************************************************************
+PROTO	int	fqcmp(const void *p1, const void *p2)
+PURPOSE	Sorting function for floats in qsort().
+INPUT	Pointer to first element,
+	pointer to second element.
+OUTPUT	1 if *p1>*p2, 0 if *p1=*p2, and -1 otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	05/10/2010
+ ***/
+static int	fqcmp(const void *p1, const void *p2)
+  {
+   double	f1=*((float *)p1),
+		f2=*((float *)p2);
+  return f1>f2? 1 : (f1<f2? -1 : 0);
+  }
+
+
+/****** fqmedian **************************************************************
+PROTO	float   fqmedian(float *ra, int n)
+PURPOSE	Compute the median of an array of floats, using qsort().
+INPUT	Pointer to the array,
+	Number of array elements.
+OUTPUT	Median of the array.
+NOTES	Warning: the order of input data is modified!.
+AUTHOR	E. Bertin (IAP)
+VERSION	05/10/2010
+ ***/
+float	fqmedian(float *ra, int n)
 
   {
-   int		l, j, ir, i;
-   float	rra;
+   int dqcmp(const void *p1, const void *p2);
 
-
+  qsort(ra, n, sizeof(float), fqcmp);
   if (n<2)
     return *ra;
-  ra--;
-  for (l = ((ir=n)>>1)+1;;)
-    {
-    if (l>1)
-      rra = ra[--l];
-    else
-      {
-      rra = ra[ir];
-      ra[ir] = ra[1];
-      if (--ir == 1)
-        {
-        ra[1] = rra;
-        return n&1? ra[n/2+1] : (float)((ra[n/2]+ra[n/2+1])/2.0);
-        }
-      }
-    for (j = (i=l)<<1; j <= ir;)
-      {
-      if (j < ir && ra[j] < ra[j+1])
-        ++j;
-      if (rra < ra[j])
-        {
-        ra[i] = ra[j];
-        j += (i=j);
-        }
-      else
-        j = ir + 1;
-      }
-    ra[i] = rra;
-    }
-
-/* (the 'return' is inside the loop!!) */
+  else
+    return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
   }
 

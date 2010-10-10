@@ -1,18 +1,33 @@
- /*
- 				vignet.c
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				vignet.c
 *
-*	Part of:	PSFEx
+* Manipulate image rasters.
 *
-*	Author:		E.BERTIN (IAP)
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	Function related to vignet manipulations.
+*	This file part of:	PSFEx
 *
-*	Last modify:	10/09/2010
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
+*				(C) 1997 ESO
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
@@ -50,14 +65,14 @@ INPUT	Input raster,
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	10/09/2010
+VERSION	13/09/2010
  ***/
 int	vignet_resample(float *pix1, int w1, int h1,
 		float *pix2, int w2, int h2, double dx, double dy, float step2,
 		float stepi)
   {
    static float	*statpix2;
-   double	*mask,*maskt, xc1,xc2,yc1,yc2, xs1,ys1, x1,y1, x,y, dxm,dym,
+   double	*mask,*maskt, mx1,mx2,my1,my2, xs1,ys1, x1,y1, x,y, dxm,dym,
 		val, dstepi, norm;
    float	*pix12, *pixin,*pixin0, *pixout,*pixout0;
    int		i,j,k,n,t, *start,*startt, *nmask,*nmaskt,
@@ -67,9 +82,9 @@ int	vignet_resample(float *pix1, int w1, int h1,
   if (stepi <= 0.0)
     stepi = 1.0;
   dstepi = 1.0/stepi;
-  xc1 = (double)(w1/2);		/* Im1 center x-coord*/
-  xc2 = (double)(w2/2);		/* Im2 center x-coord*/
-  xs1 = xc1 + dx - xc2*step2;	/* Im1 start x-coord */
+  mx1 = (double)(w1/2);		/* Im1 center x-coord*/
+  mx2 = (double)(w2/2);		/* Im2 center x-coord*/
+  xs1 = mx1 + dx - mx2*step2;	/* Im1 start x-coord */
 
   if ((int)xs1 >= w1)
     return RETURN_ERROR;
@@ -88,9 +103,9 @@ int	vignet_resample(float *pix1, int w1, int h1,
     nx2 = ix2;
   if (nx2<=0)
     return RETURN_ERROR;
-  yc1 = (double)(h1/2);		/* Im1 center y-coord */
-  yc2 = (double)(h2/2);		/* Im2 center y-coord */
-  ys1 = yc1 + dy - yc2*step2;	/* Im1 start y-coord */
+  my1 = (double)(h1/2);		/* Im1 center y-coord */
+  my2 = (double)(h2/2);		/* Im2 center y-coord */
+  ys1 = my1 + dy - my2*step2;	/* Im1 start y-coord */
   if ((int)ys1 >= h1)
     return RETURN_ERROR;
   iys2 = 0;			/* Int part of Im2 start y-coord */
@@ -111,7 +126,7 @@ int	vignet_resample(float *pix1, int w1, int h1,
 
 /* Set the yrange for the x-resampling with some margin for interpolation */
   iys1a = (int)ys1;		/* Int part of Im1 start y-coord with margin */
-  hmh = (int)((INTERPH/2)/dstepi) + 2;	/* Interpolant start */
+  hmh = (int)((INTERPW/2)/dstepi) + 2;	/* Interpolant start */
   interph = 2*hmh;
   hmw = (int)((INTERPW/2)/dstepi) + 2;
   interpw =  2*hmw;
@@ -341,4 +356,121 @@ int     vignet_copy(float *pix1, int w1, int h1,
   return RETURN_OK;
   }
 
- 
+
+ /**************************** vignet_aperflux******************************/
+/*
+Compute the total flux within a circular aperture.
+*/
+float	vignet_aperflux(float *ima, float *var, int w, int h,
+			float dxc, float dyc, float aper,
+			float gain, float backnoise, float *fluxvar)
+
+  {
+   float		*imat,*vart,
+			r2, raper,raper2, rintlim,rintlim2,rextlim2, mx,my,
+			dx,dx1,dy,dy2, pix,pvar,invbacknoise2, invgain, area,
+			offsetx,offsety,scalex,scaley,scale2, locarea, vthresh;
+   double		tv, sigtv;
+   int			x,y, x2,y2, xmin,xmax,ymin,ymax, sx,sy,
+			fymin,fymax, pflag,corrflag, gainflag;
+   long			pos;
+   PIXTYPE		*strip,*stript, *wstrip,*wstript,
+			wthresh = 0.0;
+
+  pvar = backnoise*backnoise;
+  invbacknoise2 = pvar>0.0? 1.0/pvar : 0.0;
+  invgain = gain>0.0? 1.0/gain : 0.0;
+/* Integration radius */
+  raper = aper/2.0;
+  raper2 = raper*raper;
+/* Internal radius of the oversampled annulus (<r-sqrt(2)/2) */
+  rintlim = raper - 0.75;
+  rintlim2 = (rintlim>0.0)? rintlim*rintlim: 0.0;
+/* External radius of the oversampled annulus (>r+sqrt(2)/2) */
+  rextlim2 = (raper + 0.75)*(raper + 0.75);
+  tv = sigtv = area = 0.0;
+  scaley = scalex = 1.0/APER_OVERSAMP;
+  scale2 = scalex*scaley;
+  offsetx = 0.5*(scalex-1.0);
+  offsety = 0.5*(scaley-1.0);
+  vthresh = BIG/2.0;
+  mx = dxc + (float)(w/2);
+  my = dyc + (float)(h/2);
+
+  xmin = (int)(mx-raper+0.499999);
+  xmax = (int)(mx+raper+1.499999);
+  ymin = (int)(my-raper+0.499999);
+  ymax = (int)(my+raper+1.499999);
+printf("%d %d %d %d \n", xmin,xmax,ymin,ymax);
+  if (xmin < 0 || xmax > w || ymin < 0 || ymax > h)
+    return 0.0;
+
+  for (y=ymin; y<ymax; y++)
+    {
+    imat = ima + (pos = y*w + xmin);
+    vart = var + pos;
+    for (x=xmin; x<xmax; x++, imat++, vart++)
+      {
+      dx = x - mx;
+      dy = y - my;
+      if ((r2=dx*dx+dy*dy) < rextlim2)
+        {
+        if (r2> rintlim2)
+          {
+          dx += offsetx;
+          dy += offsety;
+          locarea = 0.0;
+          for (sy=APER_OVERSAMP; sy--; dy+=scaley)
+            {
+            dx1 = dx;
+            dy2 = dy*dy;
+            for (sx=APER_OVERSAMP; sx--; dx1+=scalex)
+              if (dx1*dx1+dy2<raper2)
+                locarea += scale2;
+            }
+          }
+        else
+          locarea = 1.0;
+        area += locarea;
+/*------ Here begin tests for pixel and/or weight overflows. Things are a */
+/*------ bit intricated to have it running as fast as possible in the most */
+/*------ common cases */
+        if ((pix=*imat)<=-BIG || (var && (pvar=*vart)>=vthresh))
+          {
+          if ((x2=(int)(2*mx+0.49999-x))>=0 && x2<w
+		&& (y2=(int)(2*my+0.49999-y))>=0 && y2<h
+		&& (pix=*(imat + (pos = y2*w + x2)))>-BIG)
+            {
+            if (var)
+              {
+              pvar = *(var + pos);
+              if (pvar>=vthresh)
+                pix = pvar = 0.0;
+              }
+            }
+          else
+            {
+            pix = 0.0;
+            if (var)
+              pvar = 0.0;
+            }
+          }
+        tv += locarea*pix;
+        sigtv += locarea*pvar;
+        if (gainflag && pix>0.0 && gain>0.0)
+          sigtv += pix*invgain*pvar*invbacknoise2;
+        }
+      }
+    }
+
+  if (!gainflag && tv>0.0)
+    sigtv += tv*invgain;
+
+  if (fluxvar)
+    *fluxvar = sqrt(sigtv);
+
+  return tv;
+  }
+
+
+

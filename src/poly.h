@@ -1,18 +1,32 @@
- /*
- 				poly.h
-
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+*				poly.h
 *
-*	Part of:	A program using polynomial fits
+* Include file for poly.c.
 *
-*	Author:		E.BERTIN (IAP) 
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	Contents:	Include for poly.c
+*	This file part of:	PSFEx
 *
-*	Last modify:	04/11/2008
+*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
 *
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-*/
+*	Author:			Emmanuel Bertin (IAP)
+*
+*	License:		GNU General Public License
+*
+*	PSFEx is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+* 	(at your option) any later version.
+*	PSFEx is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*	GNU General Public License for more details.
+*	You should have received a copy of the GNU General Public License
+*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*
+*	Last modified:		10/10/2010
+*
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifndef _POLY_H_
 #define _POLY_H_
@@ -52,18 +66,13 @@ extern double		*poly_deortho(polystruct *poly, double *datain,
 			*poly_ortho(polystruct *poly, double *datain,
 				double *dataout);
 
-extern int		cholsolve(double *a, double *b, int n),
-			*poly_powers(polystruct *poly);
+extern int		*poly_powers(polystruct *poly);
 
 extern void		poly_addcste(polystruct *poly, double *cste),
 			poly_end(polystruct *poly),
 			poly_fit(polystruct *poly, double *x, double *y,
 				double *w, int ndata, double *extbasis),
 			poly_initortho(polystruct *poly, double *data,
-				int ndata),
-			poly_solve(double *a, double *b, int n),
-			svdsolve(double *a, double *b, int m, int n,
-				double *vmat, double *wmat);
-
+				int ndata);
 #endif
 
