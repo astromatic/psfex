@@ -5,7 +5,7 @@
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	This file part of:	PSFEx
+*	This file part of:	AstrOmatic software
 *
 *	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
 *
@@ -13,18 +13,19 @@
 *
 *	License:		GNU General Public License
 *
-*	PSFEx is free software: you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License as published by
-*	the Free Software Foundation, either version 3 of the License, or
-* 	(at your option) any later version.
-*	PSFEx is distributed in the hope that it will be useful,
+*	AstrOmatic software is free software: you can redistribute it and/or
+*	modify it under the terms of the GNU General Public License as
+*	published by the Free Software Foundation, either version 3 of the
+*	License, or (at your option) any later version.
+*	AstrOmatic software is distributed in the hope that it will be useful,
 *	but WITHOUT ANY WARRANTY; without even the implied warranty of
 *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *	GNU General Public License for more details.
 *	You should have received a copy of the GNU General Public License
-*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*	along with AstrOmatic software.
+*	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		12/10/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -36,7 +37,9 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#ifdef HAVE_ATLAS
 #include	ATLAS_LAPACK_H
+#endif
 
 #include	"poly.h"
 
@@ -305,7 +308,7 @@ NOTES   If different from NULL, extbasis can be provided to store the
         values of the basis functions. If x==NULL and extbasis!=NULL, the
         precomputed basis functions stored in extbasis are used (which saves
         CPU). If w is NULL, all points are given identical weight.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+AUTHOR  E. Bertin (IAP)
 VERSION 26/03/2008
  ***/
 void	poly_fit(polystruct *poly, double *x, double *y, double *w, int ndata,
@@ -379,8 +382,7 @@ void	poly_fit(polystruct *poly, double *x, double *y, double *w, int ndata,
     }
 
 /* Solve the system */
-  clapack_dpotrf(CblasRowMajor,CblasUpper,ncoeff,alpha,ncoeff);
-  clapack_dpotrs(CblasRowMajor,CblasUpper,ncoeff,1,alpha,ncoeff,beta,ncoeff);
+  poly_solve(alpha,beta,ncoeff);
 
   free(alpha);
 
@@ -482,6 +484,95 @@ void	poly_addcste(polystruct *poly, double *cste)
   }
 
 
+/****** poly_solve ************************************************************
+PROTO   void poly_solve(double *a, double *b, int n)
+PURPOSE Solve a system of linear equations, using Cholesky decomposition.
+INPUT   Pointer to the (pseudo 2D) matrix of coefficients,
+        pointer to the 1D column vector,
+        matrix size.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 10/10/2010
+ ***/
+void	poly_solve(double *a, double *b, int n)
+  {
+   double	*vmat,*wmat;
+
+#ifdef HAVE_ATLAS
+  clapack_dposv(CblasRowMajor, CblasUpper, n, 1, a, n, b, n);
+#else
+  if (cholsolve(a,b,n))
+    qerror("*Error*: singular matrix found ", "while deprojecting" );
+#endif
+
+  return;
+  }
+
+
+/****** cholsolve *************************************************************
+PROTO	void cholsolve(double *a, double *b, int n)
+PURPOSE	Solve a system of linear equations, using Cholesky decomposition.
+INPUT	Pointer to the (pseudo 2D) matrix of coefficients,
+	pointer to the 1D column vector,
+ 	matrix size.
+OUTPUT	-1 if the matrix is not positive-definite, 0 otherwise.
+NOTES	Based on algorithm described in Numerical Recipes, 2nd ed. (Chap 2.9).
+	The matrix of coefficients must be symmetric and positive definite.
+AUTHOR	E. Bertin (IAP)
+VERSION	10/10/2010
+ ***/
+int	cholsolve(double *a, double *b, int n)
+  {
+   double	*p, *x, sum;
+   int		i,j,k;
+
+/* Allocate memory to store the diagonal elements */
+  QMALLOC(p, double, n);
+
+/* Cholesky decomposition */
+  for (i=0; i<n; i++)
+    for (j=i; j<n; j++)
+      {
+      sum = a[i*n+j];
+      for (k=i; k--;)
+        sum -= a[i*n+k]*a[j*n+k];
+      if (i==j)
+        {
+        if (sum <= 0.0)
+	  {
+          free(p);
+          return -1;
+          }
+        p[i] = sqrt(sum);
+        }
+      else
+        a[j*n+i] = sum/p[i];
+      }
+
+/* Solve the system */
+  x = b;		/* Just to save memory:  the solution replaces b */
+  for (i=0; i<n; i++)
+    {
+    for (sum=b[i],k=i; k--;)
+      sum -= a[i*n+k]*x[k];
+    x[i] = sum/p[i];
+    }
+
+  for (i=n; i--;)
+    {
+    sum = x[i];
+    for (k=i; ++k<n;)
+      sum -= a[k*n+i]*x[k];
+    x[i] = sum/p[i];
+    }
+
+  free(p);
+
+  return 0;
+  }
+
+
 /****** poly_powers ***********************************************************
 PROTO   int *poly_powers(polystruct *poly)
 PURPOSE	Return an array of powers of polynom terms
@@ -543,6 +634,8 @@ int	*poly_powers(polystruct *poly)
   return powers;
   }
 
+
+#ifdef HAVE_ATLAS
 
 /****** poly_initortho ********************************************************
 PROTO   void poly_initortho(polystruct *poly, double *data, int ndata)
@@ -713,4 +806,5 @@ double	*poly_deortho(polystruct *poly, double *datain, double *dataout)
   return dataout;
   }
 
+#endif
 

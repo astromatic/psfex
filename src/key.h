@@ -45,7 +45,7 @@ typedef struct
 	P_BOOLLIST, P_KEYLIST, P_STRINGLIST} type;
   void		*ptr;			/* Pointer to the keyword value */
   int		imin, imax;		/* Range for int's */
-  float		dmin, dmax;		/* Range for floats */
+  double	dmin, dmax;		/* Range for doubles */
   char		keylist[32][32];	/* List of keywords */
   int           nlistmin;		/* Minimum number of list members */
   int           nlistmax; 		/* Maximum number of list members */

@@ -24,7 +24,7 @@ FILTER_NAME      default.conv   # name of the file containing the filter
  
 PHOT_APERTURES   15             # <- put the referrence aperture diameter here
 SATUR_LEVEL      50000.0        # <- put the right saturation threshold here
-GAIN             1.0            # <- put the detector gain in e-/ADU here
+GAIN             0.0            # <- put the detector gain in e-/ADU here
 
 #------------------------- Star/Galaxy Separation ---------------------------- 
 #------------------------------ Background -----------------------------------

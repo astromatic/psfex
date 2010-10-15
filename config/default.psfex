@@ -1,21 +1,23 @@
-# Default configuration file for PSFEx 3.1.0
-# EB 2008-07-08
+# Default configuration file for PSFEx 3.9.0
+# EB 2010-10-10
 #
  
 #-------------------------------- PSF model ----------------------------------
  
 BASIS_TYPE      PIXEL_AUTO      # NONE, PIXEL, GAUSS-LAGUERRE or FILE
-BASIS_NUMBER    16              # Basis number or parameter
+BASIS_NUMBER    20              # Basis number or parameter
 PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)
 PSF_ACCURACY    0.01            # Accuracy to expect from PSF "pixel" values
 PSF_SIZE        25,25           # Image size of the PSF model
-PSF_RECENTER    Y               # Allow recentering of PSF-candidates Y/N ?
+CENTER_KEYS     X_IMAGE,Y_IMAGE # Catalogue parameters for source pre-centering
+PHOTFLUX_KEY    FLUX_APER(1)    # Catalogue parameter for photometric norm.
+PHOTFLUXERR_KEY FLUXERR_APER(1) # Catalogue parameter for photometric error
  
 #----------------------------- PSF variability -----------------------------
  
-PSFVAR_KEYS    X_IMAGE,Y_IMAGE  # SExtractor or FITS (preceded by :) params
-PSFVAR_GROUPS  1,1              # Group tag for each context key
-PSFVAR_DEGREES   2              # Polynom degree for each group
+PSFVAR_KEYS     X_IMAGE,Y_IMAGE # Catalogue or FITS (preceded by :) params
+PSFVAR_GROUPS   1,1             # Group tag for each context key
+PSFVAR_DEGREES  2               # Polynom degree for each group
  
 #----------------------------- Sample selection ------------------------------
  
@@ -28,10 +30,10 @@ SAMPLE_MAXELLIP    0.3          # Maximum (A-B)/(A+B) for a source to be used
  
 #------------------------------- Check-plots ----------------------------------
  
-CHECKPLOT_DEV          PNG             # NULL, XWIN, TK, PS, PSC, XFIG, PNG,
-                                       # or JPEG
-CHECKPLOT_TYPE         FWHM,ELLIPTICITY            # NONE, FWHM or ELLIPTICITY
-CHECKPLOT_NAME         fwhm, ellipticity
+CHECKPLOT_DEV       PNG         # NULL, XWIN, TK, PS, PSC, XFIG, PNG,
+                                # JPEG, AQT, PDF or SVG
+CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION, CHI2, RESIDUALS # or NONE
+CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac, chi2, resi
  
 #------------------------------ Check-Images ---------------------------------
  
@@ -42,9 +44,12 @@ CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,snap.fits,moffat.fits,su
  
 #----------------------------- Miscellaneous ---------------------------------
  
+PSF_DIR                         # Where to write PSFs (empty=same as input)
 PSF_SUFFIX      .psf            # Filename extension for output PSF filename
 VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL
 WRITE_XML       Y               # Write XML file (Y/N)?
 XML_NAME        psfex.xml       # Filename for XML output
-NTHREADS        1               # 1 single thread
+NTHREADS        0               # Number of simultaneous threads for
+                                # the SMP version of PSFEx
+                                # 0 = automatic
  

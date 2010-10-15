@@ -83,11 +83,11 @@ documentation)
 void    readprefs(char *filename, char **argkey, char **argval, int narg)
 
   {
-   FILE          *infile;
-   char          str[MAXCHARL], errstr[MAXCHAR],
+   FILE		*infile;
+   char		str[MAXCHARL], errstr[MAXCHAR],
 		*cp,  *keyword, *value, **dp;
-   int           i, ival, nkey, warn, argi, flagc, flagd, flage, flagz;
-   float         dval;
+   int		i, ival, nkey, warn, argi, flagc, flagd, flage, flagz;
+   double	dval;
 #ifdef	HAVE_GETENV
    static char	value2[MAXCHARL],envname[MAXCHAR];
    char		*dolpos, *listbuf;

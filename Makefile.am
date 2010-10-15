@@ -24,14 +24,14 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		10/10/2010
+#	Last modified:		11/10/2010
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 AUTOMAKE_OPTIONS	= foreign no-dependencies
 SUBDIRS			= man src
-dist_pkgdata_DATA	= xsl/psfex.xsl
-EXTRA_DIST		= config doc AUTHORS BUGS ChangeLog \
+dist_pkgdata_DATA	= config/* xsl/psfex.xsl
+EXTRA_DIST		= doc AUTHORS BUGS ChangeLog \
 			  COPYRIGHT HISTORY INSTALL LICENSE README THANKS \
 			  acx_atlas.m4 acx_fftw.m4 acx_prog_cc_optim.m4 \
 			  acx_plplot.m4 acx_urbi_resolve_dir.m4

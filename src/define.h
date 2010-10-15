@@ -39,7 +39,7 @@
 #define         BANNER          "PSFEx"
 #define         EXECUTABLE      "psfex"
 #define		MYVERSION	VERSION
-#define         COPYRIGHT       "1998-2010 IAP/CNRS/UPMC"
+#define         COPYRIGHT       "2010 IAP/CNRS/UPMC"
 #define		DISCLAIMER	BANNER " comes with ABSOLUTELY NO WARRANTY\n" \
 		"You may redistribute copies of " BANNER "\n" \
 		"under the terms of the GNU General Public License."

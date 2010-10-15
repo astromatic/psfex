@@ -25,7 +25,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		15/10/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -44,6 +44,7 @@
 #include	"fits/fitscat.h"
 #include	"prefs.h"
 #include	"context.h"
+#include	"misc.h"
 #include	"poly.h"
 #include	"psf.h"
 #include	"sample.h"

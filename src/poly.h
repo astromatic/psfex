@@ -5,7 +5,7 @@
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 *
-*	This file part of:	PSFEx
+*	This file part of:	AstrOmatic software
 *
 *	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
 *
@@ -13,18 +13,19 @@
 *
 *	License:		GNU General Public License
 *
-*	PSFEx is free software: you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License as published by
-*	the Free Software Foundation, either version 3 of the License, or
-* 	(at your option) any later version.
-*	PSFEx is distributed in the hope that it will be useful,
+*	AstrOmatic software is free software: you can redistribute it and/or
+*	modify it under the terms of the GNU General Public License as
+*	published by the Free Software Foundation, either version 3 of the
+*	License, or (at your option) any later version.
+*	AstrOmatic software is distributed in the hope that it will be useful,
 *	but WITHOUT ANY WARRANTY; without even the implied warranty of
 *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *	GNU General Public License for more details.
 *	You should have received a copy of the GNU General Public License
-*	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
+*	along with AstrOmatic software.
+*	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		12/10/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,19 +61,25 @@ typedef struct poly
 extern polystruct	*poly_copy(polystruct *poly),
 			*poly_init(int *group,int ndim,int *degree,int ngroup);
 
-extern double		*poly_deortho(polystruct *poly, double *datain,
-				double *dataout),
-			poly_func(polystruct *poly, double *pos),
-			*poly_ortho(polystruct *poly, double *datain,
-				double *dataout);
+extern double		poly_func(polystruct *poly, double *pos);
 
-extern int		*poly_powers(polystruct *poly);
+extern int		cholsolve(double *a, double *b, int n),
+			*poly_powers(polystruct *poly);
 
 extern void		poly_addcste(polystruct *poly, double *cste),
 			poly_end(polystruct *poly),
 			poly_fit(polystruct *poly, double *x, double *y,
 				double *w, int ndata, double *extbasis),
-			poly_initortho(polystruct *poly, double *data,
+			poly_solve(double *a, double *b, int n);
+
+#ifdef HAVE_ATLAS
+extern double		*poly_deortho(polystruct *poly, double *datain,
+				double *dataout),
+			*poly_ortho(polystruct *poly, double *datain,
+				double *dataout);
+extern void		poly_initortho(polystruct *poly, double *data,
 				int ndata);
+#endif
+
 #endif
 
