@@ -5,12 +5,10 @@
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #
-#	This file part of:	AstrOmatic FITS/LDAC library
+#	This file part of:	AstrOmatic software
 #
-#	Copyright:		(C) 2007-2010 IAP/CNRS/UPMC
-#
-#	Authors:		Emmanuel Bertin (this Makefile.am)
-#				Manolis Lourakis (LevMar library)
+#	Copyright:		(C) 2007-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+##				(C) 2004 Manolis Lourakis (original LevMar)
 #
 #	Licenses:		GNU General Public License
 #

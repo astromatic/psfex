@@ -7,9 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2010 IAP/CNRS/UPMC
-*
-*	Author:			Emmanuel Bertin (IAP)
+*	Copyright:		(C) 2010 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -30,5 +28,5 @@
 
 /*------------------------------- functions ---------------------------------*/
 
-float	fqmedian(float *ra, int n);
+extern float	fqmedian(float *ra, int n);
 

@@ -7,10 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1998-2010 IAP/CNRS/UPMC
-*				(C) 1997 ESO
-*
-*	Author:			Emmanuel Bertin (IAP)
+*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -74,7 +71,7 @@ int main(int argc, char *argv[])
   if (argc<2)
     {
     fprintf(OUTPUT, "\n         %s  version %s (%s)\n", BANNER,MYVERSION,DATE);
-    fprintf(OUTPUT, "\nby %s\n", AUTHORS);
+    fprintf(OUTPUT, "\nWritten by %s\n", AUTHORS);
     fprintf(OUTPUT, "Copyright %s\n", COPYRIGHT);
     fprintf(OUTPUT, "\nvisit %s\n", WEBSITE);
     fprintf(OUTPUT, "\n%s\n", DISCLAIMER);
