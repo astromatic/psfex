@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
   free(listbuf);
 
   NFPRINTF(OUTPUT, "");
-  NPRINTF(OUTPUT, "> All done (in %.0f s)\n", prefs.time_diff);
+  NPRINTF(OUTPUT, "> All done (in %.1f s)\n", prefs.time_diff);
 
   exit(EXIT_SUCCESS);
   }

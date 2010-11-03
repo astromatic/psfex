@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/10/2010
+*	Last modified:		03/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -135,6 +135,48 @@ float fast_median(float *arr, int n)
 
 #undef MEDIAN_SWAP
 
+
+/*i**** dqcmp **************************************************************
+PROTO	int	dqcmp(const void *p1, const void *p2)
+PURPOSE	Sorting function for qsort().
+INPUT	Pointer to first element,
+	pointer to second element.
+OUTPUT	1 if *p1>*p2, 0 if *p1=*p2, and -1 otherwise.
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	05/10/2010
+ ***/
+static int	dqcmp(const void *p1, const void *p2)
+  {
+   double	d1=*((double *)p1),
+		d2=*((double *)p2);
+  return d1>d2? 1 : (d1<d2? -1 : 0);
+  }
+
+
+/****** dqmedian **************************************************************
+PROTO	double   dqmedian(double *ra, int n)
+PURPOSE	Compute the median of an array of doubles, using qsort().
+INPUT	Pointer to the array,
+	Number of array elements.
+OUTPUT	Median of the array.
+NOTES	Warning: the order of input data is modified!.
+AUTHOR	E. Bertin (IAP)
+VERSION	05/10/2010
+ ***/
+double   dqmedian(double *ra, int n)
+
+  {
+   int dqcmp(const void *p1, const void *p2);
+
+  qsort(ra, n, sizeof(double), dqcmp);
+  if (n<2)
+    return *ra;
+  else
+    return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
+  }
+
+
 /*i**** fqcmp **************************************************************
 PROTO	int	fqcmp(const void *p1, const void *p2)
 PURPOSE	Sorting function for floats in qsort().
@@ -174,4 +216,5 @@ float	fqmedian(float *ra, int n)
   else
     return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
   }
+
 

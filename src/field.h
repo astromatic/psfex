@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		03/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -76,8 +76,6 @@ typedef struct field
 
 /*---------------------------------- protos --------------------------------*/
 extern fieldstruct	*field_init(char *catname);
-
-extern double		dqmedian(double *ra, int n);
 
 extern void		field_count(fieldstruct **fields, setstruct *set,
 				int counttype),

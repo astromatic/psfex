@@ -18,8 +18,8 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2005-2010 Chiara Marmo -- IAP/CNRS
-#				& Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2005-2010 Chiara Marmo - IAP/CNRS
+#				& Emmanuel Bertin - IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #

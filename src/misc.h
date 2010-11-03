@@ -22,11 +22,14 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/10/2010
+*	Last modified:		03/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 /*------------------------------- functions ---------------------------------*/
 
-extern float	fqmedian(float *ra, int n);
+extern double	dqmedian(double *ra, int n);
+
+extern float	fast_median(float *arr, int n),
+		fqmedian(float *ra, int n);
 
