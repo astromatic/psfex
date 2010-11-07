@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		07/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -160,13 +160,16 @@ char *default_prefs[] =
 "*PSF_PIXELSIZE   1.0             # Effective pixel size in pixel step units",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
-"CENTER_KEYS     X_IMAGE,Y_IMAGE # Catalogue parameters for source pre-centering",
 "*PSF_RECENTER    N               # Allow recentering of PSF-candidates Y/N ?",
-"PHOTFLUX_KEY    FLUX_APER(1)    # Catalogue parameter for photometric norm.",
-"PHOTFLUXERR_KEY FLUXERR_APER(1) # Catalogue parameter for photometric error",
 "*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
 " ",
-"#----------------------------- PSF variability -----------------------------",
+"#------------------------- Point source measurements -------------------------",
+" ",
+"CENTER_KEYS     X_IMAGE,Y_IMAGE # Catalogue parameters for source pre-centering",
+"PHOTFLUX_KEY    FLUX_APER(1)    # Catalogue parameter for photometric norm.",
+"PHOTFLUXERR_KEY FLUXERR_APER(1) # Catalogue parameter for photometric error",
+" ",
+"#----------------------------- PSF variability -------------------------------",
 " ",
 "PSFVAR_KEYS     X_IMAGE,Y_IMAGE # Catalogue or FITS (preceded by :) params",
 "PSFVAR_GROUPS   1,1             # Group tag for each context key",
@@ -202,21 +205,22 @@ char *default_prefs[] =
 "                                # JPEG, AQT, PDF or SVG",
 "*CHECKPLOT_RES       0           # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS Y           # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION, CHI2, RESIDUALS # or NONE",
+"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION, CHI2, RESIDUALS",
+"                                # or NONE",
 "CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac, chi2, resi",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",
-"CHECKIMAGE_TYPE CHI,PROTOTYPES,SAMPLES,RESIDUALS,SNAPSHOTS,MOFFAT,-MOFFAT,-SYMMETRICAL",
-"                                # Check-image types",
-"CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,snap.fits,moffat.fits,submoffat.fits,subsym.fits",
+"CHECKIMAGE_TYPE CHI,PROTOTYPES,SAMPLES,RESIDUALS,SNAPSHOTS",
+"                                # or MOFFAT,-MOFFAT,-SYMMETRICAL",
+"CHECKIMAGE_NAME chi.fits,proto.fits,samp.fits,resi.fits,snap.fits",
 "                                # Check-image filenames",
 "*CHECKIMAGE_CUBE N               # Save check-images as datacubes (Y/N) ?",
 " ",
 "#----------------------------- Miscellaneous ---------------------------------",
 " ",
 "PSF_DIR                         # Where to write PSFs (empty=same as input)",
-"PSF_SUFFIX      .psf            # Filename extension for output PSF filename",
+"*PSF_SUFFIX      .psf            # Filename extension for output PSF filename",
 "VERBOSE_TYPE    NORMAL          # can be QUIET,NORMAL,LOG or FULL",
 "WRITE_XML       Y               # Write XML file (Y/N)?",
 "XML_NAME        psfex.xml       # Filename for XML output",
