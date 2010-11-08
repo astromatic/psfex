@@ -20,9 +20,49 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		10/10/2010
+#	Last modified:		08/11/2010
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+------------------------------------------------------------------------
+r162 | bertin | 2010-11-07 17:42:10 +0100 (Sun, 07 Nov 2010) | 4 lines
+
+Removed infrequently used check-images (MOFFAT,-MOFFAT,-SYMMETRICAL) from the de
+fault configuration file.
+Re-ordered the configuration file.
+Moved PSF_SUFFIX to the group of "advanced" parameters.
+
+------------------------------------------------------------------------
+r161 | bertin | 2010-11-03 23:23:23 +0100 (Wed, 03 Nov 2010) | 4 lines
+
+Fixed pb with XSLT comment.
+Fixed sorting issue because of a missing declaration.
+Version number pushed to 3.9.1.
+
+------------------------------------------------------------------------
+r160 | bertin | 2010-10-25 20:14:56 +0200 (Mon, 25 Oct 2010) | 2 lines
+
+Updated file headers with the proper license info.
+
+------------------------------------------------------------------------
+r159 | bertin | 2010-10-15 23:55:52 +0200 (Fri, 15 Oct 2010) | 3 lines
+
+Updated headers.
+Added misc.h include file.
+
+------------------------------------------------------------------------
+r158 | bertin | 2010-10-10 18:45:06 +0200 (Sun, 10 Oct 2010) | 2 lines
+
+Added missing LevMar 2.5 distrib files.
+
+------------------------------------------------------------------------
+r157 | bertin | 2010-10-10 18:30:26 +0200 (Sun, 10 Oct 2010) | 6 lines
+
+Moved back the code to GPL.
+Added more complete headers to all files.
+Clarified licensing issues.
+Updated FITS library.
+Pushed version number to 3.9.0.
 
 ------------------------------------------------------------------------
 r156 | bertin | 2010-09-10 19:47:46 +0200 (Fri, 10 Sep 2010) | 5 lines
