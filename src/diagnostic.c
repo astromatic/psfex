@@ -96,11 +96,11 @@ void	psf_diagnostic(psfstruct *psf)
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
 
-  lm_opts[0] = 1.0e-3;
+  lm_opts[0] = 1.0e-2;
   lm_opts[1] = 1.0e-12;
   lm_opts[2] = 1.0e-12;
   lm_opts[3] = 1.0e-12;
-  lm_opts[4] = 1.0e-3;
+  lm_opts[4] = 1.0e-4;
 
 /* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)

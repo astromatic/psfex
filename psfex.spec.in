@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		10/10/2010
+#	Last modified:		08/11/2010
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -35,7 +35,7 @@ Summary: generate a PSF super-tabulated model for SExtractor
 Name: %{name}
 Version: %{version}
 Release: %{release}
-Source0: ftp://ftp.iap.fr/pub/from_users/bertin/%{name}/%{name}-%{version}.tar.gz
+Source0: http://astromatic.net/download/%{name}/%{name}-%{version}.tar.gz
 URL: http://astromatic.net/software/%{name}/
 License: GPL v3+
 Group: Sciences/Astronomy
@@ -71,7 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS
+%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS doc/psfex.pdf
 %{_bindir}/@PACKAGE_NAME@
 %{_mandir}/man1/@PACKAGE_NAME@.1*
 %{_mandir}/manx/@PACKAGE_NAME@.x*
