@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		19/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -52,7 +52,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/07/2010
+VERSION 19/11/2010
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -62,7 +62,7 @@ void	psf_diagnostic(psfstruct *psf)
 			dparam[PSF_DIAGNPARAM],
 			*dresi;
    float		param[PSF_DIAGNPARAM],
-			dstep,dstart, fwhm, temp;
+			dstep,dstart, fwhm, ellip,ellip1,ellip2;
    int			i,m,n, w,h, npc,nt, nmed, niter;
 
   nmed = 0;
@@ -89,10 +89,14 @@ void	psf_diagnostic(psfstruct *psf)
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
-  psf->moffat_fwhm_min = psf->moffat_ellipticity_min = psf->moffat_beta_min
+  psf->moffat_fwhm_min = psf->moffat_ellipticity_min
+		= psf->moffat_ellipticity1_min = psf->moffat_ellipticity2_min
+		= psf->moffat_beta_min
 		= psf->moffat_residuals_min = psf->sym_residuals_min
 		= BIG;
-  psf->moffat_fwhm_max = psf->moffat_ellipticity_max = psf->moffat_beta_max
+  psf->moffat_fwhm_max = psf->moffat_ellipticity_max
+		= psf->moffat_ellipticity1_max = psf->moffat_ellipticity2_max
+		= psf->moffat_beta_max
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= -BIG;
 
@@ -166,34 +170,55 @@ void	psf_diagnostic(psfstruct *psf)
       }
     if (moffat[n].theta > 90.0)
       moffat[n].theta -= 180.0;
+
     moffat[n].beta = param[6];
+
     for (i=0; i<npc; i++)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
+
     moffat[n].residuals = psf_normresi(param, psf);
     moffat[n].symresiduals = psf_symresi(psf);
-    if ((temp=0.5*(psf->moffat[n].fwhm_min+psf->moffat[n].fwhm_max))
+
+    if ((fwhm=0.5*(psf->moffat[n].fwhm_min+psf->moffat[n].fwhm_max))
 		< psf->moffat_fwhm_min)
-      psf->moffat_fwhm_min = temp;
-    if (temp > psf->moffat_fwhm_max)
-      psf->moffat_fwhm_max = temp;
-    if ((temp=psf->moffat[n].fwhm_max+psf->moffat[n].fwhm_min) > 0.0)
-      temp = (psf->moffat[n].fwhm_max-psf->moffat[n].fwhm_min) / temp;
-    if (temp < psf->moffat_ellipticity_min)
-      psf->moffat_ellipticity_min = temp;
-    if (temp > psf->moffat_ellipticity_max)
-      psf->moffat_ellipticity_max = temp;
-    if (psf->moffat[n].beta < psf->moffat_beta_min)
-      psf->moffat_beta_min = psf->moffat[n].beta;
-    if (psf->moffat[n].beta > psf->moffat_beta_max)
-      psf->moffat_beta_max = psf->moffat[n].beta;
-    if (psf->moffat[n].residuals < psf->moffat_residuals_min)
-      psf->moffat_residuals_min = psf->moffat[n].residuals;
-    if (psf->moffat[n].residuals > psf->moffat_residuals_max)
-      psf->moffat_residuals_max = psf->moffat[n].residuals;
-    if (psf->moffat[n].symresiduals < psf->sym_residuals_min)
-      psf->sym_residuals_min = psf->moffat[n].symresiduals;
-    if (psf->moffat[n].symresiduals > psf->sym_residuals_max)
-      psf->sym_residuals_max = psf->moffat[n].symresiduals;
+      psf->moffat_fwhm_min = fwhm;
+    if (fwhm > psf->moffat_fwhm_max)
+      psf->moffat_fwhm_max = fwhm;
+
+    if ((ellip = moffat[n].fwhm_max + moffat[n].fwhm_min) > 0.0)
+      ellip = (moffat[n].fwhm_max - moffat[n].fwhm_min) / ellip;
+
+    if (ellip < psf->moffat_ellipticity_min)
+      psf->moffat_ellipticity_min = ellip;
+    if (ellip > psf->moffat_ellipticity_max)
+      psf->moffat_ellipticity_max = ellip;
+
+    ellip1 = ellip*cosf(2.0*moffat[n].theta);
+    ellip2 = ellip*sinf(2.0*moffat[n].theta);
+
+    if (ellip1 < psf->moffat_ellipticity1_min)
+      psf->moffat_ellipticity1_min = ellip1;
+    if (ellip1 > psf->moffat_ellipticity1_max)
+      psf->moffat_ellipticity1_max = ellip1;
+    if (ellip2 < psf->moffat_ellipticity2_min)
+      psf->moffat_ellipticity2_min = ellip2;
+    if (ellip2 > psf->moffat_ellipticity2_max)
+      psf->moffat_ellipticity2_max = ellip2;
+
+    if (moffat[n].beta < psf->moffat_beta_min)
+      psf->moffat_beta_min = moffat[n].beta;
+    if (moffat[n].beta > psf->moffat_beta_max)
+      psf->moffat_beta_max = moffat[n].beta;
+
+    if (moffat[n].residuals < psf->moffat_residuals_min)
+      psf->moffat_residuals_min = moffat[n].residuals;
+    if (moffat[n].residuals > psf->moffat_residuals_max)
+      psf->moffat_residuals_max = moffat[n].residuals;
+
+    if (moffat[n].symresiduals < psf->sym_residuals_min)
+      psf->sym_residuals_min = moffat[n].symresiduals;
+    if (moffat[n].symresiduals > psf->sym_residuals_max)
+      psf->sym_residuals_max = moffat[n].symresiduals;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -205,14 +230,19 @@ void	psf_diagnostic(psfstruct *psf)
         dpos[i] = -dstart;
     }
 
-  psf->moffat_fwhm = 0.5*(psf->moffat[nmed].fwhm_min
-		+ psf->moffat[nmed].fwhm_max);
-  temp = psf->moffat[nmed].fwhm_max + psf->moffat[nmed].fwhm_min;
-  psf->moffat_ellipticity = (temp > 0.0)?
-	(psf->moffat[nmed].fwhm_max-psf->moffat[nmed].fwhm_min) / temp : 0.0;
-  psf->moffat_beta = psf->moffat[nmed].beta;
-  psf->moffat_residuals = psf->moffat[nmed].residuals;
-  psf->sym_residuals = psf->moffat[nmed].symresiduals;
+  psf->moffat_fwhm = 0.5*(moffat[nmed].fwhm_min + moffat[nmed].fwhm_max);
+
+  ellip = moffat[nmed].fwhm_max + moffat[nmed].fwhm_min;
+  psf->moffat_ellipticity = (ellip > 0.0)?
+	(moffat[nmed].fwhm_max - moffat[nmed].fwhm_min) / ellip : 0.0;
+  psf->moffat_ellipticity1 = psf->moffat_ellipticity
+				* cosf(2.0*moffat[nmed].theta);
+  psf->moffat_ellipticity2 = psf->moffat_ellipticity
+				* sinf(2.0*moffat[nmed].theta);
+
+  psf->moffat_beta = moffat[nmed].beta;
+  psf->moffat_residuals = moffat[nmed].residuals;
+  psf->sym_residuals = moffat[nmed].symresiduals;
 
 /*------------------ "Pixel-free" Moffat profile-fitting -------------------*/
 
@@ -222,9 +252,15 @@ void	psf_diagnostic(psfstruct *psf)
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
-  psf->pfmoffat_fwhm_min = psf->pfmoffat_ellipticity_min = psf->pfmoffat_beta_min
+  psf->pfmoffat_fwhm_min = psf->pfmoffat_ellipticity_min
+		= psf->pfmoffat_ellipticity1_min
+		= psf->pfmoffat_ellipticity2_min
+		= psf->pfmoffat_beta_min
 		= psf->pfmoffat_residuals_min = BIG;
-  psf->pfmoffat_fwhm_max = psf->pfmoffat_ellipticity_max = psf->pfmoffat_beta_max
+  psf->pfmoffat_fwhm_max = psf->pfmoffat_ellipticity_max
+		= psf->pfmoffat_ellipticity1_max
+		= psf->pfmoffat_ellipticity2_max
+		= psf->pfmoffat_beta_max
 		= psf->pfmoffat_residuals_max = -BIG;
 
 /* For each snapshot of the PSF */ 
@@ -291,30 +327,50 @@ void	psf_diagnostic(psfstruct *psf)
       }
     if (pfmoffat[n].theta > 90.0)
       pfmoffat[n].theta -= 180.0;
+
     pfmoffat[n].beta = param[6];
+
     for (i=0; i<npc; i++)
       pfmoffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
+
     pfmoffat[n].residuals = psf_normresi(param, psf);
     pfmoffat[n].symresiduals = psf_symresi(psf);
-    if ((temp=0.5*(psf->pfmoffat[n].fwhm_min+psf->pfmoffat[n].fwhm_max))
+
+    if ((fwhm=0.5*(pfmoffat[n].fwhm_min+pfmoffat[n].fwhm_max))
 		< psf->pfmoffat_fwhm_min)
-      psf->pfmoffat_fwhm_min = temp;
-    if (temp > psf->pfmoffat_fwhm_max)
-      psf->pfmoffat_fwhm_max = temp;
-    if ((temp=psf->pfmoffat[n].fwhm_max+psf->pfmoffat[n].fwhm_min) > 0.0)
-      temp = (psf->pfmoffat[n].fwhm_max-psf->pfmoffat[n].fwhm_min) / temp;
-    if (temp < psf->pfmoffat_ellipticity_min)
-      psf->pfmoffat_ellipticity_min = temp;
-    if (temp > psf->pfmoffat_ellipticity_max)
-      psf->pfmoffat_ellipticity_max = temp;
-    if (psf->pfmoffat[n].beta < psf->pfmoffat_beta_min)
-      psf->pfmoffat_beta_min = psf->pfmoffat[n].beta;
-    if (psf->pfmoffat[n].beta > psf->pfmoffat_beta_max)
-      psf->pfmoffat_beta_max = psf->pfmoffat[n].beta;
-    if (psf->pfmoffat[n].residuals < psf->pfmoffat_residuals_min)
-      psf->pfmoffat_residuals_min = psf->pfmoffat[n].residuals;
-    if (psf->pfmoffat[n].residuals > psf->pfmoffat_residuals_max)
-      psf->pfmoffat_residuals_max = psf->pfmoffat[n].residuals;
+      psf->pfmoffat_fwhm_min = fwhm;
+    if (fwhm > psf->pfmoffat_fwhm_max)
+      psf->pfmoffat_fwhm_max = fwhm;
+
+    if ((ellip = pfmoffat[n].fwhm_max + pfmoffat[n].fwhm_min) > 0.0)
+      ellip = (pfmoffat[n].fwhm_max - pfmoffat[n].fwhm_min) / ellip;
+
+    ellip1 = ellip*cosf(2.0*pfmoffat[n].theta);
+    ellip2 = ellip*sinf(2.0*pfmoffat[n].theta);
+
+    if (ellip < psf->pfmoffat_ellipticity_min)
+      psf->pfmoffat_ellipticity_min = ellip;
+    if (ellip > psf->pfmoffat_ellipticity_max)
+      psf->pfmoffat_ellipticity_max = ellip;
+
+    if (ellip1 < psf->pfmoffat_ellipticity1_min)
+      psf->pfmoffat_ellipticity1_min = ellip1;
+    if (ellip1 > psf->pfmoffat_ellipticity1_max)
+      psf->pfmoffat_ellipticity1_max = ellip1;
+    if (ellip2 < psf->pfmoffat_ellipticity2_min)
+      psf->pfmoffat_ellipticity2_min = ellip2;
+    if (ellip2 > psf->pfmoffat_ellipticity2_max)
+      psf->pfmoffat_ellipticity2_max = ellip2;
+
+    if (pfmoffat[n].beta < psf->pfmoffat_beta_min)
+      psf->pfmoffat_beta_min = pfmoffat[n].beta;
+    if (pfmoffat[n].beta > psf->pfmoffat_beta_max)
+      psf->pfmoffat_beta_max = pfmoffat[n].beta;
+
+    if (pfmoffat[n].residuals < psf->pfmoffat_residuals_min)
+      psf->pfmoffat_residuals_min = pfmoffat[n].residuals;
+    if (pfmoffat[n].residuals > psf->pfmoffat_residuals_max)
+      psf->pfmoffat_residuals_max = pfmoffat[n].residuals;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -326,13 +382,18 @@ void	psf_diagnostic(psfstruct *psf)
         dpos[i] = -dstart;
     }
 
-  psf->pfmoffat_fwhm = 0.5*(psf->pfmoffat[nmed].fwhm_min
-		+ psf->pfmoffat[nmed].fwhm_max);
-  temp = psf->pfmoffat[nmed].fwhm_max + psf->pfmoffat[nmed].fwhm_min;
-  psf->pfmoffat_ellipticity = (temp > 0.0)?
-	(psf->pfmoffat[nmed].fwhm_max-psf->pfmoffat[nmed].fwhm_min)/temp : 0.0;
-  psf->pfmoffat_beta = psf->pfmoffat[nmed].beta;
-  psf->pfmoffat_residuals = psf->pfmoffat[nmed].residuals;
+  psf->pfmoffat_fwhm = 0.5*(pfmoffat[nmed].fwhm_min + pfmoffat[nmed].fwhm_max);
+
+  ellip = pfmoffat[nmed].fwhm_max + pfmoffat[nmed].fwhm_min;
+  psf->pfmoffat_ellipticity = (ellip > 0.0)?
+	(pfmoffat[nmed].fwhm_max - pfmoffat[nmed].fwhm_min) / ellip : 0.0;
+  psf->pfmoffat_ellipticity1 = psf->pfmoffat_ellipticity
+		*cosf(2.0*pfmoffat[nmed].theta);
+  psf->pfmoffat_ellipticity2 = psf->pfmoffat_ellipticity
+		*sinf(2.0*pfmoffat[nmed].theta);
+
+  psf->pfmoffat_beta = pfmoffat[nmed].beta;
+  psf->pfmoffat_residuals = pfmoffat[nmed].residuals;
 
   return;
   }

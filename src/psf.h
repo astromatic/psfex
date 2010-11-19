@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		19/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -106,6 +106,12 @@ typedef struct psf
   float		moffat_ellipticity_min;
   float		moffat_ellipticity;	/* Central Moffat ellipticity */
   float		moffat_ellipticity_max;
+  float		moffat_ellipticity1_min;
+  float		moffat_ellipticity1;	/* Central Moffat e1 */
+  float		moffat_ellipticity1_max;
+  float		moffat_ellipticity2_min;
+  float		moffat_ellipticity2;	/* Central Moffat e2 */
+  float		moffat_ellipticity2_max;
   float		moffat_beta_min;
   float		moffat_beta;	/* Central Moffat beta */
   float		moffat_beta_max;
@@ -121,6 +127,12 @@ typedef struct psf
   float		pfmoffat_ellipticity_min;
   float		pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity */
   float		pfmoffat_ellipticity_max;
+  float		pfmoffat_ellipticity1_min;
+  float		pfmoffat_ellipticity1;	/* Central pix-free Moffat e1 */
+  float		pfmoffat_ellipticity1_max;
+  float		pfmoffat_ellipticity2_min;
+  float		pfmoffat_ellipticity2;	/* Central pix-free Moffat e2 */
+  float		pfmoffat_ellipticity2_max;
   float		pfmoffat_beta_min;
   float		pfmoffat_beta;	/* Central pixel-free Moffat beta */
   float		pfmoffat_beta_max;
