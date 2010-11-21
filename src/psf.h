@@ -125,7 +125,7 @@ typedef struct psf
   float		pfmoffat_fwhm;	/* Central pixel-free Moffat FWHM */
   float		pfmoffat_fwhm_max;
   float		pfmoffat_ellipticity_min;
-  float		pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity */
+  float		pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity*/
   float		pfmoffat_ellipticity_max;
   float		pfmoffat_ellipticity1_min;
   float		pfmoffat_ellipticity1;	/* Central pix-free Moffat e1 */

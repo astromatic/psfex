@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/11/2010
+*	Last modified:		20/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -52,7 +52,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 19/11/2010
+VERSION 20/11/2010
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
@@ -193,8 +193,8 @@ void	psf_diagnostic(psfstruct *psf)
     if (ellip > psf->moffat_ellipticity_max)
       psf->moffat_ellipticity_max = ellip;
 
-    ellip1 = ellip*cosf(2.0*moffat[n].theta);
-    ellip2 = ellip*sinf(2.0*moffat[n].theta);
+    ellip1 = ellip*cosf(2.0*moffat[n].theta*DEG);
+    ellip2 = ellip*sinf(2.0*moffat[n].theta*DEG);
 
     if (ellip1 < psf->moffat_ellipticity1_min)
       psf->moffat_ellipticity1_min = ellip1;
@@ -236,9 +236,9 @@ void	psf_diagnostic(psfstruct *psf)
   psf->moffat_ellipticity = (ellip > 0.0)?
 	(moffat[nmed].fwhm_max - moffat[nmed].fwhm_min) / ellip : 0.0;
   psf->moffat_ellipticity1 = psf->moffat_ellipticity
-				* cosf(2.0*moffat[nmed].theta);
+				* cosf(2.0*moffat[nmed].theta*DEG);
   psf->moffat_ellipticity2 = psf->moffat_ellipticity
-				* sinf(2.0*moffat[nmed].theta);
+				* sinf(2.0*moffat[nmed].theta*DEG);
 
   psf->moffat_beta = moffat[nmed].beta;
   psf->moffat_residuals = moffat[nmed].residuals;
@@ -345,8 +345,8 @@ void	psf_diagnostic(psfstruct *psf)
     if ((ellip = pfmoffat[n].fwhm_max + pfmoffat[n].fwhm_min) > 0.0)
       ellip = (pfmoffat[n].fwhm_max - pfmoffat[n].fwhm_min) / ellip;
 
-    ellip1 = ellip*cosf(2.0*pfmoffat[n].theta);
-    ellip2 = ellip*sinf(2.0*pfmoffat[n].theta);
+    ellip1 = ellip*cosf(2.0*pfmoffat[n].theta*DEG);
+    ellip2 = ellip*sinf(2.0*pfmoffat[n].theta*DEG);
 
     if (ellip < psf->pfmoffat_ellipticity_min)
       psf->pfmoffat_ellipticity_min = ellip;
@@ -388,9 +388,9 @@ void	psf_diagnostic(psfstruct *psf)
   psf->pfmoffat_ellipticity = (ellip > 0.0)?
 	(pfmoffat[nmed].fwhm_max - pfmoffat[nmed].fwhm_min) / ellip : 0.0;
   psf->pfmoffat_ellipticity1 = psf->pfmoffat_ellipticity
-		*cosf(2.0*pfmoffat[nmed].theta);
+		*cosf(2.0*pfmoffat[nmed].theta*DEG);
   psf->pfmoffat_ellipticity2 = psf->pfmoffat_ellipticity
-		*sinf(2.0*pfmoffat[nmed].theta);
+		*sinf(2.0*pfmoffat[nmed].theta*DEG);
 
   psf->pfmoffat_beta = pfmoffat[nmed].beta;
   psf->pfmoffat_residuals = pfmoffat[nmed].residuals;
