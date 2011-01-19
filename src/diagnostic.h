@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		19/01/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -58,7 +58,8 @@ extern void	psf_boundtounbound(float *param, double *dparam),
 		psf_moffat(psfstruct *psf, moffatstruct *moffat),
 		psf_unboundtobound(double *dparam, float *param);
 
-extern double	psf_normresi(float *par, psfstruct *psf),
+extern double	psf_noiseqarea(psfstruct *psf),
+		psf_normresi(float *par, psfstruct *psf),
 		psf_symresi(psfstruct *psf);
 
 #endif

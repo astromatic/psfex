@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/11/2010
+*	Last modified:		19/01/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -68,6 +68,7 @@ typedef struct moffat
   float		beta;		/* Moffat beta parameter */
   float		residuals;	/* Normalized residuals */
   float		symresiduals;	/* Normalized symmetry residuals */
+  float		noiseqarea;	/* Noise equivalent area (pixels^2) */
   int		nsubpix;	/* Number of supersampled pixels */
   }	moffatstruct;
 
@@ -142,6 +143,9 @@ typedef struct psf
   float		sym_residuals_min;
   float		sym_residuals;/* Symmetry residuals */
   float		sym_residuals_max;
+  float		noiseqarea_min;
+  float		noiseqarea;	/* Noise equivalent area */
+  float		noiseqarea_max;
   float		*homo_kernel;		/* PSF homogenization kernel */
   double	homopsf_params[2];	/* Idealised Moffat PSF params*/
   int		homobasis_number;	/* nb of supersampled pixels */

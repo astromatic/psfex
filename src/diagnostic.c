@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2010
+*	Last modified:		19/01/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -93,12 +93,12 @@ void	psf_diagnostic(psfstruct *psf)
 		= psf->moffat_ellipticity1_min = psf->moffat_ellipticity2_min
 		= psf->moffat_beta_min
 		= psf->moffat_residuals_min = psf->sym_residuals_min
-		= BIG;
+		= psf->noiseqarea_min = BIG;
   psf->moffat_fwhm_max = psf->moffat_ellipticity_max
 		= psf->moffat_ellipticity1_max = psf->moffat_ellipticity2_max
 		= psf->moffat_beta_max
 		= psf->moffat_residuals_max = psf->sym_residuals_max
-		= -BIG;
+		= psf->noiseqarea_max = -BIG;
 
   lm_opts[0] = 1.0e-2;
   lm_opts[1] = 1.0e-12;
@@ -177,7 +177,8 @@ void	psf_diagnostic(psfstruct *psf)
       moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
 
     moffat[n].residuals = psf_normresi(param, psf);
-    moffat[n].symresiduals = psf_symresi(psf);
+    moffat[n].symresiduals = (float)psf_symresi(psf);
+    moffat[n].noiseqarea = (float)psf_noiseqarea(psf);
 
     if ((fwhm=0.5*(psf->moffat[n].fwhm_min+psf->moffat[n].fwhm_max))
 		< psf->moffat_fwhm_min)
@@ -219,6 +220,10 @@ void	psf_diagnostic(psfstruct *psf)
       psf->sym_residuals_min = moffat[n].symresiduals;
     if (moffat[n].symresiduals > psf->sym_residuals_max)
       psf->sym_residuals_max = moffat[n].symresiduals;
+    if (moffat[n].noiseqarea < psf->noiseqarea_min)
+      psf->noiseqarea_min = moffat[n].noiseqarea;
+    if (moffat[n].noiseqarea > psf->noiseqarea_max)
+      psf->noiseqarea_max = moffat[n].noiseqarea;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -243,6 +248,7 @@ void	psf_diagnostic(psfstruct *psf)
   psf->moffat_beta = moffat[nmed].beta;
   psf->moffat_residuals = moffat[nmed].residuals;
   psf->sym_residuals = moffat[nmed].symresiduals;
+  psf->noiseqarea = moffat[nmed].noiseqarea;
 
 /*------------------ "Pixel-free" Moffat profile-fitting -------------------*/
 
@@ -334,7 +340,6 @@ void	psf_diagnostic(psfstruct *psf)
       pfmoffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
 
     pfmoffat[n].residuals = psf_normresi(param, psf);
-    pfmoffat[n].symresiduals = psf_symresi(psf);
 
     if ((fwhm=0.5*(pfmoffat[n].fwhm_min+pfmoffat[n].fwhm_max))
 		< psf->pfmoffat_fwhm_min)
@@ -542,7 +547,7 @@ double	psf_normresi(float *par, psfstruct *psf)
 
 /****** psf_symresi *********************************************************
 PROTO	double psf_symresi(psfstruct *psf)
-PURPOSE	Compute a normalized estimate of PSF assymetry.
+PURPOSE	Compute a normalized estimate of PSF asymmetry.
 INPUT	Pointer to the PSF structure.
 OUTPUT	Normalized residuals.
 NOTES	-.
@@ -568,6 +573,34 @@ double	psf_symresi(psfstruct *psf)
     }
 
   return norm > 0.0? 2.0 * resi / norm : 1.0;
+  }
+
+
+/****** psf_noiseqarea *********************************************************
+PROTO	double psf_noiseqarea(psfstruct *psf)
+PURPOSE	Compute the noise equivalent area (in pixels^2).
+INPUT	Pointer to the PSF structure.
+OUTPUT	Noise equivalent area (in pix^2).
+NOTES	-.
+AUTHOR	E. Bertin (IAP)
+VERSION	19/01/2011
+ ***/
+double	psf_noiseqarea(psfstruct *psf)
+  {
+   double	sum,sum2,val;
+   float	*loc;
+   int		i;
+
+  loc = psf->loc;
+  sum = sum2 = 0.0;
+  for (i=psf->size[0]*psf->size[1]; i--;)
+    {
+    val = (double)*(loc++);
+    sum += val;
+    sum2 += val*val;
+    }
+
+  return sum2 > 0.0? psf->pixstep*psf->pixstep*sum*sum/sum2 : 0.0;
   }
 
 

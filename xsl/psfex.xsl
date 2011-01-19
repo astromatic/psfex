@@ -34,7 +34,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		10/10/2010
+#	Last modified:		19/01/2011
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
@@ -284,6 +284,9 @@
    <xsl:variable name="asymmetrymin" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqareamin" select="count(FIELD[@name='Area_Noise_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqarea" select="count(FIELD[@name='Area_Noise_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqareamax" select="count(FIELD[@name='Area_Noise_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="countsplotflag" select="count(FIELD[@name='Plot_Counts'])"/>
    <xsl:variable name="countsplot" select="count(FIELD[@name='Plot_Counts']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="countfracplotflag" select="count(FIELD[@name='Plot_Count_Fraction'])"/>
@@ -335,6 +338,7 @@
        <elm>pixel free</elm>
       </TH>
       <TH>Asymmetry</TH>
+      <TH>Noise Equivalent Area</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
@@ -549,6 +553,15 @@
 	  - <elmax><xsl:value-of select="format-number(TD[$asymmetrymax],'##0.00')"/></elmax>
          </elm>
         </td>
+<!-- Noise Equivalent Area -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$noiseqarea],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$noiseqareamin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$noiseqareamax],'##0.00')"/></elmax>
+         </elm>
+        </td>
        </tr>
       </xsl:for-each>
      </xsl:for-each>
@@ -601,6 +614,9 @@
    <xsl:variable name="asymmetrymin" select="count(FIELD[@name='Asymmetry_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetry" select="count(FIELD[@name='Asymmetry_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="asymmetrymax" select="count(FIELD[@name='Asymmetry_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqareamin" select="count(FIELD[@name='Area_Noise_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqarea" select="count(FIELD[@name='Area_Noise_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="noiseqareamax" select="count(FIELD[@name='Area_Noise_Max']/preceding-sibling::FIELD)+1"/>
    <p>
     <BUTTON type="button" onclick="showhideTable('psfext')" title="click to expand">
      PSF stats per Extension&nbsp;&darr;
@@ -630,6 +646,7 @@
        <elm>pixel free</elm>
       </TH>
       <TH>Asymmetry</TH>
+      <TH>Noise Equivalent Area</TH>
      </TR>
      <xsl:for-each select="DATA/TABLEDATA">
       <xsl:for-each select="TR">
@@ -762,6 +779,15 @@
          <elm>
           <elmin><xsl:value-of select="format-number(TD[$asymmetrymin],'##0.00')"/></elmin>
 	  - <elmax><xsl:value-of select="format-number(TD[$asymmetrymax],'##0.00')"/></elmax>
+         </elm>
+        </td>
+<!-- Noise Equivalent Area -->
+        <td align="center">
+         <el><xsl:value-of select="format-number(TD[$noiseqarea],'##0.00')"/></el>
+         <br />
+         <elm>
+          <elmin><xsl:value-of select="format-number(TD[$noiseqareamin],'##0.00')"/></elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$noiseqareamax],'##0.00')"/></elmax>
          </elm>
         </td>
        </tr>

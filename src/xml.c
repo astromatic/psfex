@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2005-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/11/2010
+*	Last modified:		19/01/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -187,7 +187,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/11/2010
+VERSION	19/01/2011
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -211,6 +211,7 @@ int	write_xml_meta(FILE *file, char *error)
 			pfbeta_min,pfbeta_mean,pfbeta_max,
 			pfresiduals_min,pfresiduals_mean,pfresiduals_max,
 			symresiduals_min,symresiduals_mean,symresiduals_max,
+			noiseqarea_min,noiseqarea_mean,noiseqarea_max,
 			nloaded_mean,naccepted_mean;
    int			d,n,e,
 			nloaded_min,nloaded_max,nloaded_total,
@@ -462,6 +463,13 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Asymmetry_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Min\" datatype=\"float\""
+	" ucd=\"phys.area;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Mean\" datatype=\"float\""
+	" ucd=\"phys.area;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Max\" datatype=\"float\""
+	" ucd=\"phys.area;stat.max;instr.det.psf\"/>\n");
+
 /*-- Checkplots */
 #ifdef HAVE_PLPLOT
   if (pngflag)
@@ -504,18 +512,20 @@ int	write_xml_meta(FILE *file, char *error)
 	= ellipticity1_min = ellipticity2_min
 	= beta_min = residuals_min = pffwhm_min = pfellipticity_min
 	= pfellipticity1_min = pfellipticity2_min
-	= pfbeta_min = pfresiduals_min = symresiduals_min = BIG;
+	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= noiseqarea_min = BIG;
     minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
 	= ellipticity1_mean = ellipticity2_mean
 	= beta_mean = residuals_mean = pffwhm_mean = pfellipticity_mean
 	= pfellipticity1_mean = pfellipticity2_mean
-	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
 	= nloaded_mean = naccepted_mean = 0.0;
     minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
 	= ellipticity1_max = ellipticity2_max
 	= beta_max = residuals_max = pffwhm_max = pfellipticity_max
 	= pfellipticity1_max = pfellipticity2_max
-	= pfbeta_max = pfresiduals_max = symresiduals_max = -BIG;
+	= pfbeta_max = pfresiduals_max = symresiduals_max
+	= noiseqarea_max = -BIG;
     neff = 0;
     field = field_xml[n];
     for (e=0; e<field->next; e++)
@@ -620,6 +630,12 @@ int	write_xml_meta(FILE *file, char *error)
       symresiduals_mean += psf->sym_residuals;
       if (psf->sym_residuals_max > symresiduals_max)
         symresiduals_max = psf->sym_residuals_max;
+/*---- Noise equal area measurement */
+      if (psf->noiseqarea_min < noiseqarea_min)
+        noiseqarea_min = psf->noiseqarea_min;
+      noiseqarea_mean += psf->noiseqarea;
+      if (psf->noiseqarea_max > noiseqarea_max)
+        noiseqarea_max = psf->noiseqarea_max;
       }
 
     if (field->next>1)
@@ -646,28 +662,31 @@ int	write_xml_meta(FILE *file, char *error)
       pfbeta_mean /= (double)neff;
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
+      noiseqarea_mean /= (double)neff;
       }
     else if (neff==0)
       minrad_min = sampling_min = chi2_min = fwhm_min
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
 	= beta_min = residuals_min = pffwhm_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
-	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= pfbeta_min = pfresiduals_min = symresiduals_min = noiseqarea_min
 	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
 	= beta_mean = residuals_mean = pffwhm_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
-	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
 	= minrad_max = sampling_max = chi2_max = fwhm_max
 	= ellipticity_max  = ellipticity1_max = ellipticity2_max
 	= beta_max = residuals_max = pffwhm_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
-	= pfbeta_max = pfresiduals_max = symresiduals_max = 0.0;
+	= pfbeta_max = pfresiduals_max = symresiduals_max = noiseqarea_max
+	= 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%s</TD><TD>%s</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
@@ -702,7 +721,8 @@ int	write_xml_meta(FILE *file, char *error)
 	pfellipticity2_min, pfellipticity2_mean, pfellipticity2_max,
 	pfbeta_min, pfbeta_mean, pfbeta_max,
 	pfresiduals_min, pfresiduals_mean, pfresiduals_max,
-	symresiduals_min, symresiduals_mean, symresiduals_max);
+	symresiduals_min, symresiduals_mean, symresiduals_max,
+	noiseqarea_min, noiseqarea_mean, noiseqarea_max);
 /*-- Check-plots */
 #ifdef HAVE_PLPLOT
     if (pngflag)
@@ -858,6 +878,12 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"stat.fit.residual;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Asymmetry_Max\" datatype=\"float\""
 	" ucd=\"stat.fit.residual;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Min\" datatype=\"float\""
+	" ucd=\"phys.area;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Mean\" datatype=\"float\""
+	" ucd=\"phys.area;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"Area_Noise_Max\" datatype=\"float\""
+	" ucd=\"phys.area;stat.max;instr.det.psf\"/>\n");
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
   for (e=0; e<next; e++)
@@ -869,18 +895,20 @@ int	write_xml_meta(FILE *file, char *error)
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
 	= beta_min = residuals_min = pffwhm_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
-	= pfbeta_min = pfresiduals_min = symresiduals_min = BIG;
+	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= noiseqarea_min = BIG;
     minrad_mean = sampling_mean = chi2_mean = fwhm_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
 	= beta_mean = residuals_mean = pffwhm_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
-	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
 	= nloaded_mean = naccepted_mean = 0.0;
     minrad_max = sampling_max = chi2_max = fwhm_max
 	= ellipticity_max = ellipticity1_max = ellipticity2_max
 	= beta_max = residuals_max = pffwhm_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
-	= pfbeta_max = pfresiduals_max = symresiduals_max = -BIG;
+	= pfbeta_max = pfresiduals_max = symresiduals_max
+	= noiseqarea_max = -BIG;
     neff = 0;
     for (n=0; n<nxml; n++)
       {
@@ -985,6 +1013,12 @@ int	write_xml_meta(FILE *file, char *error)
       symresiduals_mean += psf->sym_residuals;
       if (psf->sym_residuals_max > symresiduals_max)
         symresiduals_max = psf->sym_residuals_max;
+/*---- Noise equal area measurement */
+      if (psf->noiseqarea_min < noiseqarea_min)
+        noiseqarea_min = psf->noiseqarea_min;
+      noiseqarea_mean += psf->noiseqarea;
+      if (psf->noiseqarea_max > noiseqarea_max)
+        noiseqarea_max = psf->noiseqarea_max;
       }
 
     if (nxml>1)
@@ -1011,28 +1045,31 @@ int	write_xml_meta(FILE *file, char *error)
       pfbeta_mean /= (double)neff;
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
+      noiseqarea_mean /= (double)neff;
       }
     else if (neff==0)
       minrad_min = sampling_min = chi2_min = fwhm_min
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
 	= beta_min = residuals_min = pffwhm_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
-	= pfbeta_min = pfresiduals_min = symresiduals_min
+	= pfbeta_min = pfresiduals_min = symresiduals_min = noiseqarea_min
 	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
 	= beta_mean = residuals_mean = pffwhm_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
-	= pfbeta_mean = pfresiduals_mean = symresiduals_mean
+	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
 	= minrad_max = sampling_max = chi2_max = fwhm_max
 	= ellipticity_max  = ellipticity1_max = ellipticity2_max
 	= beta_max = residuals_max = pffwhm_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
-	= pfbeta_max = pfresiduals_max = symresiduals_max = 0.0;
+	= pfbeta_max = pfresiduals_max = symresiduals_max = noiseqarea_max
+	= 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
@@ -1068,7 +1105,8 @@ int	write_xml_meta(FILE *file, char *error)
 	pfellipticity2_min, pfellipticity2_mean, pfellipticity2_max,
 	pfbeta_min, pfbeta_mean, pfbeta_max,
 	pfresiduals_min, pfresiduals_mean, pfresiduals_max,
-	symresiduals_min, symresiduals_mean, symresiduals_max);
+	symresiduals_min, symresiduals_mean, symresiduals_max,
+	noiseqarea_min, noiseqarea_mean, noiseqarea_max);
     }
 
   fprintf(file, "   </TABLEDATA></DATA>\n");
