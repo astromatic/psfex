@@ -675,7 +675,7 @@ int	cplot_fwhm(fieldstruct *field)
 		afwhm,fwhmmin,fwhmmax, mfwhm,dfwhm;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -907,7 +907,7 @@ int	cplot_ellipticity(fieldstruct *field)
 		aellip,ellipmin,ellipmax, mellip,dellip;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1125,7 +1125,7 @@ int	cplot_moffatresi(fieldstruct *field)
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1344,7 +1344,7 @@ int	cplot_asymresi(fieldstruct *field)
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1557,7 +1557,7 @@ int	cplot_counts(fieldstruct *field)
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1716,7 +1716,7 @@ int	cplot_countfrac(fieldstruct *field)
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
@@ -1875,7 +1875,7 @@ int	cplot_modchi2(fieldstruct *field)
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		**chi2,
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
@@ -2034,7 +2034,7 @@ int	cplot_modresi(fieldstruct *field)
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
-		str[64];
+		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		**resi,
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
