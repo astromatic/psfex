@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		02/05/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -663,7 +663,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -713,7 +713,7 @@ int	cplot_fwhm(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: FWHM map", field->rtcatname);
+  sprintf(str, "#uField %.24s: FWHM map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -895,7 +895,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -945,7 +945,7 @@ int	cplot_ellipticity(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: ellipticity map", field->rtcatname);
+  sprintf(str, "#uField %.24s: ellipticity map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -1113,7 +1113,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	09/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1163,7 +1163,7 @@ int	cplot_moffatresi(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: map of Moffat fit residuals", field->rtcatname);
+  sprintf(str, "#uField %.24s: map of Moffat fit residuals", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -1332,7 +1332,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	09/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1382,7 +1382,7 @@ int	cplot_asymresi(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: PSF asymmetry map", field->rtcatname);
+  sprintf(str, "#uField %.24s: PSF asymmetry map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -1546,7 +1546,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1596,7 +1596,7 @@ int	cplot_counts(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: source count map", field->rtcatname);
+  sprintf(str, "#uField %.24s: source count map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -1705,7 +1705,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/11/2009
+VERSION	02/05/2011
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1755,7 +1755,7 @@ int	cplot_countfrac(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField %s: source count fraction map", field->rtcatname);
+  sprintf(str, "#uField %.24s: source count fraction map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -1864,7 +1864,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	08/04/2010
+VERSION	02/05/2011
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
@@ -1915,7 +1915,7 @@ int	cplot_modchi2(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField \"%s\": #gx#u2#d/d.o.f. map", field->rtcatname);
+  sprintf(str, "#uField %.24s: #gx#u2#d/d.o.f. map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);
@@ -2023,7 +2023,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	08/04/2010
+VERSION	02/05/2011
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
@@ -2074,7 +2074,7 @@ int	cplot_modresi(fieldstruct *field)
   plfont(2);
   plcol(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
-  sprintf(str, "#uField \"%s\": map of residuals", field->rtcatname);
+  sprintf(str, "#uField %.24s: map of residuals", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
   plwid(0);

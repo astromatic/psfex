@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		23/03/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -275,7 +275,7 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 01/02/2008
+VERSION 23/03/2011
  ***/
 void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
   {
@@ -329,8 +329,11 @@ void	psf_savehomo(psfstruct *psf, char *filename, int ext, int next)
 
 /* Add and write important scalars as FITS keywords */
   /* -- FM -- : write fwhm too */
-  addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
+  addkeywordto_head(tab, "PSF_FWHM", "FWHM of target PSF");
   fitswrite(tab->headbuf, "PSF_FWHM", &psf->homopsf_params[0],
+	H_FLOAT,T_DOUBLE);
+  addkeywordto_head(tab, "PSF_BETA", "Moffat Beta of target PSF");
+  fitswrite(tab->headbuf, "PSF_BETA", &psf->homopsf_params[1],
 	H_FLOAT,T_DOUBLE);
   addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
   fitswrite(tab->headbuf, "PSF_SAMP", &psf->pixstep, H_FLOAT, T_FLOAT);
