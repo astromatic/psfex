@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/10/2010
+*	Last modified:		03/05/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -48,9 +48,19 @@
 static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		float minin, float maxin, float *minout, float *maxout);
 
-/******************************** load_samples *******************************/
-/*
-Examine and load PSF candidates.
+/****** load_samples *********************************************************
+PROTO	setstruct *load_samples(char **filename, int catindex, int ncat,
+		int ext, int next, contextstruct *context)
+PURPOSE	Examine and load point source data.
+INPUT	Array of catalog filenames,
+	catalog index,
+	current extension,
+	number of extensions,
+	pointer to the context.
+OUTPUT  Pointer to a set containing samples that match acceptance criteria.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 03/05/2011
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -58,17 +68,18 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
    setstruct		*set;
    catstruct		*cat;
    tabstruct		*tab;
-   keystruct		*fkey, *(key[4]);
-   char			keynames[4][16]={"FLUX_RADIUS", "FLUX_MAX", "FLAGS",
-					"ELONGATION"};
+   keystruct		*fkey, *key;
+   char			keynames[][32]={"ELONGATION", "FLAGS", "FLUX_RADIUS",
+				"SNR_WIN", ""};
    char			str[MAXCHAR];
-   char			*head, *(pkeynames[4]);
+   char			**pkeynames,
+			*head;
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt, *hl, *fmax, *elong, *backnoises,
+			*fwhm,*fwhmt, *elong, *hl, *snr, *backnoises,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
    int			*fwhmindex,
-			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, next2;
+			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, nkeys;
 
 //  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -82,7 +93,6 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
   QMALLOC(fwhmmin, float, ncat);
   QMALLOC(fwhmmax, float, ncat);
   QMALLOC(fwhmmode, float, ncat);
-  next2 = 1;
 
   if (prefs.autoselect_flag)
     {
@@ -94,7 +104,10 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
     fwhmt=fwhm;
 
 /*-- Initialize string array */
-    for (i=0; i<4; i++)
+    for (i=0; (*keynames[i]); i++);
+    nkeys = i;
+    QMALLOC(pkeynames, char *, nkeys);
+    for (i=0; i<nkeys; i++)
       pkeynames[i] = keynames[i];
 
 /*-- Try to estimate the most appropriate Half-light Radius range */
@@ -114,42 +127,8 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
       ldflag = 1;
       ext2 = 0;
       tab = cat->tab;
-/*---- Get background noises for this catalog */
-      for (j=cat->ntab; j--; tab=tab->nexttab)
-        if (!(ldflag = strcmp("LDAC_IMHEAD",tab->extname))
-		|| fitsread(tab->headbuf,"SEXBKDEV",&backnoises[e],
-			H_FLOAT,T_FLOAT) == RETURN_OK)
-          {
-          if (ext != ALL_EXTENSIONS)
-            {
-            if (ext2 < ext)
-              {
-              ext2++;
-              continue;
-              }
-            else if (ext2 > ext)
-              break;
-            }
-          if (!ldflag)
-            {
-            fkey=read_key(tab, "Field Header Card");
-            head = fkey->ptr;
-            if (fitsread(head,"SEXBKDEV",&backnoises[e],H_FLOAT,T_FLOAT)
-		== RETURN_ERROR)
-              error(EXIT_FAILURE, "*Error*: Keyword not found:", "SEXBKDEV");
-            }
-          if (backnoises[e]<1/BIG)
-            backnoises[e] = 1.0;
-          e++;
-          }
-      next2 = e;
-      if (!next2)
-        error(EXIT_FAILURE, "*Error*: SExtractor table missing in ",
-		filename[icat]);
-      if (next2>next)
-        next2 = next;
 
-/*---- Now load the objects */
+/*---- Load the objects */
       e = 0;
       ext2 = ext;
       tab = cat->tab;
@@ -168,25 +147,43 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
               break;
             ext2++;
             }
-          for (j=0; j<4; j++)
-            if (!(key[j]=name_to_key(tab, keynames[j])))
+
+/*-------- Read the data */
+
+          read_keys(tab, pkeynames, NULL, nkeys, NULL);
+
+          if (!(key = name_to_key(tab, "ELONGATION")))
               {
-              sprintf(str, "%s not found in catalog %s", keynames[j],
+              sprintf(str, "ELONGATION not found in catalog %s",
 			filename[icat]);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
+          elong = (float *)key->ptr;
+          if (!(key = name_to_key(tab, "FLAGS")))
+              {
+              sprintf(str, "FLAGS not found in catalog %s",
+			filename[icat]);
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
+          flags = (short *)key->ptr;
+          if (!(key = name_to_key(tab, "FLUX_RADIUS")))
+              {
+              sprintf(str, "FLUS_RADIUS not found in catalog %s",
+			filename[icat]);
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
+          hl = (float *)key->ptr;
+          if (!(key = name_to_key(tab, "SNR_WIN")))
+              {
+              sprintf(str, "SNR_WIN not found in catalog %s",
+			filename[icat]);
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
+          snr = (float *)key->ptr;
 
-          read_keys(tab, pkeynames, NULL, 4, NULL);
-
-/*-------- Fill the FWHM array */
-          hl = key[0]->ptr;
-          fmax = key[1]->ptr;
-          flags = key[2]->ptr;
-          elong = key[3]->ptr;
-          backnoise = backnoises[e];
-          for (n=tab->naxisn[1]; n--; hl++, fmax++, flags++, elong++)
+          for (n=tab->naxisn[1]; n--; hl++, snr++, flags++, elong++)
             {
-            if (*fmax/backnoise>minsn
+            if (*snr>minsn
 		&& !(*flags&prefs.flag_mask)
 		&& *elong<maxelong
 		&& (fval=2.0**hl)>=min
@@ -205,7 +202,6 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           }
       free_cat(&cat, 1);
       fwhmindex[i+1] = nobj;
-      free(backnoises);
       }
 
     if (prefs.var_type == VAR_NONE)
@@ -243,6 +239,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
         }
     free(fwhm);
     free(fwhmindex);
+    free(pkeynames);
     }
   else
     for (i=0; i<ncat; i++)
@@ -260,7 +257,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
     {
     icat = catindex + i;
     if (ext == ALL_EXTENSIONS)
-      for (e=0; e<next2; e++)
+      for (e=0; e<next; e++)
         set = read_samples(set, filename[icat], fwhmmin[i]/2.0, fwhmmax[i]/2.0,
 			e, next, icat, context, context->pc+i*context->npc);
     else
@@ -363,8 +360,26 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
   }
 
 
-/******************************** read_samples *******************************/
-/*
+/****** read_samples *********************************************************
+PROTO	setstruct *read_samples(setstruct *set, char *filename,
+			float frmin, float frmax,
+			int ext, int next, int catindex,
+			contextstruct *context, double *pcval)
+
+PURPOSE	Read point source data for a given set.
+INPUT	Pointer to the data set,
+	catalogue filename,
+	minimum flux radius,
+	maximum flux radius,
+	current extension,
+	number of extensions,
+	catalogue index
+	pointer to the context,
+	pointer to the array of principal components, if available.
+OUTPUT  Pointer to a set containing samples that match acceptance criteria.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 03/05/2011
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
@@ -383,9 +398,9 @@ setstruct *read_samples(setstruct *set, char *filename,
 			*head, *buf;
    unsigned short	*flags;
    double		contextval[MAXCONTEXT],
-			*dxm,*dym, *cmin, *cmax, dval, sn;
-   float		*xm, *ym, *vignet,*vignett, *flux, *fluxerr, *fluxrad,
-			*elong,
+			*dxm,*dym, *cmin, *cmax, dval;
+   float		*xm, *ym, *vignet,*vignett, *flux, *fluxrad, *elong,
+			*snr,
 			backnoise, backnoise2, gain, minsn,maxelong;
    static int		ncat;
    int			*lxm,*lym,
@@ -535,26 +550,12 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     }
 
-  if (!(key = name_to_key(keytab, prefs.photfluxerr_rkey)))
+  if (!(key = name_to_key(keytab, "SNR_WIN")))
     {
-    sprintf(str, "*Error*: %s parameter not found in catalogue ",
-	prefs.photfluxerr_rkey);
+    sprintf(str, "*Error*: SNR_WIN parameter not found in catalogue ");
     error(EXIT_FAILURE, str, filename);
     }
-  fluxerr = (float *)key->ptr;
-  n = prefs.photfluxerr_num - 1;
-  if (n)
-    {
-    if (key->naxis==1 && n<key->naxisn[0])
-      fluxerr += n;
-    else
-      {
-      sprintf(str, "Not enough apertures for %s in catalogue %s: ",
-	prefs.photfluxerr_rkey,
-	filename);
-      warning(str, "using first aperture");
-      }
-    }
+  snr = (float *)key->ptr;
 
   if (!(key = name_to_key(keytab, "ELONGATION")))
     error(EXIT_FAILURE, "*Error*: ELONGATION parameter not found in catalog ",
@@ -632,7 +633,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 	ncat, str2, n,nsample);
 //      NFPRINTF(OUTPUT, str);
       }
-    sn = (double)(*fluxerr>0.0? *flux / *fluxerr : BIG);
+
 /*---- Apply some selection over flags, fluxes... */
     contflag = 0;
     if (*flags&prefs.flag_mask)
@@ -640,7 +641,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       contflag++;
       set->badflags++;
       }
-    if (sn<minsn)
+    if (*snr<minsn)
       {
       contflag++;
       set->badsn++;
