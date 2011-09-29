@@ -52,7 +52,6 @@ typedef struct sample
   float		*vigresi;		/* Residual-map of the PSF-residuals */
   float		*vigchi;		/* Chi-map of the PSF-residuals */
   float		*vigweight;		/* Vignette-weight array */
-  float		*pos;			/* Extra parameters array */
   float		norm;			/* Normalisation */
   double	x,y;			/* x,y position estimate in frame */
   float		dx,dy;			/* x,y shift / vignet center */

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/01/2011
+*	Last modified:		29/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,6 +30,9 @@
 #include        "config.h"
 #endif
 
+#ifdef USE_THREADS
+#include <pthread.h>
+#endif
 #include	<math.h>
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -44,6 +47,24 @@
 #include	"prefs.h"
 #include	"poly.h"
 #include	"psf.h"
+#ifdef USE_THREADS
+#include	"threads.h"
+#endif
+
+/*------------------- global variables for multithreading -------------------*/
+#ifdef USE_THREADS
+static void	*pthread_psf_compdiag(void *arg);
+
+pthread_t	*thread;
+pthread_mutex_t	compdiagmutex;
+psfstruct	*pthread_psf;
+moffatstruct	*pthread_moffat, *pthread_pfmoffat;
+double		*pthread_dpos,
+		pthread_dstart, pthread_dstep;
+int		pthread_overflag, pthread_n, pthread_nt, pthread_npc;
+#endif
+
+double lm_opts[] = {1.0e-2, 1.0e-12, 1.0e-12, 1.0e-12, 1.0e-4};
 
 /****** psf_diagnostic *******************************************************
 PROTO	void	psf_diagnostic(psfstruct *psf)
@@ -51,19 +72,20 @@ PURPOSE	Free a PSF structure and everything it contains.
 INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/11/2010
+AUTHOR  E. Bertin (IAP)
+VERSION 29/09/2011
  ***/
 void	psf_diagnostic(psfstruct *psf)
   {
+#ifdef USE_THREADS
+   pthread_attr_t	pthread_attr;
+   int			p;
+#endif
    moffatstruct		*moffat, *pfmoffat;
-   double		lm_opts[5],
-			dpos[POLY_MAXDIM],
-			dparam[PSF_DIAGNPARAM],
-			*dresi;
-   float		param[PSF_DIAGNPARAM],
+   double		dpos[POLY_MAXDIM],
 			dstep,dstart, fwhm, ellip,ellip1,ellip2;
-   int			i,m,n, w,h, npc,nt, nmed, niter;
+   int			*proc,
+			i,n, w,h, npc,nt, nmed;
 
   nmed = 0;
   npc = psf->poly->ndim;
@@ -76,111 +98,113 @@ void	psf_diagnostic(psfstruct *psf)
 
   w = psf->size[0];
   h = psf->size[1];
-  m = w*h;
-  QMALLOC(dresi, double, m);
   dstep = 1.0/psf->nsnap;
   dstart = (1.0-dstep)/2.0;
 
-/*-------------------- "Normal" Moffat profile-fitting ---------------------*/
-
-  moffat = psf->moffat;
-  psf->nsubpix = 1;
   memset(dpos, 0, POLY_MAXDIM*sizeof(float));
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
-  psf->moffat_fwhm_min = psf->moffat_ellipticity_min
+/* Initialize PSF parameter boundaries */
+  fwhm = psf->fwhm / psf->pixstep;
+/* Amplitude */
+  moffat_parammin[0] = 1.0/(psf->fwhm*psf->fwhm)/10.0;
+  moffat_parammax[0] = 1.0/(psf->fwhm*psf->fwhm)*10.0;
+/* Xcenter */
+  moffat_parammin[1] = 0.0;
+  moffat_parammax[1] = w - 1.0;
+/* Ycenter */
+  moffat_parammin[2] = 0.0;
+  moffat_parammax[2] = h - 1.0;
+/* Major axis FWHM (pixels) */
+  moffat_parammin[3] = fwhm/3.0;
+  moffat_parammax[3] = fwhm*3.0;
+/* Major axis FWHM (pixels) */
+  moffat_parammin[4] = fwhm/3.0;
+  moffat_parammax[4] = fwhm*3.0;
+/* Position angle (deg)  */
+  moffat_parammin[5] = moffat_parammax[5] = 90.0;
+/* Moffat beta */
+  moffat_parammin[6] = PSF_BETAMIN;
+  moffat_parammax[6] = 10.0;
+
+/* Allocate arrays for both "pure" and "pixel-free" Moffat fits */
+  QMALLOC(moffat, moffatstruct, nt);
+  QMALLOC(pfmoffat, moffatstruct, nt);
+
+/* For each snapshot of the PSF */ 
+#ifdef USE_THREADS
+  QMALLOC(proc, int, prefs.nthreads);
+  QMALLOC(thread, pthread_t, prefs.nthreads);
+  QPTHREAD_MUTEX_INIT(&compdiagmutex, NULL);
+  QPTHREAD_ATTR_INIT(&pthread_attr);
+  QPTHREAD_ATTR_SETDETACHSTATE(&pthread_attr, PTHREAD_CREATE_JOINABLE);
+/* Start the computing threads */
+  pthread_overflag = 0;
+  pthread_n = 0;
+  pthread_nt = nt;
+  pthread_npc = npc;
+  pthread_dpos = dpos;
+  pthread_dstart = dstart;
+  pthread_dstep = dstep;
+  pthread_psf = psf;
+  pthread_moffat = moffat;
+  pthread_pfmoffat = pfmoffat;
+/* Start all threads */
+  for (p=0; p<prefs.nthreads; p++)
+    {
+    proc[p] = p;
+    QPTHREAD_CREATE(&thread[p], &pthread_attr, &pthread_psf_compdiag, &proc[p]);
+    }
+/* Shutdown all threads */
+  for (p=0; p<prefs.nthreads; p++)
+    QPTHREAD_JOIN(thread[p], NULL);
+  QPTHREAD_MUTEX_DESTROY(&compdiagmutex);
+  QPTHREAD_ATTR_DESTROY(&pthread_attr);
+  free(thread);
+  free(proc);
+#else
+  for (n=0; n<nt; n++)
+    {
+    psf_compdiag(psf, &moffat[n], dpos, 1);
+    psf_compdiag(psf, &pfmoffat[n], dpos, PSF_NSUBPIX) ;
+
+    for (i=0; i<npc; i++)
+      if (dpos[i]<dstart-0.01)
+        {
+        dpos[i] += dstep;
+        break;
+        }
+      else
+        dpos[i] = -dstart;
+    }
+#endif
+
+  psf->pfmoffat_fwhm_min = psf->pfmoffat_ellipticity_min
+		= psf->pfmoffat_ellipticity1_min
+		= psf->pfmoffat_ellipticity2_min
+		= psf->pfmoffat_beta_min
+		= psf->pfmoffat_residuals_min
+		= psf->moffat_fwhm_min = psf->moffat_ellipticity_min
 		= psf->moffat_ellipticity1_min = psf->moffat_ellipticity2_min
 		= psf->moffat_beta_min
 		= psf->moffat_residuals_min = psf->sym_residuals_min
 		= psf->noiseqarea_min = BIG;
-  psf->moffat_fwhm_max = psf->moffat_ellipticity_max
+  psf->pfmoffat_fwhm_max = psf->pfmoffat_ellipticity_max
+		= psf->pfmoffat_ellipticity1_max
+		= psf->pfmoffat_ellipticity2_max
+		= psf->pfmoffat_beta_max
+		= psf->pfmoffat_residuals_max
+		= psf->moffat_fwhm_max = psf->moffat_ellipticity_max
 		= psf->moffat_ellipticity1_max = psf->moffat_ellipticity2_max
 		= psf->moffat_beta_max
 		= psf->moffat_residuals_max = psf->sym_residuals_max
 		= psf->noiseqarea_max = -BIG;
 
-  lm_opts[0] = 1.0e-2;
-  lm_opts[1] = 1.0e-12;
-  lm_opts[2] = 1.0e-12;
-  lm_opts[3] = 1.0e-12;
-  lm_opts[4] = 1.0e-4;
-
-/* For each snapshot of the PSF */ 
   for (n=0; n<nt; n++)
     {
-    if (psf->samples_accepted)
-      {
-      psf_build(psf, dpos);
-/*---- Initialize PSF parameters */
-      fwhm = psf->fwhm / psf->pixstep;
-/*---- Amplitude */
-      param[0] = 1.0/(psf->fwhm*psf->fwhm);
-      moffat_parammin[0] = param[0]/10.0;
-      moffat_parammax[0] = param[0]*10.0;
-/*---- Xcenter */
-      param[1] = (w-1)/2.0;
-      moffat_parammin[1] = 0.0;
-      moffat_parammax[1] = w - 1.0;
-/*---- Ycenter */
-      param[2] = (h-1)/2.0;
-      moffat_parammin[2] = 0.0;
-      moffat_parammax[2] = h - 1.0;
-/*---- Major axis FWHM (pixels) */
-      param[3] = fwhm;
-      moffat_parammin[3] = fwhm/3.0;
-      moffat_parammax[3] = fwhm*3.0;
-/*---- Major axis FWHM (pixels) */
-      param[4] = fwhm;
-      moffat_parammin[4] = fwhm/3.0;
-      moffat_parammax[4] = fwhm*3.0;
-/*---- Position angle (deg)  */
-      param[5] = 0.0;
-      moffat_parammin[5] = moffat_parammax[5] = 90.0;
-/*---- Moffat beta */
-      param[6] = 3.0;
-      moffat_parammin[6] = PSF_BETAMIN;
-      moffat_parammax[6] = 10.0;
-      psf_boundtounbound(param, dparam);
-      memset(dresi, 0, m*sizeof(double));
-      niter = dlevmar_dif(psf_diagresi, dparam, dresi,
-	PSF_DIAGNPARAM, m, 
-	PSF_DIAGMAXITER, 
-	lm_opts, NULL, NULL, NULL, psf);
-      psf_unboundtobound(dparam,param);
-      }
-    else
-      memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
-
-    moffat[n].nsubpix = psf->nsubpix;
-    moffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
-    moffat[n].xc[0] = param[1];
-    moffat[n].xc[1] = param[2];
-    if (param[3] > param[4])
-      {
-      moffat[n].fwhm_max = param[3]*psf->pixstep;
-      moffat[n].fwhm_min = param[4]*psf->pixstep;
-      moffat[n].theta = (fmod(param[5]+360.0, 180.0));
-      }
-    else
-      {
-      moffat[n].fwhm_max = param[4]*psf->pixstep;
-      moffat[n].fwhm_min = param[3]*psf->pixstep;
-      moffat[n].theta = (fmod(param[5]+450.0, 180.0));
-      }
-    if (moffat[n].theta > 90.0)
-      moffat[n].theta -= 180.0;
-
-    moffat[n].beta = param[6];
-
-    for (i=0; i<npc; i++)
-      moffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
-
-    moffat[n].residuals = psf_normresi(param, psf);
-    moffat[n].symresiduals = (float)psf_symresi(psf);
-    moffat[n].noiseqarea = (float)psf_noiseqarea(psf);
-
-    if ((fwhm=0.5*(psf->moffat[n].fwhm_min+psf->moffat[n].fwhm_max))
+/*-- Pure Moffat statistics */
+    if ((fwhm=0.5*(moffat[n].fwhm_min+moffat[n].fwhm_max))
 		< psf->moffat_fwhm_min)
       psf->moffat_fwhm_min = fwhm;
     if (fwhm > psf->moffat_fwhm_max)
@@ -225,122 +249,7 @@ void	psf_diagnostic(psfstruct *psf)
     if (moffat[n].noiseqarea > psf->noiseqarea_max)
       psf->noiseqarea_max = moffat[n].noiseqarea;
 
-    for (i=0; i<npc; i++)
-      if (dpos[i]<dstart-0.01)
-        {
-        dpos[i] += dstep;
-        break;
-        }
-      else
-        dpos[i] = -dstart;
-    }
-
-  psf->moffat_fwhm = 0.5*(moffat[nmed].fwhm_min + moffat[nmed].fwhm_max);
-
-  ellip = moffat[nmed].fwhm_max + moffat[nmed].fwhm_min;
-  psf->moffat_ellipticity = (ellip > 0.0)?
-	(moffat[nmed].fwhm_max - moffat[nmed].fwhm_min) / ellip : 0.0;
-  psf->moffat_ellipticity1 = psf->moffat_ellipticity
-				* cosf(2.0*moffat[nmed].theta*DEG);
-  psf->moffat_ellipticity2 = psf->moffat_ellipticity
-				* sinf(2.0*moffat[nmed].theta*DEG);
-
-  psf->moffat_beta = moffat[nmed].beta;
-  psf->moffat_residuals = moffat[nmed].residuals;
-  psf->sym_residuals = moffat[nmed].symresiduals;
-  psf->noiseqarea = moffat[nmed].noiseqarea;
-
-/*------------------ "Pixel-free" Moffat profile-fitting -------------------*/
-
-  pfmoffat = psf->pfmoffat;
-  psf->nsubpix = PSF_NSUBPIX;
-  memset(dpos, 0, POLY_MAXDIM*sizeof(float));
-  for (i=0; i<npc; i++)
-     dpos[i] = -dstart;
-
-  psf->pfmoffat_fwhm_min = psf->pfmoffat_ellipticity_min
-		= psf->pfmoffat_ellipticity1_min
-		= psf->pfmoffat_ellipticity2_min
-		= psf->pfmoffat_beta_min
-		= psf->pfmoffat_residuals_min = BIG;
-  psf->pfmoffat_fwhm_max = psf->pfmoffat_ellipticity_max
-		= psf->pfmoffat_ellipticity1_max
-		= psf->pfmoffat_ellipticity2_max
-		= psf->pfmoffat_beta_max
-		= psf->pfmoffat_residuals_max = -BIG;
-
-/* For each snapshot of the PSF */ 
-  for (n=0; n<nt; n++)
-    {
-    if (psf->samples_accepted)
-      {
-      psf_build(psf, dpos);
-/*---- Initialize PSF parameters */
-      fwhm = psf->fwhm / psf->pixstep;
-/*---- Amplitude */
-      param[0] = 1.0/(psf->fwhm*psf->fwhm);
-      moffat_parammin[0] = param[0]/10.0;
-      moffat_parammax[0] = param[0]*10.0;
-/*---- Xcenter */
-      param[1] = (w-1)/2.0;
-      moffat_parammin[1] = 0.0;
-      moffat_parammax[1] = w - 1.0;
-/*---- Ycenter */
-      param[2] = (h-1)/2.0;
-      moffat_parammin[2] = 0.0;
-      moffat_parammax[2] = h - 1.0;
-/*---- Major axis FWHM (pixels) */
-      param[3] = fwhm;
-      moffat_parammin[3] = fwhm/3.0;
-      moffat_parammax[3] = fwhm*3.0;
-/*---- Major axis FWHM (pixels) */
-      param[4] = fwhm;
-      moffat_parammin[4] = fwhm/3.0;
-      moffat_parammax[4] = fwhm*3.0;
-/*---- Position angle (deg)  */
-      param[5] = 0.0;
-      moffat_parammin[5] = moffat_parammax[5] = 90.0;
-/*---- Moffat beta */
-      param[6] = 3.0;
-      moffat_parammin[6] = PSF_BETAMIN;
-      moffat_parammax[6] = 10.0;
-      psf_boundtounbound(param, dparam);
-      memset(dresi, 0, m*sizeof(double));
-      niter = dlevmar_dif(psf_diagresi, dparam, dresi,
-	PSF_DIAGNPARAM, m, 
-	PSF_DIAGMAXITER, 
-	lm_opts, NULL, NULL, NULL, psf);
-      psf_unboundtobound(dparam, param);
-      }
-    else
-      memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
-
-    pfmoffat[n].nsubpix = psf->nsubpix;
-    pfmoffat[n].amplitude = param[0]/(psf->pixstep*psf->pixstep);
-    pfmoffat[n].xc[0] = param[1];
-    pfmoffat[n].xc[1] = param[2];
-    if (param[3] > param[4])
-      {
-      pfmoffat[n].fwhm_max = param[3]*psf->pixstep;
-      pfmoffat[n].fwhm_min = param[4]*psf->pixstep;
-      pfmoffat[n].theta = (fmod(param[5]+360.0, 180.0));
-      }
-    else
-      {
-      pfmoffat[n].fwhm_max = param[4]*psf->pixstep;
-      pfmoffat[n].fwhm_min = param[3]*psf->pixstep;
-      pfmoffat[n].theta = (fmod(param[5]+450.0, 180.0));
-      }
-    if (pfmoffat[n].theta > 90.0)
-      pfmoffat[n].theta -= 180.0;
-
-    pfmoffat[n].beta = param[6];
-
-    for (i=0; i<npc; i++)
-      pfmoffat[n].context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
-
-    pfmoffat[n].residuals = psf_normresi(param, psf);
-
+/*-- Pixel-free Moffat statistics */
     if ((fwhm=0.5*(pfmoffat[n].fwhm_min+pfmoffat[n].fwhm_max))
 		< psf->pfmoffat_fwhm_min)
       psf->pfmoffat_fwhm_min = fwhm;
@@ -376,17 +285,25 @@ void	psf_diagnostic(psfstruct *psf)
       psf->pfmoffat_residuals_min = pfmoffat[n].residuals;
     if (pfmoffat[n].residuals > psf->pfmoffat_residuals_max)
       psf->pfmoffat_residuals_max = pfmoffat[n].residuals;
-
-    for (i=0; i<npc; i++)
-      if (dpos[i]<dstart-0.01)
-        {
-        dpos[i] += dstep;
-        break;
-        }
-      else
-        dpos[i] = -dstart;
     }
 
+/* Pure Moffat statistics */
+  psf->moffat_fwhm = 0.5*(moffat[nmed].fwhm_min + moffat[nmed].fwhm_max);
+
+  ellip = moffat[nmed].fwhm_max + moffat[nmed].fwhm_min;
+  psf->moffat_ellipticity = (ellip > 0.0)?
+	(moffat[nmed].fwhm_max - moffat[nmed].fwhm_min) / ellip : 0.0;
+  psf->moffat_ellipticity1 = psf->moffat_ellipticity
+				* cosf(2.0*moffat[nmed].theta*DEG);
+  psf->moffat_ellipticity2 = psf->moffat_ellipticity
+				* sinf(2.0*moffat[nmed].theta*DEG);
+
+  psf->moffat_beta = moffat[nmed].beta;
+  psf->moffat_residuals = moffat[nmed].residuals;
+  psf->sym_residuals = moffat[nmed].symresiduals;
+  psf->noiseqarea = moffat[nmed].noiseqarea;
+
+/* Pixel-free Moffat statistics */
   psf->pfmoffat_fwhm = 0.5*(pfmoffat[nmed].fwhm_min + pfmoffat[nmed].fwhm_max);
 
   ellip = pfmoffat[nmed].fwhm_max + pfmoffat[nmed].fwhm_min;
@@ -399,6 +316,164 @@ void	psf_diagnostic(psfstruct *psf)
 
   psf->pfmoffat_beta = pfmoffat[nmed].beta;
   psf->pfmoffat_residuals = pfmoffat[nmed].residuals;
+
+/* Copy Moffat pointers last to avoid duplicating Moffat arrays in psf_copy() */
+  psf->moffat = moffat;
+  psf->pfmoffat = pfmoffat;
+
+  return;
+  }
+
+#ifdef USE_THREADS
+/****** pthread_psf_compdiag **************************************************
+PROTO	void	*pthread_psf_compdiag(void *arg)
+PURPOSE	Thread that takes care of computing diagnostics.
+INPUT	Pointer to the thread number.
+OUTPUT  -.
+NOTES   Relies on global variables.
+AUTHOR  E. Bertin (IAP)
+VERSION 29/09/2011
+ ***/
+void	*pthread_psf_compdiag(void *arg)
+  {
+   double	dpos[POLY_MAXDIM];
+   int		i,n, proc, overflag;
+
+  proc = *((int *)arg);
+  QPTHREAD_MUTEX_LOCK(&compdiagmutex);
+  while (pthread_n<pthread_nt)
+    {
+    overflag = pthread_overflag;
+    pthread_overflag ^= 1;
+    n = pthread_n;
+    if (overflag)
+      pthread_n++;
+    memcpy(dpos, pthread_dpos, pthread_npc*sizeof(double));
+    for (i=0; i<pthread_npc; i++)
+      if (pthread_dpos[i]<pthread_dstart-0.01)
+        {
+        pthread_dpos[i] += pthread_dstep;
+        break;
+        }
+      else
+        pthread_dpos[i] = -pthread_dstart;
+    QPTHREAD_MUTEX_UNLOCK(&compdiagmutex);
+    if (overflag)
+      psf_compdiag(pthread_psf, &pthread_pfmoffat[n], dpos, PSF_NSUBPIX);
+    else
+      psf_compdiag(pthread_psf, &pthread_moffat[n], dpos, 1);
+    QPTHREAD_MUTEX_LOCK(&compdiagmutex);
+    }
+
+  QPTHREAD_MUTEX_UNLOCK(&compdiagmutex);
+  pthread_exit(NULL);
+
+  return (void *)NULL;
+  }
+#endif
+
+
+/****** psf_compdiag *******************************************************
+PROTO	void	psf_compdiag(psfstruct *psf, moffatstruct *moffat,
+			double *dpos, int oversamp)
+PURPOSE	Compute diagnostics for a single PSF realization.
+INPUT	Pointer to the PSF structure,
+	pointer to the Moffat structure,
+	context vector,
+	oversampling factor.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 25/09/2011
+ ***/
+void	psf_compdiag(psfstruct *psf0, moffatstruct *moffat, double *dpos,
+			int oversamp)
+  {
+   psfstruct		*psf;
+   double		dparam[PSF_DIAGNPARAM],
+			*dresi;
+   float		param[PSF_DIAGNPARAM],
+			fwhm;
+   int			i,m,w,h, npc,niter;
+
+#ifdef USE_THREADS
+  psf = prefs.nthreads>1? psf_copy(psf0) : psf0;
+#else
+  psf = psf0;
+#endif
+
+  psf->nsubpix = oversamp;
+  npc = psf->poly->ndim;
+  w = psf->size[0];
+  h = psf->size[1];
+  m = w*h;
+
+  if (psf->samples_accepted)
+    {
+    psf_build(psf, dpos);
+/*-- Initialize PSF parameters */
+    fwhm = psf->fwhm / psf->pixstep;
+/*-- Amplitude */
+    param[0] = 1.0/(psf->fwhm*psf->fwhm);
+/*-- Xcenter */
+    param[1] = (w-1)/2.0;
+/*-- Ycenter */
+    param[2] = (h-1)/2.0;
+/*-- Major axis FWHM (pixels) */
+    param[3] = fwhm;
+/*-- Major axis FWHM (pixels) */
+    param[4] = fwhm;
+/*-- Position angle (deg)  */
+    param[5] = 0.0;
+/*-- Moffat beta */
+    param[6] = 3.0;
+    psf_boundtounbound(param, dparam);
+    QCALLOC(dresi, double, m);
+    niter = dlevmar_dif(psf_diagresi, dparam, dresi,
+	PSF_DIAGNPARAM, m, 
+	PSF_DIAGMAXITER, 
+	lm_opts, NULL, NULL, NULL, psf);
+    free(dresi);
+    psf_unboundtobound(dparam,param);
+    }
+  else
+    memset(param, 0, PSF_DIAGNPARAM*sizeof(float));
+
+  moffat->nsubpix = psf->nsubpix;
+  moffat->amplitude = param[0]/(psf->pixstep*psf->pixstep);
+  moffat->xc[0] = param[1];
+  moffat->xc[1] = param[2];
+  if (param[3] > param[4])
+    {
+    moffat->fwhm_max = param[3]*psf->pixstep;
+    moffat->fwhm_min = param[4]*psf->pixstep;
+    moffat->theta = (fmod(param[5]+360.0, 180.0));
+    }
+  else
+    {
+    moffat->fwhm_max = param[4]*psf->pixstep;
+    moffat->fwhm_min = param[3]*psf->pixstep;
+    moffat->theta = (fmod(param[5]+450.0, 180.0));
+    }
+  if (moffat->theta > 90.0)
+    moffat->theta -= 180.0;
+
+  moffat->beta = param[6];
+
+  for (i=0; i<npc; i++)
+    moffat->context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
+
+  moffat->residuals = psf_normresi(param, psf);
+  if (oversamp==1)
+    {
+/*-- Asymmetry and NEA do not depend on sampling factor: no need to run twice */
+    moffat->symresiduals = (float)psf_symresi(psf);
+    moffat->noiseqarea = (float)psf_noiseqarea(psf);
+    }
+#ifdef USE_THREADS
+  if (prefs.nthreads>1)
+    psf_end(psf);
+#endif
 
   return;
   }
@@ -427,7 +502,6 @@ void	psf_diagresi(double *dparam, double *fvec, int m, int n, void *adata)
 		dx0,dy0, dxstep,dystep;
    int		i, x,y, xd,yd, w,h, nsubpix;
 
-//printf("--%g %g %g %g %g %g %g\n", par[0],par[1],par[2],par[3],par[4],par[5],par[6]);
   psf = (psfstruct *)adata;
   nsubpix = psf->nsubpix;
   psf_unboundtobound(dparam, par);

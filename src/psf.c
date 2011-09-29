@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/10/2010
+*	Last modified:		25/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -337,8 +337,10 @@ psfstruct	*psf_init(contextstruct *context, int *size,
     }
 
 /* Allocate an array of Moffat function fits */
+/*
   QMALLOC(psf->moffat, moffatstruct, nsnap);
   QMALLOC(psf->pfmoffat, moffatstruct, nsnap);
+*/
 
 /* Free temporary arrays */
   if (ndim)
@@ -432,7 +434,7 @@ INPUT   psfstruct pointer.
 OUTPUT  psfstruct pointer.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/10/2009
+VERSION 25/09/2011
  ***/
 psfstruct *psf_copy(psfstruct *psf)
   {
@@ -471,8 +473,11 @@ psfstruct *psf_copy(psfstruct *psf)
     {
     nsnap *= psf->nsnap;
     }
-  QMEMCPY(psf->moffat, newpsf->moffat, moffatstruct, nsnap);
-  QMEMCPY(psf->pfmoffat, newpsf->pfmoffat, moffatstruct, nsnap);
+
+  if (psf->moffat)
+    QMEMCPY(psf->moffat, newpsf->moffat, moffatstruct, nsnap);
+  if (psf->pfmoffat)
+    QMEMCPY(psf->pfmoffat, newpsf->pfmoffat, moffatstruct, nsnap);
   if (psf->homo_kernel)
     QMEMCPY(psf->homo_kernel, newpsf->homo_kernel, float, psf->npix);
 

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		25/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,7 +39,8 @@
 
 /*----------------------------- Type definitions --------------------------*/
 typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
-		PSF_SAMPLES, PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
+		PSF_RESIDUALS_GRID, PSF_SAMPLES, PSF_SAMPLES_GRID,
+		PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
 		PSF_WEIGHTS, PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM}
 	checkenum;
 

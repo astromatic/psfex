@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/01/2011
+*	Last modified:		25/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,10 +46,12 @@
 
 /*----------------------------- Global variables ---------------------------*/
 
-float	moffat_parammin[PSF_DIAGNPARAM], moffat_parammax[PSF_DIAGNPARAM];
+float		moffat_parammin[PSF_DIAGNPARAM],moffat_parammax[PSF_DIAGNPARAM];
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_boundtounbound(float *param, double *dparam),
+		psf_compdiag(psfstruct *psf, moffatstruct *moffat,
+			double *dpos, int oversamp),
 		psf_diagnostic(psfstruct *psf),
 		psf_diagprintout(int n_par, float *par, int m_dat,
 			float *fvec, void *data, int iflag,int iter,int nfev),

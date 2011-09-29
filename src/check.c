@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		27/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 24/04/2010
+VERSION 27/09/2011
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -71,15 +71,16 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
    psfstruct		*psf;
    catstruct		*cat;
    tabstruct		*tab;
-   samplestruct		*sample;
+   samplestruct		**gridsample,
+			*sample,*osample;
    char			filename[MAXCHAR], str[82],
 			*head, *pstr,*pstr2;
    static double	dpos[POLY_MAXDIM], *dpost;
-   double		dstep,dstart, dval1,dval2, scalefac;
+   double		dstep,dstart, dval1,dval2, scalefac, dstepx,dstepy;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,j,l,x,y, w,h,n, npc,nt, nw,nh,np,
-			step, ival1,ival2, npix;
+   int			i,j,l,x,y, w,h,n, npc,nt, nw,nh,np, npos,npos2,
+			step,step2, ipos, inpos, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
   if (!ext)
@@ -315,6 +316,84 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         }
       break;
 
+    case PSF_RESIDUALS_GRID:
+/*----  View the brightest samples arranged as a grid */
+      npc = 2;
+      npos = psf->nsnap;
+      for (nt=1, i=npc; (i--)>0;)
+        nt *= psf->nsnap;
+      QCALLOC(gridsample, samplestruct *, nt);
+      dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
+      dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
+      sample = set->sample;
+      for (n=set->nsample; n--; sample++)
+        {
+        ipos = (int)(dstepx * (sample->x+0.5)) ;
+        if (ipos<0)
+          ipos = 0;
+        else if (ipos>=npos)
+          ipos = npos-1; 
+        inpos = ipos;
+        ipos = (int)(dstepy * (sample->y+0.5));
+        if (ipos<0)
+          ipos = 0;
+        else if (ipos>=npos)
+          ipos = npos-1; 
+        inpos += ipos*npos;
+        osample = gridsample[inpos];
+        if (!osample || osample->norm < sample->norm)
+          gridsample[inpos] = sample;
+        }
+
+      nw = npc? psf->nsnap : 1;
+      w = set->vigsize[0];
+      h = set->vigsize[1];
+      if (cubeflag)
+        {
+        nh = npc>2? psf->nsnap : nt/nw;
+        np = npc>2? nt/(nw*nh) : 1;
+        tab->naxis = 4;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = w;
+        tab->naxisn[1] = h;
+        tab->naxisn[2] = nw;
+        tab->naxisn[3] = nh;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2]*tab->naxisn[3];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        for (n=0; n<nt; n++)
+          {
+          if ((sample = gridsample[n]))
+            memcpy(pix, sample->vigresi, npix*sizeof(float));
+          pix += npix;
+          }
+        }
+      else
+        {
+        nh = nt/nw;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        step = (nw-1)*w;
+        for (n=0; n<nt; n++)
+          {
+          if ((sample = gridsample[n]))
+            {
+            pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+            fpix = sample->vigresi;
+            for (y=h; y--; pix += step)
+              for (x=w; x--;)
+                *(pix++) = *(fpix++);
+            }
+          }
+        }
+      free(gridsample);
+      break;
+
     case PSF_SAMPLES:
 /*----  View original samples as small vignets */
       if (cubeflag)
@@ -360,6 +439,84 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
               *(pix++) = *(fpix++);
           }
         }
+      break;
+
+    case PSF_SAMPLES_GRID:
+/*----  View the brightest samples arranged as a grid */
+      npc = 2;
+      npos = psf->nsnap;
+      for (nt=1, i=npc; (i--)>0;)
+        nt *= psf->nsnap;
+      QCALLOC(gridsample, samplestruct *, nt);
+      dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
+      dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
+      sample = set->sample;
+      for (n=set->nsample; n--; sample++)
+        {
+        ipos = (int)(dstepx * (sample->x+0.5)) ;
+        if (ipos<0)
+          ipos = 0;
+        else if (ipos>=npos)
+          ipos = npos-1; 
+        inpos = ipos;
+        ipos = (int)(dstepy * (sample->y+0.5));
+        if (ipos<0)
+          ipos = 0;
+        else if (ipos>=npos)
+          ipos = npos-1; 
+        inpos += ipos*npos;
+        osample = gridsample[inpos];
+        if (!osample || osample->norm < sample->norm)
+          gridsample[inpos] = sample;
+        }
+
+      nw = npc? psf->nsnap : 1;
+      w = set->vigsize[0];
+      h = set->vigsize[1];
+      if (cubeflag)
+        {
+        nh = npc>2? psf->nsnap : nt/nw;
+        np = npc>2? nt/(nw*nh) : 1;
+        tab->naxis = 4;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = w;
+        tab->naxisn[1] = h;
+        tab->naxisn[2] = nw;
+        tab->naxisn[3] = nh;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2]*tab->naxisn[3];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        for (n=0; n<nt; n++)
+          {
+          if ((sample = gridsample[n]))
+            memcpy(pix, sample->vig, npix*sizeof(float));
+          pix += npix;
+          }
+        }
+      else
+        {
+        nh = nt/nw;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        step = (nw-1)*w;
+        for (n=0; n<nt; n++)
+          {
+          if ((sample = gridsample[n]))
+            {
+            pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+            fpix = sample->vig;
+            for (y=h; y--; pix += step)
+              for (x=w; x--;)
+                *(pix++) = *(fpix++);
+            }
+          }
+        }
+      free(gridsample);
       break;
 
     case PSF_WEIGHTS:
@@ -897,7 +1054,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         sprintf(str, "PV%d_%d ", l+1, j);
         if (fitsread(set->head, str, &dval1, H_EXPO, T_DOUBLE)==RETURN_OK)
           {
-          addkeywordto_head(tab, str, "distortion parameter");
+          addkeywordto_head(tab, str, "Distortion parameter");
           fitswrite(tab->headbuf, str, &dval1,  H_EXPO, T_DOUBLE);
           }
         }
@@ -905,7 +1062,8 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 
   if (next == 1)
     prim_head(tab);
-  fitswrite(head, "XTENSION", "IMAGE   ", H_STRING, T_STRING);
+  fitswrite(tab->headbuf, "XTENSION", "IMAGE   ", H_STRING, T_STRING);
+
 /* save table */
   save_tab(cat, tab);
   free_tab(tab);

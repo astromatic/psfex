@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/05/2011
+*	Last modified:		29/09/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,7 +60,7 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/05/2011
+VERSION 29/09/2011
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -75,7 +75,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
    char			**pkeynames,
 			*head;
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt, *elong, *hl, *snr, *backnoises,
+			*fwhm,*fwhmt, *elong, *hl, *snr,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
    short		*flags;
    int			*fwhmindex,
@@ -122,7 +122,6 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
       if (!(cat = read_cat(filename[icat])))
         error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[icat]);
 
-      QMALLOC(backnoises, float, cat->ntab);
       e=0;
       ldflag = 1;
       ext2 = 0;
