@@ -24,7 +24,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		30/08/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -38,7 +38,7 @@
 #define         BANNER          "PSFEx"
 #define         EXECUTABLE      "psfex"
 #define		MYVERSION	VERSION
-#define         COPYRIGHT       "2010 IAP/CNRS/UPMC"
+#define         COPYRIGHT       "2011 IAP/CNRS/UPMC"
 #define		DISCLAIMER	BANNER " comes with ABSOLUTELY NO WARRANTY\n" \
 		"You may redistribute copies of " BANNER "\n" \
 		"under the terms of the GNU General Public License."

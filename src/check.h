@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/09/2011
+*	Last modified:		03/10/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -41,7 +41,7 @@
 typedef enum {PSF_NONE, PSF_BASIS, PSF_CHI, PSF_PROTO, PSF_RESIDUALS,
 		PSF_RESIDUALS_GRID, PSF_SAMPLES, PSF_SAMPLES_GRID,
 		PSF_SNAPSHOTS, PSF_SNAPSHOTS_IMRES,
-		PSF_WEIGHTS, PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM}
+		PSF_WEIGHTS, PSF_MOFFAT,PSF_SUBMOFFAT,PSF_SUBSYM, PSF_GREAT}
 	checkenum;
 
 /*---------------------------------- protos --------------------------------*/

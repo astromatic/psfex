@@ -1,3 +1,4 @@
+
 /*
 *				preflist.h
 *
@@ -7,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		07/11/2010
+*	Last modified:		03/10/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -70,7 +71,7 @@ pkeystruct key[] =
    {"NONE", "BASIS", "CHI", "PROTOTYPES", "RESIDUALS", "RESIDUALS_GRID",
 	"SAMPLES", "SAMPLES_GRID",
 	"SNAPSHOTS", "SNAPSHOTS_IMRES", "WEIGHTS",
-	"MOFFAT", "-MOFFAT", "-SYMMETRICAL",""},
+	"MOFFAT", "-MOFFAT", "-SYMMETRICAL", "GREAT10", ""},
    0, MAXCHECK, &prefs.ncheck_type},
   {"CHECKPLOT_ANTIALIAS", P_BOOL, &prefs.cplot_antialiasflag},
   {"CHECKPLOT_DEV", P_KEYLIST, prefs.cplot_device, 0,0, 0.0,0.0,
@@ -84,7 +85,7 @@ pkeystruct key[] =
     {""}, 1, 2, &prefs.ncplot_res},
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
     {"NONE", "FWHM", "ELLIPTICITY", "MOFFAT_RESIDUALS", "ASYMMETRY",
-	"COUNTS", "COUNT_FRACTION", "CHI2", "RESIDUALS", ""},
+	"COUNTS", "COUNT_FRACTION", "CHI2", "RESIDUALS", "GREAT10", ""},
     0, MAXCHECK, &prefs.ncplot_type},
   {"HIDDENMEF_TYPE", P_KEY, &prefs.hidden_mef_type, 0,0, 0.0,0.0,
 	{"INDEPENDENT", "COMMON", ""}},

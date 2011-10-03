@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2010
+*	Last modified:		30/08/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -33,7 +33,7 @@
 /*--------------------------------- constants -------------------------------*/
 
 #define	POLY_MAXDIM		4	/* Max dimensionality of polynom */
-#define POLY_MAXDEGREE		10	/* Max degree of the polynom */
+#define POLY_MAXDEGREE		40	/* Max degree of the polynom */
 #define	POLY_TINY		1e-30	/* A tiny number */
 
 /*---------------------------------- macros ---------------------------------*/

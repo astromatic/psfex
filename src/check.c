@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		27/09/2011
+*	Last modified:		03/10/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 27/09/2011
+VERSION 03/10/2011
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -840,6 +840,139 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
           else
             dpos[i] = -dstart;
         }
+      break;
+    case PSF_GREAT:
+      {
+       FILE	*listfile;
+       char	listfilename[MAXCHARL], str[MAXCHARL], str2[80],
+		*ptr;
+       double	*list, invcscalex,invcscaley, scalex,scaley, coffx,coffy;
+       int	ispoon,spoonsize,size, nlist;
+
+/*---- Reconstruction of the PSF at positions given in an external ASCII file */
+      NFPRINTF(OUTPUT, "Reading list of input positions...");
+/*--- Create a file name with a ".dat" extension */
+      strcpy(listfilename, field->catname);
+      if (!(pstr = strrchr(listfilename, '.')))
+      pstr = listfilename+strlen(listfilename);
+      sprintf(pstr, "%s", ".dat");
+      if (!(listfile = fopen(listfilename, "r")))
+        error(EXIT_FAILURE, "*Error*: position list not found: ", listfilename);
+      if (psf->cx>=0)
+        {
+        scalex = psf->contextscale[psf->cx];
+        invcscalex = 1.0/scalex;
+        coffx = psf->contextoffset[psf->cx];
+        }
+      else
+        {
+        invcscalex = scalex = 1.0;
+        coffx = 0.0;
+        }
+      if (psf->cy>=0)
+        {
+        scaley = psf->contextscale[psf->cy];
+        invcscaley = 1.0/scaley;
+        coffy = psf->contextoffset[psf->cy];
+        }
+      else
+        {
+        invcscaley = scaley = 1.0;
+        coffy = 0.0;
+        }
+
+      list = NULL;
+      size = 0;
+      for (i=0; fgets(str, MAXCHARL, listfile);)
+        {
+/*------ Examine current input line (discard empty and comment lines) */
+        if (!*str || strchr("#\t\n",*str))
+          continue;
+
+        if (!i)
+          {
+/*-------- Allocate memory for the filtered list */
+          ispoon = 1000;
+          spoonsize = ispoon*2*sizeof(double);
+          QMALLOC(list, double, size = spoonsize);
+          }
+        else  if (!(i%ispoon))
+          QREALLOC(list, double, size += spoonsize);
+
+         if (!(i%1000))
+          {
+          sprintf(str2, "Reading input list... (%d objects)", i);
+          NFPRINTF(OUTPUT, str2);
+          }
+
+        list[2*i] = (strtof(str, &ptr)-coffx)*invcscalex;
+        list[2*i+1] = (strtof(ptr, NULL)-coffy)*invcscaley;
+        i++;
+        }
+      fclose(listfile);
+      nlist = i;
+      if (!nlist)
+        warning("No valid positions found in ", listfilename);
+
+      if (cubeflag)
+        {
+        tab->naxis = 3;
+        QREALLOC(tab->naxisn, int, tab->naxis);
+        tab->naxisn[0] = 48;
+        tab->naxisn[1] = 48;
+        tab->naxisn[2] = nlist? nlist : 1;
+        npix = tab->naxisn[0]*tab->naxisn[1];
+        tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
+        QCALLOC(pix0, float, tab->tabsize);
+        tab->bodybuf = (char *)pix0; 
+        pix = pix0;
+        for (n=0; n<nlist; n++)
+          {
+          psf_build(psf, &list[2*n]);
+          list[2*n] = list[2*n]*scalex + coffx;
+          list[2*n+1] = list[2*n+1]*scaley + coffy;
+          vignet_resample(psf->loc, psf->size[0], psf->size[1],
+		pix, 48, 48,
+		(floor(list[2*n]+0.49999) - list[2*n] + 0.5) / psf->pixstep,
+		(floor(list[2*n+1]+0.49999) - list[2*n+1] + 0.5) / psf->pixstep,
+		1.0/psf->pixstep, 1.0);
+          pix += 48*48;
+          }
+        }
+      else
+        {
+        nw = (int)sqrt((double)nlist);
+        nw = nw? ((nw-1)/10+1)*10 : 1;
+        nh = (nlist-1)/nw + 1;
+        w = 48;
+        h = 48;
+        tab->naxisn[0] = nw*w;
+        tab->naxisn[1] = nh*h;
+        tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
+        step = (nw-1)*w;
+        QCALLOC(pix0, float, tab->tabsize);
+        QMALLOC(vig0, float, w*h);
+        tab->bodybuf = (char *)pix0; 
+        for (n=0; n<nlist; n++)
+          {
+          psf_build(psf, &list[2*n]);
+          list[2*n] = list[2*n]*scalex + coffx;
+          list[2*n+1] = list[2*n+1]*scaley + coffy;
+          vignet_resample(psf->loc, psf->size[0], psf->size[1],
+		vig0, 48, 48,
+		(floor(list[2*n]+0.49999) - list[2*n] + 0.5) / psf->pixstep,
+		(floor(list[2*n+1]+0.49999) - list[2*n+1] + 0.5) / psf->pixstep,
+		1.0/psf->pixstep, 1.0);
+          vig = vig0;
+          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
+          for (y=h; y--; pix += step)
+            for (x=w; x--;)
+              *(pix++) = *(vig++);
+          }
+        free(vig0);
+        }
+      free(list);
+      }
       break;
     default:
       error(EXIT_FAILURE, "*Internal Error*: Yet unavailable CHECKIMAGE type",

@@ -101,7 +101,7 @@ void	psf_diagnostic(psfstruct *psf)
   dstep = 1.0/psf->nsnap;
   dstart = (1.0-dstep)/2.0;
 
-  memset(dpos, 0, POLY_MAXDIM*sizeof(float));
+  memset(dpos, 0, POLY_MAXDIM*sizeof(double));
   for (i=0; i<npc; i++)
      dpos[i] = -dstart;
 
@@ -346,17 +346,19 @@ void	*pthread_psf_compdiag(void *arg)
     overflag = pthread_overflag;
     pthread_overflag ^= 1;
     n = pthread_n;
-    if (overflag)
-      pthread_n++;
     memcpy(dpos, pthread_dpos, pthread_npc*sizeof(double));
-    for (i=0; i<pthread_npc; i++)
-      if (pthread_dpos[i]<pthread_dstart-0.01)
-        {
-        pthread_dpos[i] += pthread_dstep;
-        break;
+    if (overflag)
+      {
+      pthread_n++;
+      for (i=0; i<pthread_npc; i++)
+        if (pthread_dpos[i]<pthread_dstart-0.01)
+          {
+          pthread_dpos[i] += pthread_dstep;
+          break;
+          }
+        else
+          pthread_dpos[i] = -pthread_dstart;
         }
-      else
-        pthread_dpos[i] = -pthread_dstart;
     QPTHREAD_MUTEX_UNLOCK(&compdiagmutex);
     if (overflag)
       psf_compdiag(pthread_psf, &pthread_pfmoffat[n], dpos, PSF_NSUBPIX);
