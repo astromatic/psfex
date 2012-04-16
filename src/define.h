@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	Author:			Emmanuel Bertin (IAP)
 *
@@ -24,7 +24,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		30/08/2011
+*	Last modified:		06/01/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -38,7 +38,7 @@
 #define         BANNER          "PSFEx"
 #define         EXECUTABLE      "psfex"
 #define		MYVERSION	VERSION
-#define         COPYRIGHT       "2011 IAP/CNRS/UPMC"
+#define         COPYRIGHT       "2011-2012 IAP/CNRS/UPMC"
 #define		DISCLAIMER	BANNER " comes with ABSOLUTELY NO WARRANTY\n" \
 		"You may redistribute copies of " BANNER "\n" \
 		"under the terms of the GNU General Public License."
@@ -124,27 +124,52 @@
 		  error(EXIT_FAILURE,"*Error*: file position unknown in ", \
 			fname)
 
+#define	QFREE(ptr) \
+		{free(ptr); \
+		ptr = NULL;}
+
 #define	QCALLOC(ptr, typ, nel) \
 		{if (!(ptr = (typ *)calloc((size_t)(nel),sizeof(typ)))) \
-		  error(EXIT_FAILURE, "Not enough memory for ", \
-			#ptr " (" #nel " elements) !");;}
+		   { \
+		   sprintf(gstr, #ptr " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		   error(EXIT_FAILURE, "Could not allocate memory for ", gstr);\
+                   }; \
+                 }
 
 #define	QMALLOC(ptr, typ, nel) \
 		{if (!(ptr = (typ *)malloc((size_t)(nel)*sizeof(typ)))) \
-		  error(EXIT_FAILURE, "Not enough memory for ", \
-			#ptr " (" #nel " elements) !");;}
+		   { \
+		   sprintf(gstr, #ptr " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		   error(EXIT_FAILURE, "Could not allocate memory for ", gstr);\
+                   }; \
+                 }
 
 #define	QREALLOC(ptr, typ, nel) \
-		{if (!(ptr = (typ *)realloc(ptr, (size_t)(nel)*sizeof(typ)))) \
-		   error(EXIT_FAILURE, "Not enough memory for ", \
-			#ptr " (" #nel " elements) !");;}
+		{if (!(ptr = (typ *)realloc(ptr, (size_t)(nel)*sizeof(typ))))\
+		   { \
+		   sprintf(gstr, #ptr " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		   error(EXIT_FAILURE, "Could not allocate memory for ", gstr);\
+                   }; \
+                 }
 
 #define QMEMCPY(ptrin, ptrout, typ, nel) \
 		{if (ptrin) \
                   {if (!(ptrout = (typ *)malloc((size_t)(nel)*sizeof(typ)))) \
-                    error(EXIT_FAILURE, "Not enough memory for ", \
-                        #ptrout " (" #nel " elements) !"); \
-                   memcpy(ptrout, ptrin, (size_t)(nel)*sizeof(typ));};;}
+		     { \
+		     sprintf(gstr, #ptrout " (" #nel "=%lld elements) " \
+			"at line %d in module " __FILE__ " !", \
+			(size_t)(nel)*sizeof(typ), __LINE__); \
+		     error(EXIT_FAILURE,"Could not allocate memory for ",gstr);\
+                     }; \
+                   memcpy(ptrout, ptrin, (size_t)(nel)*sizeof(typ)); \
+                   }; \
+                 }
 
 #define	RINT(x)	(int)(floor(x+0.5))
 

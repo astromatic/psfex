@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		25/09/2011
+#	Last modified:		16/04/2012
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.10.1, [bertin@iap.fr])
+AC_INIT(psfex, 3.11.1, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -194,10 +194,10 @@ AC_ARG_WITH(xsl_url,
 AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
 
 # Set flags for multithreading
-n_pthreads=16
+n_pthreads=1024
 AC_ARG_ENABLE(threads,
 	[AC_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
-	[Enable multhreading (on with up to 16 threads by default)])],
+	[Enable multhreading (on with up to 1024 threads by default)])],
     if test "$enableval" = "no"; then
       use_pthreads="no"
     else
