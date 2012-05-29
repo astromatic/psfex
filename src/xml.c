@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2005-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/01/2011
+*	Last modified:		29/05/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -150,7 +150,7 @@ INPUT	file or stream pointer.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	Global preferences are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/10/2006
+VERSION	29/05/2012
  ***/
 int	write_xml_header(FILE *file)
   {
@@ -159,10 +159,9 @@ int	write_xml_header(FILE *file)
   fprintf(file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
   fprintf(file, "<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>\n",
 	prefs.xsl_name);
-  fprintf(file, "<VOTABLE "
-	"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-	"xsi:noNamespaceSchemaLocation="
-	"\"http://www.ivoa.net/xml/VOTable/v1.1\">\n");
+  fprintf(file, "<VOTABLE version=\"1.1\"\n"
+	" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+	" xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">\n");
   fprintf(file, "<DESCRIPTION>produced by %s</DESCRIPTION>\n", BANNER);
   fprintf(file, "<!-- VOTable description at "
 	"http://www.ivoa.net/Documents/latest/VOT.html -->\n");
@@ -187,7 +186,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/01/2011
+VERSION	29/05/2012
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -758,7 +757,7 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Loaded_Min\" datatype=\"int\""
 	" ucd=\"meta.number;stat.min;meta.dataset\"/>\n");
-  fprintf(file, "   <FIELD name=\"NStars_Loaded_Mean\" datatype=\"int\""
+  fprintf(file, "   <FIELD name=\"NStars_Loaded_Mean\" datatype=\"float\""
 	" ucd=\"meta.number;stat.mean;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Loaded_Max\" datatype=\"int\""
 	" ucd=\"meta.number;stat.max;meta.dataset\"/>\n");
@@ -766,7 +765,7 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted_Min\" datatype=\"int\""
 	" ucd=\"meta.number;stat.min;meta.dataset\"/>\n");
-  fprintf(file, "   <FIELD name=\"NStars_Accepted_Mean\" datatype=\"int\""
+  fprintf(file, "   <FIELD name=\"NStars_Accepted_Mean\" datatype=\"float\""
 	" ucd=\"meta.number;stat.mean;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted_Max\" datatype=\"int\""
 	" ucd=\"meta.number;stat.max;meta.dataset\"/>\n");
@@ -1282,7 +1281,7 @@ INPUT	Output stream (file) pointer,
 OUTPUT	RETURN_OK if the keyword exists, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/10/2006
+VERSION	29/05/2012
  ***/
 int	write_xmlconfigparam(FILE *file, char *name, char *unit,
 		 char *ucd, char *format)
@@ -1382,7 +1381,7 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
       sprintf(value, (char *)key[i].ptr);
       fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\" arraysize=\"*\""
 	" ucd=\"%s\" value=\"%s\"/>\n",
-	name, ucd, value);
+	name, ucd, *value? value: " ");
       break;
     case P_STRINGLIST:
       n = *(key[i].nlistptr);
@@ -1391,11 +1390,11 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
         sprintf(value, ((char **)key[i].ptr)[0]);
         fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\""
 		" arraysize=\"*\" ucd=\"%s\" value=\"%s",
-		name, ucd, value);
+		name, ucd, *value? value: " ");
         for (j=1; j<n; j++)
           {
           sprintf(value, ((char **)key[i].ptr)[j]);
-          fprintf(file, ",%s", value);
+          fprintf(file, ",%s", *value? value: " ");
           }
         fprintf(file, "\"/>\n");
         }
