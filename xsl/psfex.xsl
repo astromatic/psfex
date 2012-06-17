@@ -18,7 +18,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2005-2010 Chiara Marmo - IAP/CNRS
+#	Copyright:		(C) 2005-2012 Chiara Marmo - IAP/CNRS
 #				& Emmanuel Bertin - IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
@@ -34,7 +34,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		19/01/2011
+#	Last modified:		17/06/2012
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
@@ -257,9 +257,9 @@
    <xsl:variable name="chi2min" select="count(FIELD[@name='Chi2_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2" select="count(FIELD[@name='Chi2_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2max" select="count(FIELD[@name='Chi2_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhmmin" select="count(FIELD[@name='FWHM_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM_Mean']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhmmax" select="count(FIELD[@name='FWHM_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmmin" select="count(FIELD[@name='FWHM_WCS_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM_WCS_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmmax" select="count(FIELD[@name='FWHM_WCS_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticitymin" select="count(FIELD[@name='Ellipticity_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticity" select="count(FIELD[@name='Ellipticity_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticitymax" select="count(FIELD[@name='Ellipticity_Max']/preceding-sibling::FIELD)+1"/>
@@ -269,9 +269,9 @@
    <xsl:variable name="residualsmin" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residuals" select="count(FIELD[@name='Residuals_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residualsmax" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_WCS_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_WCS_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_WCS_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticitymin" select="count(FIELD[@name='Ellipticity_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticity" select="count(FIELD[@name='Ellipticity_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticitymax" select="count(FIELD[@name='Ellipticity_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
@@ -438,20 +438,20 @@
         </td>
 <!-- FWHM -->
         <td align="center">
-         <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/></el>
+         <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/>"</el>
          <br />
          <elm>
-          <elmin><xsl:value-of select="format-number(TD[$fwhmmin],'##0.00')"/></elmin>
-	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/></elmax>
+          <elmin><xsl:value-of select="format-number(TD[$fwhmmin],'##0.00')"/>"</elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/>"</elmax>
          </elm>
         </td>
 <!-- FWHM pixel-free-->
         <td align="center">
-         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/></el>
+         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/>"</el>
          <br />
          <elm>
-          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/></elmin>
-	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/></elmax>
+          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/>"</elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/>"</elmax>
          </elm>
         </td>
 <!-- FWHM map -->
@@ -587,9 +587,9 @@
    <xsl:variable name="chi2min" select="count(FIELD[@name='Chi2_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2" select="count(FIELD[@name='Chi2_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="chi2max" select="count(FIELD[@name='Chi2_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhmmin" select="count(FIELD[@name='FWHM_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM_Mean']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="fwhmmax" select="count(FIELD[@name='FWHM_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmmin" select="count(FIELD[@name='FWHM_WCS_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhm" select="count(FIELD[@name='FWHM_WCS_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="fwhmmax" select="count(FIELD[@name='FWHM_WCS_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticitymin" select="count(FIELD[@name='Ellipticity_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticity" select="count(FIELD[@name='Ellipticity_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="ellipticitymax" select="count(FIELD[@name='Ellipticity_Max']/preceding-sibling::FIELD)+1"/>
@@ -599,9 +599,9 @@
    <xsl:variable name="residualsmin" select="count(FIELD[@name='Residuals_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residuals" select="count(FIELD[@name='Residuals_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="residualsmax" select="count(FIELD[@name='Residuals_Max']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
-   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmin" select="count(FIELD[@name='FWHM_PixelFree_WCS_Min']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhm" select="count(FIELD[@name='FWHM_PixelFree_WCS_Mean']/preceding-sibling::FIELD)+1"/>
+   <xsl:variable name="pffwhmmax" select="count(FIELD[@name='FWHM_PixelFree_WCS_Max']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticitymin" select="count(FIELD[@name='Ellipticity_PixelFree_Min']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticity" select="count(FIELD[@name='Ellipticity_PixelFree_Mean']/preceding-sibling::FIELD)+1"/>
    <xsl:variable name="pfellipticitymax" select="count(FIELD[@name='Ellipticity_PixelFree_Max']/preceding-sibling::FIELD)+1"/>
@@ -702,20 +702,20 @@
         </td>
 <!-- FWHM -->
         <td align="center">
-         <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/></el>
+         <el><xsl:value-of select="format-number(TD[$fwhm],'##0.00')"/>"</el>
          <br />
          <elm>
-          <elmin><xsl:value-of select="format-number(TD[$fwhmmin],'##0.00')"/></elmin>
-	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/></elmax>
+          <elmin><xsl:value-of select="format-number(TD[$fwhmmin],'##0.00')"/>"</elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$fwhmmax],'##0.00')"/>"</elmax>
          </elm>
         </td>
 <!-- FWHM pixel-free -->
         <td align="center">
-         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/></el>
+         <el><xsl:value-of select="format-number(TD[$pffwhm],'##0.00')"/>"</el>
          <br />
          <elm>
-          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/></elmin>
-	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/></elmax>
+          <elmin><xsl:value-of select="format-number(TD[$pffwhmmin],'##0.00')"/>"</elmin>
+	  - <elmax><xsl:value-of select="format-number(TD[$pffwhmmax],'##0.00')"/>"</elmax>
          </elm>
         </td>
 <!-- Ellipticity -->

@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/11/2010
+*	Last modified:		17/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -82,7 +82,8 @@ extern void		field_count(fieldstruct **fields, setstruct *set,
 			field_end(fieldstruct *field),
 			field_locate(fieldstruct *field),
 			field_psfsave(fieldstruct *field, char *filename),
-			field_stats(fieldstruct **fields, setstruct *set);
+			field_stats(fieldstruct **fields, setstruct *set),
+			field_wcsdata(fieldstruct *field);
 
 void			context_apply(contextstruct *context, psfstruct *psf,
 				fieldstruct **fields, int ext, int catindex,

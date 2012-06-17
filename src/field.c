@@ -369,10 +369,127 @@ void	field_stats(fieldstruct **fields, setstruct *set)
   }
 
 
+/****** field_wcsdata *********************************************************
+PROTO   void	field_wcsdata(fieldstruct *field)
+PURPOSE Compute WCS-related PSF data.
+INPUT   Pointer to the field.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 17/06/2012
+ ***/
+void	field_wcsdata(fieldstruct *field)
+  {
+   psfstruct	*psf;
+   wcsstruct	*wcs;
+   double	raw[NAXIS],
+		xstep,ystep, dval,dpfval, fwhm,mfwhm,fwhmmin,fwhmmax,
+		pffwhm,mpffwhm,pffwhmmin,pffwhmmax,
+		pixscale,mpixscale,pixscalemin,pixscalemax;
+   int		e,i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
+
+  for (e=0; e<field->next; e++)
+    {
+    wcs = field->wcs[e];
+    psf = field->psf[e];
+    if (!psf->samples_accepted || !wcs || wcs->naxis<2)
+      {
+      psf->moffat_fwhm_wcs = psf->moffat_fwhm;
+      psf->moffat_fwhm_wcs_min = psf->moffat_fwhm_min;
+      psf->moffat_fwhm_wcs_max = psf->moffat_fwhm_max;
+      psf->pfmoffat_fwhm_wcs = psf->pfmoffat_fwhm;
+      psf->pfmoffat_fwhm_wcs_min = psf->pfmoffat_fwhm_min;
+      psf->pfmoffat_fwhm_wcs_max = psf->pfmoffat_fwhm_max;
+      psf->pixscale_wcs = psf->pixscale_wcs_min = psf->pixscale_wcs_max = 0.0;
+      continue;
+      }
+
+    naxis = wcs->naxis;
+    ncx = ncy = nt = 1;
+    nsnap2 = psf->nsnap>1? psf->nsnap : 2;
+    for (n=0; n<psf->poly->ndim; n++)
+      {
+      nt *= nsnap2;
+      if (psf->cx>=0 && n<psf->cx)
+        ncx *= nsnap2;
+      if (psf->cy>=0 && n<psf->cy)
+        ncy *= nsnap2;
+      }
+    for (i=0; i<naxis; i++)
+      raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+    xstep = wcs->naxisn[0] / (nsnap2-1);
+    ystep = wcs->naxisn[1] / (nsnap2-1);
+    raw[1] = 0.5;
+    fwhmmin = pffwhmmin = pixscalemin = BIG;
+    fwhmmax = pffwhmmax = pixscalemax = -BIG;
+    mfwhm = mpffwhm = mpixscale = 0.0;
+    for (j=0; j<nsnap2; j++)
+      {
+      raw[0] = 0.5;
+      for (i=0; i<nsnap2; i++)
+        {
+        pixscale = sqrt(wcs_scale(wcs, raw));
+        dval = dpfval = 0.0;
+        nfwhm = 0;
+/*------ We average all PSF FWHMs at a given X and Y set of coordinates */
+        for (n=0; n<nt; n++)
+          if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
+            {
+            n2 = psf->nsnap>1? n : 0;
+            dval += pixscale
+		* sqrt(psf->moffat[n2].fwhm_min*psf->moffat[n2].fwhm_max);
+            dpfval += pixscale
+		* sqrt(psf->pfmoffat[n2].fwhm_min*psf->pfmoffat[n2].fwhm_max);
+            nfwhm++;
+            }
+
+        fwhm = dval / nfwhm ;
+        mfwhm += fwhm;
+        if (fwhm < fwhmmin)
+          fwhmmin = fwhm;
+        if (fwhm > fwhmmax)
+          fwhmmax = fwhm;
+
+        pffwhm = dpfval / nfwhm ;
+        mpffwhm += pffwhm;
+        if (pffwhm < pffwhmmin)
+          pffwhmmin = pffwhm;
+        if (pffwhm > pffwhmmax)
+          pffwhmmax = pffwhm;
+
+        mpixscale += pixscale;
+        if (pixscale < pixscalemin)
+          pixscalemin = pixscale;
+        if (pixscale > pixscalemax)
+          pixscalemax = pixscale;
+
+        raw[0] += xstep;
+        }
+      raw[1] += ystep;
+      }
+
+    psf->moffat_fwhm_wcs = mfwhm/nsnap2/nsnap2*DEG/ARCSEC;
+    psf->moffat_fwhm_wcs_min = fwhmmin*DEG/ARCSEC;
+    psf->moffat_fwhm_wcs_max = fwhmmax*DEG/ARCSEC;
+
+    psf->pfmoffat_fwhm_wcs = mpffwhm/nsnap2/nsnap2*DEG/ARCSEC;
+    psf->pfmoffat_fwhm_wcs_min = pffwhmmin*DEG/ARCSEC;
+    psf->pfmoffat_fwhm_wcs_max = pffwhmmax*DEG/ARCSEC;
+
+    psf->pixscale_wcs = mpixscale/nsnap2/nsnap2*DEG/ARCSEC;
+    psf->pixscale_wcs_min = pixscalemin*DEG/ARCSEC;
+    psf->pixscale_wcs_max = pixscalemax*DEG/ARCSEC;
+    }
+
+  return;
+  }
+
+
 /****** field_psfsave *********************************************************
 PROTO   void	field_psfsave(fieldstruct *field, char *filename)
 PURPOSE Save PSF data as a Multi-extension FITS file.
-INPUT   Pointer to the PSF structure,
+INPUT   Pointer to the field structure,
 	Filename,
 	Extension number,
 	Number of extensions.

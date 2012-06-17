@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/01/2011
+*	Last modified:		17/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -104,6 +104,9 @@ typedef struct psf
   float		moffat_fwhm_min;
   float		moffat_fwhm;	/* Central Moffat FWHM */
   float		moffat_fwhm_max;
+  float		moffat_fwhm_wcs_min;
+  float		moffat_fwhm_wcs;	/* Average Moffat FWHM in arcsec*/
+  float		moffat_fwhm_wcs_max;
   float		moffat_ellipticity_min;
   float		moffat_ellipticity;	/* Central Moffat ellipticity */
   float		moffat_ellipticity_max;
@@ -125,6 +128,9 @@ typedef struct psf
   float		pfmoffat_fwhm_min;
   float		pfmoffat_fwhm;	/* Central pixel-free Moffat FWHM */
   float		pfmoffat_fwhm_max;
+  float		pfmoffat_fwhm_wcs_min;
+  float		pfmoffat_fwhm_wcs; /* Average pixel-free Moffat FWHM in arcsec*/
+  float		pfmoffat_fwhm_wcs_max;
   float		pfmoffat_ellipticity_min;
   float		pfmoffat_ellipticity;	/* Central pix-free Moffat ellipticity*/
   float		pfmoffat_ellipticity_max;
@@ -146,6 +152,9 @@ typedef struct psf
   float		noiseqarea_min;
   float		noiseqarea;	/* Noise equivalent area */
   float		noiseqarea_max;
+  float		pixscale_wcs_min;
+  float		pixscale_wcs;	/* Average pixel scale in arcsec */
+  float		pixscale_wcs_max;
   float		*homo_kernel;		/* PSF homogenization kernel */
   double	homopsf_params[2];	/* Idealised Moffat PSF params*/
   int		homobasis_number;	/* nb of supersampled pixels */

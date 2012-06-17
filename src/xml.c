@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		29/05/2012
+*	Last modified:		17/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -150,7 +150,7 @@ INPUT	file or stream pointer.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	Global preferences are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	29/05/2012
+VERSION	17/06/2012
  ***/
 int	write_xml_header(FILE *file)
   {
@@ -161,7 +161,7 @@ int	write_xml_header(FILE *file)
 	prefs.xsl_name);
   fprintf(file, "<VOTABLE version=\"1.1\"\n"
 	" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-	" xmlns=\"http://www.ivoa.net/xml/VOTable/v1.1\">\n");
+	" xsi:noNamespaceSchemaLocation=\"http://www.ivoa.net/xml/VOTable/v1.1\">\n");
   fprintf(file, "<DESCRIPTION>produced by %s</DESCRIPTION>\n", BANNER);
   fprintf(file, "<!-- VOTable description at "
 	"http://www.ivoa.net/Documents/latest/VOT.html -->\n");
@@ -186,7 +186,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	29/05/2012
+VERSION	17/06/2012
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -198,12 +198,14 @@ int	write_xml_meta(FILE *file, char *error)
 			sampling_min,sampling_mean,sampling_max,
 			chi2_min,chi2_mean,chi2_max,
 			fwhm_min,fwhm_mean,fwhm_max,
+			fwhm_wcs_min,fwhm_wcs_mean,fwhm_wcs_max,
 			ellipticity_min,ellipticity_mean,ellipticity_max,
 			ellipticity1_min,ellipticity1_mean,ellipticity1_max,
 			ellipticity2_min,ellipticity2_mean,ellipticity2_max,
 			beta_min,beta_mean,beta_max,
 			residuals_min,residuals_mean,residuals_max,
 			pffwhm_min,pffwhm_mean,pffwhm_max,
+			pffwhm_wcs_min,pffwhm_wcs_mean,pffwhm_wcs_max,
 			pfellipticity_min,pfellipticity_mean,pfellipticity_max,
 			pfellipticity1_min,pfellipticity1_mean,pfellipticity1_max,
 			pfellipticity2_min,pfellipticity2_mean,pfellipticity2_max,
@@ -211,6 +213,7 @@ int	write_xml_meta(FILE *file, char *error)
 			pfresiduals_min,pfresiduals_mean,pfresiduals_max,
 			symresiduals_min,symresiduals_mean,symresiduals_max,
 			noiseqarea_min,noiseqarea_mean,noiseqarea_max,
+			pixscale_wcs_min,pixscale_wcs_mean,pixscale_wcs_max,
 			nloaded_mean,naccepted_mean;
    int			d,n,e,
 			nloaded_min,nloaded_max,nloaded_total,
@@ -387,6 +390,15 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <FIELD name=\"FWHM_Max\" unit=\"pix\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Max\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_Min\" datatype=\"float\""
 	" ucd=\"src.ellipticity;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_Mean\" datatype=\"float\""
@@ -424,6 +436,15 @@ int	write_xml_meta(FILE *file, char *error)
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"FWHM_PixelFree_Max\" unit=\"pix\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Max\" unit=\"arcsec\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_PixelFree_Min\" datatype=\"float\""
@@ -468,6 +489,15 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"phys.area;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Area_Noise_Max\" datatype=\"float\""
 	" ucd=\"phys.area;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.min;instr.pixel\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.mean;instr.pixel\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Max\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.max;instr.pixel\"/>\n");
 
 /*-- Checkplots */
 #ifdef HAVE_PLPLOT
@@ -507,24 +537,24 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- Compute min,average and max of Moffat fitted parameters */
     nloaded_min = naccepted_min = 2<<29;
     nloaded_max = naccepted_max = nloaded_total = naccepted_total = 0;
-    minrad_min = sampling_min = chi2_min = fwhm_min = ellipticity_min
-	= ellipticity1_min = ellipticity2_min
-	= beta_min = residuals_min = pffwhm_min = pfellipticity_min
-	= pfellipticity1_min = pfellipticity2_min
+    minrad_min = sampling_min = chi2_min = fwhm_min = fwhm_wcs_min
+	= ellipticity_min = ellipticity1_min = ellipticity2_min
+	= beta_min = residuals_min = pffwhm_min = pffwhm_wcs_min
+	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
 	= pfbeta_min = pfresiduals_min = symresiduals_min
-	= noiseqarea_min = BIG;
-    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = ellipticity_mean
-	= ellipticity1_mean = ellipticity2_mean
-	= beta_mean = residuals_mean = pffwhm_mean = pfellipticity_mean
-	= pfellipticity1_mean = pfellipticity2_mean
+	= noiseqarea_min = pixscale_wcs_min = BIG;
+    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = fwhm_wcs_mean
+	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pffwhm_wcs_mean
+	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
 	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
-	= nloaded_mean = naccepted_mean = 0.0;
-    minrad_max = sampling_max = chi2_max = fwhm_max = ellipticity_max
-	= ellipticity1_max = ellipticity2_max
-	= beta_max = residuals_max = pffwhm_max = pfellipticity_max
-	= pfellipticity1_max = pfellipticity2_max
+	= pixscale_wcs_mean = nloaded_mean = naccepted_mean = 0.0;
+    minrad_max = sampling_max = chi2_max = fwhm_max = fwhm_wcs_max
+	= ellipticity_max = ellipticity1_max = ellipticity2_max
+	= beta_max = residuals_max = pffwhm_max = pffwhm_wcs_max
+	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
 	= pfbeta_max = pfresiduals_max = symresiduals_max
-	= noiseqarea_max = -BIG;
+	= noiseqarea_max = pixscale_wcs_max = -BIG;
     neff = 0;
     field = field_xml[n];
     for (e=0; e<field->next; e++)
@@ -567,6 +597,11 @@ int	write_xml_meta(FILE *file, char *error)
       fwhm_mean += psf->moffat_fwhm;
       if (psf->moffat_fwhm_max > fwhm_max)
         fwhm_max = psf->moffat_fwhm_max;
+      if (psf->moffat_fwhm_wcs_min < fwhm_wcs_min)
+        fwhm_wcs_min = psf->moffat_fwhm_wcs_min;
+      fwhm_wcs_mean += psf->moffat_fwhm_wcs;
+      if (psf->moffat_fwhm_wcs_max > fwhm_wcs_max)
+        fwhm_wcs_max = psf->moffat_fwhm_wcs_max;
       if (psf->moffat_ellipticity_min < ellipticity_min)
         ellipticity_min = psf->moffat_ellipticity_min;
       ellipticity_mean += psf->moffat_ellipticity;
@@ -598,6 +633,11 @@ int	write_xml_meta(FILE *file, char *error)
       pffwhm_mean += psf->pfmoffat_fwhm;
       if (psf->pfmoffat_fwhm_max > pffwhm_max)
         pffwhm_max = psf->pfmoffat_fwhm_max;
+      if (psf->pfmoffat_fwhm_wcs_min < pffwhm_wcs_min)
+        pffwhm_wcs_min = psf->pfmoffat_fwhm_wcs_min;
+      pffwhm_wcs_mean += psf->pfmoffat_fwhm_wcs;
+      if (psf->pfmoffat_fwhm_wcs_max > pffwhm_wcs_max)
+        pffwhm_wcs_max = psf->pfmoffat_fwhm_wcs_max;
       if (psf->pfmoffat_ellipticity_min < pfellipticity_min)
         pfellipticity_min = psf->pfmoffat_ellipticity_min;
       pfellipticity_mean += psf->pfmoffat_ellipticity;
@@ -635,6 +675,11 @@ int	write_xml_meta(FILE *file, char *error)
       noiseqarea_mean += psf->noiseqarea;
       if (psf->noiseqarea_max > noiseqarea_max)
         noiseqarea_max = psf->noiseqarea_max;
+      if (psf->pixscale_wcs_min < pixscale_wcs_min)
+        pixscale_wcs_min = psf->pixscale_wcs_min;
+      pixscale_wcs_mean += psf->pixscale_wcs;
+      if (psf->pixscale_wcs_max > pixscale_wcs_max)
+        pixscale_wcs_max = psf->pixscale_wcs_max;
       }
 
     if (field->next>1)
@@ -649,12 +694,14 @@ int	write_xml_meta(FILE *file, char *error)
       sampling_mean /= (double)neff;
       chi2_mean /= (double)neff;
       fwhm_mean /= (double)neff;
+      fwhm_wcs_mean /= (double)neff;
       ellipticity_mean /= (double)neff;
       ellipticity1_mean /= (double)neff;
       ellipticity2_mean /= (double)neff;
       beta_mean /= (double)neff;
       residuals_mean /= (double)neff;
       pffwhm_mean /= (double)neff;
+      pffwhm_wcs_mean /= (double)neff;
       pfellipticity_mean /= (double)neff;
       pfellipticity1_mean /= (double)neff;
       pfellipticity2_mean /= (double)neff;
@@ -662,29 +709,35 @@ int	write_xml_meta(FILE *file, char *error)
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
       noiseqarea_mean /= (double)neff;
+      pixscale_wcs_mean /= (double)neff;
       }
     else if (neff==0)
-      minrad_min = sampling_min = chi2_min = fwhm_min
+      minrad_min = sampling_min = chi2_min = fwhm_min = fwhm_wcs_min
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
-	= beta_min = residuals_min = pffwhm_min
+	= beta_min = residuals_min = pffwhm_min = pffwhm_wcs_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
 	= pfbeta_min = pfresiduals_min = symresiduals_min = noiseqarea_min
-	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean
+	= pixscale_wcs_min
+	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean = fwhm_wcs_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
-	= beta_mean = residuals_mean = pffwhm_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pffwhm_wcs_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
 	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
-	= minrad_max = sampling_max = chi2_max = fwhm_max
+	= pixscale_wcs_mean
+	= minrad_max = sampling_max = chi2_max = fwhm_max = fwhm_wcs_max
 	= ellipticity_max  = ellipticity1_max = ellipticity2_max
-	= beta_max = residuals_max = pffwhm_max
+	= beta_max = residuals_max = pffwhm_max = pffwhm_wcs_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
 	= pfbeta_max = pfresiduals_max = symresiduals_max = noiseqarea_max
-	= 0.0;
+	= pixscale_wcs_max = 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%s</TD><TD>%s</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
@@ -709,19 +762,23 @@ int	write_xml_meta(FILE *file, char *error)
 	sampling_min, sampling_mean, sampling_max,
 	chi2_min, chi2_mean, chi2_max,
 	fwhm_min, fwhm_mean, fwhm_max,
+	fwhm_wcs_min, fwhm_wcs_mean, fwhm_wcs_max,
 	ellipticity_min, ellipticity_mean, ellipticity_max,
 	ellipticity1_min, ellipticity1_mean, ellipticity1_max,
 	ellipticity2_min, ellipticity2_mean, ellipticity2_max,
 	beta_min, beta_mean, beta_max,
 	residuals_min, residuals_mean, residuals_max,
 	pffwhm_min, pffwhm_mean, pffwhm_max,
+	pffwhm_wcs_min, pffwhm_wcs_mean, pffwhm_wcs_max,
 	pfellipticity_min, pfellipticity_mean, pfellipticity_max,
 	pfellipticity1_min, pfellipticity1_mean, pfellipticity1_max,
 	pfellipticity2_min, pfellipticity2_mean, pfellipticity2_max,
 	pfbeta_min, pfbeta_mean, pfbeta_max,
 	pfresiduals_min, pfresiduals_mean, pfresiduals_max,
 	symresiduals_min, symresiduals_mean, symresiduals_max,
-	noiseqarea_min, noiseqarea_mean, noiseqarea_max);
+	noiseqarea_min, noiseqarea_mean, noiseqarea_max,
+	pixscale_wcs_min, pixscale_wcs_mean, pixscale_wcs_max);
+
 /*-- Check-plots */
 #ifdef HAVE_PLPLOT
     if (pngflag)
@@ -802,6 +859,15 @@ int	write_xml_meta(FILE *file, char *error)
   fprintf(file, "   <FIELD name=\"FWHM_Max\" unit=\"pix\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_WCS_Max\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_Min\" datatype=\"float\""
 	" ucd=\"src.ellipticity;stat.min;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_Mean\" datatype=\"float\""
@@ -839,6 +905,15 @@ int	write_xml_meta(FILE *file, char *error)
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"FWHM_PixelFree_Max\" unit=\"pix\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.min;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"phys.size.diameter;stat.mean;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"FWHM_PixelFree_WCS_Max\" unit=\"arcsec\""
 	" datatype=\"float\""
 	" ucd=\"phys.size.diameter;stat.max;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Ellipticity_PixelFree_Min\" datatype=\"float\""
@@ -883,6 +958,15 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"phys.area;stat.mean;instr.det.psf\"/>\n");
   fprintf(file, "   <FIELD name=\"Area_Noise_Max\" datatype=\"float\""
 	" ucd=\"phys.area;stat.max;instr.det.psf\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Min\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.min;instr.pixel\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Mean\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.mean;instr.pixel\"/>\n");
+  fprintf(file, "   <FIELD name=\"PixelScale_WCS_Max\" unit=\"arcsec\""
+	" datatype=\"float\""
+	" ucd=\"instr.scale;stat.max;instr.pixel\"/>\n");
 
   fprintf(file, "   <DATA><TABLEDATA>\n");
   for (e=0; e<next; e++)
@@ -890,24 +974,24 @@ int	write_xml_meta(FILE *file, char *error)
 /*-- Compute min,average and max of Moffat fitted parameters */
     nloaded_min = naccepted_min = 2<<29;
     nloaded_max = naccepted_max = nloaded_total = naccepted_total = 0;
-    minrad_min = sampling_min = chi2_min = fwhm_min
+    minrad_min = sampling_min = chi2_min = fwhm_min = fwhm_wcs_min
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
 	= beta_min = residuals_min = pffwhm_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
 	= pfbeta_min = pfresiduals_min = symresiduals_min
-	= noiseqarea_min = BIG;
-    minrad_mean = sampling_mean = chi2_mean = fwhm_mean
+	= noiseqarea_min = pixscale_wcs_min = BIG;
+    minrad_mean = sampling_mean = chi2_mean = fwhm_mean = fwhm_wcs_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
-	= beta_mean = residuals_mean = pffwhm_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pffwhm_wcs_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
 	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
-	= nloaded_mean = naccepted_mean = 0.0;
-    minrad_max = sampling_max = chi2_max = fwhm_max
+	= pixscale_wcs_mean = nloaded_mean = naccepted_mean = 0.0;
+    minrad_max = sampling_max = chi2_max = fwhm_max = fwhm_wcs_max
 	= ellipticity_max = ellipticity1_max = ellipticity2_max
 	= beta_max = residuals_max = pffwhm_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
 	= pfbeta_max = pfresiduals_max = symresiduals_max
-	= noiseqarea_max = -BIG;
+	= noiseqarea_max = pixscale_wcs_max = -BIG;
     neff = 0;
     for (n=0; n<nxml; n++)
       {
@@ -950,6 +1034,11 @@ int	write_xml_meta(FILE *file, char *error)
       fwhm_mean += psf->moffat_fwhm;
       if (psf->moffat_fwhm_max > fwhm_max)
         fwhm_max = psf->moffat_fwhm_max;
+      if (psf->moffat_fwhm_wcs_min < fwhm_wcs_min)
+        fwhm_wcs_min = psf->moffat_fwhm_wcs_min;
+      fwhm_wcs_mean += psf->moffat_fwhm_wcs;
+      if (psf->moffat_fwhm_wcs_max > fwhm_wcs_max)
+        fwhm_wcs_max = psf->moffat_fwhm_wcs_max;
       if (psf->moffat_ellipticity_min < ellipticity_min)
         ellipticity_min = psf->moffat_ellipticity_min;
       ellipticity_mean += psf->moffat_ellipticity;
@@ -981,6 +1070,11 @@ int	write_xml_meta(FILE *file, char *error)
       pffwhm_mean += psf->pfmoffat_fwhm;
       if (psf->pfmoffat_fwhm_max > pffwhm_max)
         pffwhm_max = psf->pfmoffat_fwhm_max;
+      if (psf->pfmoffat_fwhm_wcs_min < pffwhm_wcs_min)
+        pffwhm_wcs_min = psf->pfmoffat_fwhm_wcs_min;
+      pffwhm_wcs_mean += psf->pfmoffat_fwhm_wcs;
+      if (psf->pfmoffat_fwhm_wcs_max > pffwhm_wcs_max)
+        pffwhm_wcs_max = psf->pfmoffat_fwhm_wcs_max;
       if (psf->pfmoffat_ellipticity_min < pfellipticity_min)
         pfellipticity_min = psf->pfmoffat_ellipticity_min;
       pfellipticity_mean += psf->pfmoffat_ellipticity;
@@ -1018,6 +1112,11 @@ int	write_xml_meta(FILE *file, char *error)
       noiseqarea_mean += psf->noiseqarea;
       if (psf->noiseqarea_max > noiseqarea_max)
         noiseqarea_max = psf->noiseqarea_max;
+      if (psf->pixscale_wcs_min < pixscale_wcs_min)
+        pixscale_wcs_min = psf->pixscale_wcs_min;
+      pixscale_wcs_mean += psf->pixscale_wcs;
+      if (psf->pixscale_wcs_max > pixscale_wcs_max)
+        pixscale_wcs_max = psf->pixscale_wcs_max;
       }
 
     if (nxml>1)
@@ -1032,12 +1131,14 @@ int	write_xml_meta(FILE *file, char *error)
       sampling_mean /= (double)neff;
       chi2_mean /= (double)neff;
       fwhm_mean /= (double)neff;
+      fwhm_wcs_mean /= (double)neff;
       ellipticity_mean /= (double)neff;
       ellipticity1_mean /= (double)neff;
       ellipticity2_mean /= (double)neff;
       beta_mean /= (double)neff;
       residuals_mean /= (double)neff;
       pffwhm_mean /= (double)neff;
+      pffwhm_wcs_mean /= (double)neff;
       pfellipticity_mean /= (double)neff;
       pfellipticity1_mean /= (double)neff;
       pfellipticity2_mean /= (double)neff;
@@ -1045,29 +1146,35 @@ int	write_xml_meta(FILE *file, char *error)
       pfresiduals_mean /= (double)neff;
       symresiduals_mean /= (double)neff;
       noiseqarea_mean /= (double)neff;
+      pixscale_wcs_mean /= (double)neff;
       }
     else if (neff==0)
-      minrad_min = sampling_min = chi2_min = fwhm_min
+      minrad_min = sampling_min = chi2_min = fwhm_min = fwhm_wcs_min
 	= ellipticity_min = ellipticity1_min = ellipticity2_min
-	= beta_min = residuals_min = pffwhm_min
+	= beta_min = residuals_min = pffwhm_min = pffwhm_wcs_min
 	= pfellipticity_min = pfellipticity1_min = pfellipticity2_min
 	= pfbeta_min = pfresiduals_min = symresiduals_min = noiseqarea_min
-	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean
+	= pixscale_wcs_min
+	= minrad_mean = sampling_mean = chi2_mean = fwhm_mean = fwhm_wcs_mean
 	= ellipticity_mean = ellipticity1_mean = ellipticity2_mean
-	= beta_mean = residuals_mean = pffwhm_mean
+	= beta_mean = residuals_mean = pffwhm_mean = pffwhm_wcs_mean
 	= pfellipticity_mean = pfellipticity1_mean = pfellipticity2_mean
 	= pfbeta_mean = pfresiduals_mean = symresiduals_mean = noiseqarea_mean
-	= minrad_max = sampling_max = chi2_max = fwhm_max
+	= pixscale_wcs_mean
+	= minrad_max = sampling_max = chi2_max = fwhm_max = fwhm_wcs_max
 	= ellipticity_max  = ellipticity1_max = ellipticity2_max
-	= beta_max = residuals_max = pffwhm_max
+	= beta_max = residuals_max = pffwhm_max = pffwhm_wcs_max
 	= pfellipticity_max = pfellipticity1_max = pfellipticity2_max
 	= pfbeta_max = pfresiduals_max = symresiduals_max = noiseqarea_max
-	= 0.0;
+	= pixscale_wcs_max = 0.0;
 
     fprintf(file, "    <TR>\n"
 	"     <TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
         "     <TD>%d</TD><TD>%d</TD><TD>%.6g</TD><TD>%d</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
+	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
 	"     <TD>%.6g</TD><TD>%.6g</TD><TD>%.6g</TD>\n"
@@ -1093,19 +1200,22 @@ int	write_xml_meta(FILE *file, char *error)
 	sampling_min, sampling_mean, sampling_max,
 	chi2_min, chi2_mean, chi2_max,
 	fwhm_min, fwhm_mean, fwhm_max,
+	fwhm_wcs_min, fwhm_wcs_mean, fwhm_wcs_max,
 	ellipticity_min, ellipticity_mean, ellipticity_max,
 	ellipticity1_min, ellipticity1_mean, ellipticity1_max,
 	ellipticity2_min, ellipticity2_mean, ellipticity2_max,
 	beta_min, beta_mean, beta_max,
 	residuals_min, residuals_mean, residuals_max,
 	pffwhm_min, pffwhm_mean, pffwhm_max,
+	pffwhm_wcs_min, pffwhm_wcs_mean, pffwhm_wcs_max,
 	pfellipticity_min, pfellipticity_mean, pfellipticity_max,
 	pfellipticity1_min, pfellipticity1_mean, pfellipticity1_max,
 	pfellipticity2_min, pfellipticity2_mean, pfellipticity2_max,
 	pfbeta_min, pfbeta_mean, pfbeta_max,
 	pfresiduals_min, pfresiduals_mean, pfresiduals_max,
 	symresiduals_min, symresiduals_mean, symresiduals_max,
-	noiseqarea_min, noiseqarea_mean, noiseqarea_max);
+	noiseqarea_min, noiseqarea_mean, noiseqarea_max,
+	pixscale_wcs_min, pixscale_wcs_mean, pixscale_wcs_max);
     }
 
   fprintf(file, "   </TABLEDATA></DATA>\n");

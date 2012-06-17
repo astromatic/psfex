@@ -63,7 +63,8 @@ time_t		thetime, thetime2;
 void	makeit(void)
 
   {
-   fieldstruct		**fields;
+   fieldstruct		**fields,
+			*field;
    psfstruct		**cpsf,
 			*psf;
    setstruct		*set, *set2;
@@ -416,15 +417,16 @@ void	makeit(void)
 	" resi. asym.");
   for (c=0; c<ncat; c++)
     {
+    field = fields[c];
     for (ext=0 ; ext<next; ext++)
       {
-      psf = fields[c]->psf[ext];
+      psf = field->psf[ext];
       if (next>1)
         sprintf(str, "Computing diagnostics for %s[%d/%d]...",
-		fields[c]->rtcatname, ext+1, next);
+		field->rtcatname, ext+1, next);
       else
         sprintf(str, "Computing diagnostics for %s...",
-		fields[c]->rtcatname);
+		field->rtcatname);
       NFPRINTF(OUTPUT, str);
 /*---- Check PSF with individual datasets */
       set2 = load_samples(incatnames, c, 1, ext, next, context);
@@ -440,6 +442,7 @@ void	makeit(void)
       psf_diagnostic(psf);
       nmed = psf->nmed;
       field_stats(fields, set2);
+      field_wcsdata(field);
 /*---- Display stats for current catalog/extension */
       if (next>1)
         sprintf(str, "[%d/%d]", ext+1, next);
@@ -447,7 +450,7 @@ void	makeit(void)
         str[0] = '\0';
       QPRINTF(OUTPUT, "%-17.17s%-7.7s %5d/%-5d %6.2f %6.2f %6.2f  %4.2f"
 	" %5.2f %5.2f\n",
-	ext==0? fields[c]->rtcatname : "",
+	ext==0? field->rtcatname : "",
 	str,
 	psf->samples_accepted, psf->samples_loaded,
 	psf->pixstep,
@@ -462,7 +465,7 @@ void	makeit(void)
           {
           sprintf(str, "Saving CHECK-image #%d...", i+1);
           NFPRINTF(OUTPUT, str);
-          check_write(fields[c], set2, prefs.check_name[i], prefs.check_type[i],
+          check_write(field, set2, prefs.check_name[i], prefs.check_type[i],
 		ext, next, prefs.check_cubeflag);
           }
 /*---- Free memory */
