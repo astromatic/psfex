@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/09/2011
+*	Last modified:		25/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,6 +30,9 @@
 #include "psf.h"
 #endif
 
+#ifndef _FITSWCS_H_
+#include "fitswcs.h"
+#endif
 #ifndef _DIAGNOSTIC_H_
 #define _DIAGNOSTIC_H_
 
@@ -58,7 +61,8 @@ extern void	psf_boundtounbound(float *param, double *dparam),
 		psf_diagresi(double *par, double *fvec, int m, int n,
 			void *adata),
 		psf_moffat(psfstruct *psf, moffatstruct *moffat),
-		psf_unboundtobound(double *dparam, float *param);
+		psf_unboundtobound(double *dparam, float *param),
+		psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs);
 
 extern double	psf_noiseqarea(psfstruct *psf),
 		psf_normresi(float *par, psfstruct *psf),

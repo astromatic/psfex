@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/06/2012
+*	Last modified:		25/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -82,8 +82,7 @@ extern void		field_count(fieldstruct **fields, setstruct *set,
 			field_end(fieldstruct *field),
 			field_locate(fieldstruct *field),
 			field_psfsave(fieldstruct *field, char *filename),
-			field_stats(fieldstruct **fields, setstruct *set),
-			field_wcsdata(fieldstruct *field);
+			field_stats(fieldstruct **fields, setstruct *set);
 
 void			context_apply(contextstruct *context, psfstruct *psf,
 				fieldstruct **fields, int ext, int catindex,

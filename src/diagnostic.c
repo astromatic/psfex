@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		29/09/2011
+*	Last modified:		25/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,6 +42,7 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
+#include	"fitswcs.h"
 #include	"levmar/lm.h"
 #include	"diagnostic.h"
 #include	"prefs.h"
@@ -66,9 +67,120 @@ int		pthread_overflag, pthread_n, pthread_nt, pthread_npc;
 
 double lm_opts[] = {1.0e-2, 1.0e-12, 1.0e-12, 1.0e-12, 1.0e-4};
 
+/****** psf_wcsdiagnostic *****************************************************
+PROTO   void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
+PURPOSE Compute WCS-related PSF diagnostic parameters.
+INPUT   Pointer to the PSF,
+	pointer to the WCS structure.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 25/06/2012
+ ***/
+void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
+  {
+   double	raw[NAXIS],
+		xstep,ystep, dval,dpfval, fwhm,mfwhm,fwhmmin,fwhmmax,
+		pffwhm,mpffwhm,pffwhmmin,pffwhmmax,
+		pixscale,mpixscale,pixscalemin,pixscalemax;
+   int		e,i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
+
+  if (!psf->samples_accepted || !wcs || wcs->naxis<2)
+    {
+    psf->moffat_fwhm_wcs = psf->moffat_fwhm;
+    psf->moffat_fwhm_wcs_min = psf->moffat_fwhm_min;
+    psf->moffat_fwhm_wcs_max = psf->moffat_fwhm_max;
+    psf->pfmoffat_fwhm_wcs = psf->pfmoffat_fwhm;
+    psf->pfmoffat_fwhm_wcs_min = psf->pfmoffat_fwhm_min;
+    psf->pfmoffat_fwhm_wcs_max = psf->pfmoffat_fwhm_max;
+    psf->pixscale_wcs = psf->pixscale_wcs_min = psf->pixscale_wcs_max = 0.0;
+    return;
+    }
+
+  naxis = wcs->naxis;
+  ncx = ncy = nt = 1;
+  nsnap2 = psf->nsnap>1? psf->nsnap : 2;
+  for (n=0; n<psf->poly->ndim; n++)
+    {
+    nt *= nsnap2;
+    if (psf->cx>=0 && n<psf->cx)
+      ncx *= nsnap2;
+    if (psf->cy>=0 && n<psf->cy)
+      ncy *= nsnap2;
+    }
+  for (i=0; i<naxis; i++)
+    raw[i] = wcs->naxisn[i]/2.0 + 0.5;
+  xstep = wcs->naxisn[0] / (nsnap2-1);
+  ystep = wcs->naxisn[1] / (nsnap2-1);
+  raw[1] = 0.5;
+  fwhmmin = pffwhmmin = pixscalemin = BIG;
+  fwhmmax = pffwhmmax = pixscalemax = -BIG;
+  mfwhm = mpffwhm = mpixscale = 0.0;
+  for (j=0; j<nsnap2; j++)
+    {
+    raw[0] = 0.5;
+    for (i=0; i<nsnap2; i++)
+      {
+      pixscale = sqrt(wcs_scale(wcs, raw));
+      dval = dpfval = 0.0;
+      nfwhm = 0;
+/*---- We average all PSF FWHMs at a given X and Y set of coordinates */
+      for (n=0; n<nt; n++)
+        if ((psf->cx<0 || (n/ncx)%nsnap2 == i)
+		&& (psf->cy<0 || (n/ncy)%nsnap2 == j))
+          {
+          n2 = psf->nsnap>1? n : 0;
+          dval += pixscale
+		* sqrt(psf->moffat[n2].fwhm_min*psf->moffat[n2].fwhm_max);
+          dpfval += pixscale
+		* sqrt(psf->pfmoffat[n2].fwhm_min*psf->pfmoffat[n2].fwhm_max);
+          nfwhm++;
+          }
+
+      fwhm = dval / nfwhm ;
+      mfwhm += fwhm;
+      if (fwhm < fwhmmin)
+        fwhmmin = fwhm;
+      if (fwhm > fwhmmax)
+        fwhmmax = fwhm;
+
+      pffwhm = dpfval / nfwhm ;
+      mpffwhm += pffwhm;
+      if (pffwhm < pffwhmmin)
+        pffwhmmin = pffwhm;
+      if (pffwhm > pffwhmmax)
+        pffwhmmax = pffwhm;
+
+      mpixscale += pixscale;
+      if (pixscale < pixscalemin)
+        pixscalemin = pixscale;
+      if (pixscale > pixscalemax)
+        pixscalemax = pixscale;
+
+      raw[0] += xstep;
+      }
+    raw[1] += ystep;
+    }
+
+  psf->moffat_fwhm_wcs = mfwhm/nsnap2/nsnap2*DEG/ARCSEC;
+  psf->moffat_fwhm_wcs_min = fwhmmin*DEG/ARCSEC;
+  psf->moffat_fwhm_wcs_max = fwhmmax*DEG/ARCSEC;
+
+  psf->pfmoffat_fwhm_wcs = mpffwhm/nsnap2/nsnap2*DEG/ARCSEC;
+  psf->pfmoffat_fwhm_wcs_min = pffwhmmin*DEG/ARCSEC;
+  psf->pfmoffat_fwhm_wcs_max = pffwhmmax*DEG/ARCSEC;
+
+  psf->pixscale_wcs = mpixscale/nsnap2/nsnap2*DEG/ARCSEC;
+  psf->pixscale_wcs_min = pixscalemin*DEG/ARCSEC;
+  psf->pixscale_wcs_max = pixscalemax*DEG/ARCSEC;
+
+  return;
+  }
+
+
 /****** psf_diagnostic *******************************************************
 PROTO	void	psf_diagnostic(psfstruct *psf)
-PURPOSE	Free a PSF structure and everything it contains.
+PURPOSE	Measure PSF diagnostic parameters e.g., by fitting Moffat models
 INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.

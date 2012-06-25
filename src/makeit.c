@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		25/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,6 +63,7 @@ time_t		thetime, thetime2;
 void	makeit(void)
 
   {
+   wcsstruct		*wcs;
    fieldstruct		**fields,
 			*field;
    psfstruct		**cpsf,
@@ -379,10 +380,10 @@ void	makeit(void)
           {
 /*-------- Load the samples for current exposure */
           if (next>1)
-            sprintf(str, "Computing final PSF model for %s[%d/%d]...",
+            sprintf(str, "Reading data from %s[%d/%d]...",
 		fields[c]->rtcatname, ext+1, next);
           else
-            sprintf(str, "Computing final PSF model for %s...",
+            sprintf(str, "Reading data from %s...",
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
           set = load_samples(incatnames, c, 1, ext, next, context);
@@ -392,6 +393,13 @@ void	makeit(void)
             step = psfsteps[ext];
           else
             step = (float)((set->fwhm/2.35)*0.5);
+          if (next>1)
+            sprintf(str, "Computing final PSF model for %s[%d/%d]...",
+		fields[c]->rtcatname, ext+1, next);
+          else
+            sprintf(str, "Computing final PSF model for %s...",
+		fields[c]->rtcatname);
+          NFPRINTF(OUTPUT, str);
           field_count(fields, set, COUNT_LOADED);
           psf = make_psf(set, step, basis, nbasis, context);
           field_count(fields, set, COUNT_ACCEPTED);
@@ -421,6 +429,7 @@ void	makeit(void)
     for (ext=0 ; ext<next; ext++)
       {
       psf = field->psf[ext];
+      wcs = field->wcs[ext];
       if (next>1)
         sprintf(str, "Computing diagnostics for %s[%d/%d]...",
 		field->rtcatname, ext+1, next);
@@ -440,9 +449,9 @@ void	makeit(void)
       psf->samples_accepted = set2->nsample;
 /*---- Compute diagnostics and field statistics */
       psf_diagnostic(psf);
+      psf_wcsdiagnostic(psf, wcs);
       nmed = psf->nmed;
       field_stats(fields, set2);
-      field_wcsdata(field);
 /*---- Display stats for current catalog/extension */
       if (next>1)
         sprintf(str, "[%d/%d]", ext+1, next);
