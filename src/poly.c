@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		30/08/2011
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,12 +35,17 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
-#ifdef HAVE_ATLAS
-#include	ATLAS_LAPACK_H
-#endif
 
 #include	"poly.h"
 
+#ifdef HAVE_ATLAS
+#include ATLAS_LAPACK_H
+#endif
+
+#ifdef HAVE_LAPACKE
+#include LAPACKE_H
+//#define MATSTORAGE_PACKED 1
+#endif
 
 #define	QCALLOC(ptr, typ, nel) \
 		{if (!(ptr = (typ *)calloc((size_t)(nel),sizeof(typ)))) \
@@ -493,18 +498,20 @@ INPUT   Pointer to the (pseudo 2D) matrix of coefficients,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 10/10/2010
+VERSION 10/07/2012
  ***/
 void	poly_solve(double *a, double *b, int n)
   {
    double	*vmat,*wmat;
 
-#ifdef HAVE_ATLAS
-  clapack_dposv(CblasRowMajor, CblasUpper, n, 1, a, n, b, n);
+#if defined(HAVE_LAPACKE)
+  if (LAPACKE_dposv(LAPACK_COL_MAJOR, 'L', n, 1, a, n, b, n))
+#elif defined(HAVE_ATLAS)
+  if (clapack_dposv(CblasRowMajor, CblasUpper, n, 1, a, n, b, n))
 #else
   if (cholsolve(a,b,n))
-    qerror("*Error*: singular matrix found ", "while deprojecting" );
 #endif
+    qerror("*Error*: singular matrix found ", "while deprojecting" );
 
   return;
   }
@@ -635,8 +642,6 @@ int	*poly_powers(polystruct *poly)
   }
 
 
-#ifdef HAVE_ATLAS
-
 /****** poly_initortho ********************************************************
 PROTO   void poly_initortho(polystruct *poly, double *data, int ndata)
 PURPOSE Compute orthonormalization and de-orthonormalization matrices for a
@@ -647,7 +652,7 @@ INPUT   polystruct pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 06/11/2008
+VERSION 10/07/2012
  ***/
 void	poly_initortho(polystruct *poly, double *data, int ndata)
   {
@@ -715,8 +720,15 @@ void	poly_initortho(polystruct *poly, double *data, int ndata)
 
 /* Compute the "unorthonormalization" matrix */
   QMEMCPY(poly->deorthomat, poly->orthomat, double, ncoeff*ncoeff);
+#if defined(HAVE_LAPACKE)
+  LAPACKE_dtrtri(LAPACK_ROW_MAJOR, 'L', 'N', ncoeff,poly->orthomat,ncoeff);
+#elif defined(HAVE_ATLAS)
   clapack_dtrtri(CblasRowMajor, CblasLower, CblasNonUnit, ncoeff,
 	poly->orthomat, ncoeff);
+#else
+  qerror("*Internal Error*: no routine available", " for triangular inverse");
+#endif
+
 /* Transpose orthonormalization matrix to speed up later use */
   deortho = poly->deorthomat;
   for (j=0; j<ncoeff; j++)
@@ -806,5 +818,4 @@ double	*poly_deortho(polystruct *poly, double *datain, double *dataout)
   return dataout;
   }
 
-#endif
 

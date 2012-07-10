@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/09/2011
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,7 +46,15 @@
 #include	"psf.h"
 #include	"sample.h"
 #include	"vignet.h"
-#include	ATLAS_LAPACK_H
+
+#ifdef HAVE_ATLAS
+#include ATLAS_LAPACK_H
+#endif
+
+#ifdef HAVE_LAPACKE
+#include LAPACKE_H
+//#define MATSTORAGE_PACKED 1
+#endif
 
 static double	psf_laguerre(double x, int p, int q);
 
@@ -639,7 +647,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 08/04/2010
+VERSION 10/07/2012
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -761,8 +769,16 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
           }
 
 /*------ Solve the system */
-        clapack_dpotrf(CblasRowMajor, CblasUpper, 3, amat, 3);
-        clapack_dpotrs(CblasRowMajor, CblasUpper, 3, 1, amat, 3, bmat, 3);
+#if defined(HAVE_LAPACKE)
+ #ifdef MATSTORAGE_PACKED
+        if (LAPACKE_dppsv(LAPACK_COL_MAJOR,'L',3,1,amat,bmat,3) != 0)
+ #else
+        if (LAPACKE_dposv(LAPACK_COL_MAJOR,'L',3,1,amat,3,bmat,3) != 0)
+ #endif
+#else
+        if (clapack_dposv(CblasRowMajor,CblasUpper,3,1,amat,3,bmat,3) != 0)
+#endif
+          warning("Not a positive definite matrix", " in PSF model solver");
 
 /*------ Convert to a shift */
         dx += 0.5*(ddx = (bmat[1]*mx2 + bmat[2]*mxy) / bmat[0]); 
@@ -882,7 +898,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/11/2009
+VERSION 10/07/2012
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -1078,9 +1094,19 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 
 //  NFPRINTF(OUTPUT,"Solving the system...");
 
-  clapack_dpotrf(CblasRowMajor, CblasUpper, nunknown, alphamat, nunknown);
-  clapack_dpotrs(CblasRowMajor, CblasUpper, nunknown, 1, alphamat, nunknown,
-	betamat, nunknown);
+#if defined(HAVE_LAPACKE)
+ #ifdef MATSTORAGE_PACKED
+  if (LAPACKE_dppsv(LAPACK_COL_MAJOR,'L',nunknown,1,alphamat,betamat,nunknown)
+	!= 0)
+ #else
+  if (LAPACKE_dposv(LAPACK_COL_MAJOR,'L',nunknown,1,alphamat,nunknown,
+	betamat,nunknown) != 0)
+ #endif
+#else
+  if (clapack_dposv(CblasRowMajor,CblasUpper,nunknown,1,alphamat,nunknown,
+	betamat,nunknown) != 0)
+#endif
+    warning("Not a positive definite matrix"," in PSF model refinement solver");
 
 /* Check whether the result is coherent or not */
 #if defined(HAVE_ISNAN2) && defined(HAVE_ISINF)

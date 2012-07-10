@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		30/08/2011
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -70,14 +70,12 @@ extern void		poly_addcste(polystruct *poly, double *cste),
 				double *w, int ndata, double *extbasis),
 			poly_solve(double *a, double *b, int n);
 
-#ifdef HAVE_ATLAS
 extern double		*poly_deortho(polystruct *poly, double *datain,
 				double *dataout),
 			*poly_ortho(polystruct *poly, double *datain,
 				double *dataout);
 extern void		poly_initortho(polystruct *poly, double *data,
 				int ndata);
-#endif
 
 #endif
 

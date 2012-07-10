@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/03/2011
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,8 +46,15 @@
 #include	"poly.h"
 #include	"psf.h"
 #include	"vignet.h"
-#include	ATLAS_LAPACK_H
 
+#ifdef HAVE_ATLAS
+#include ATLAS_LAPACK_H
+#endif
+
+#ifdef HAVE_LAPACKE
+#include LAPACKE_H
+//#define MATSTORAGE_PACKED 1
+#endif
 
 /****** psf_homo *******************************************************
 PROTO	void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
@@ -58,7 +65,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 05/02/2010
+VERSION 10/07/2012
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -210,8 +217,16 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   free(cross);
   free(tcross);
 
-  clapack_dpotrf(CblasRowMajor, CblasUpper, nfree, amat, nfree);
-  clapack_dpotrs(CblasRowMajor, CblasUpper, nfree, 1, amat, nfree, bmat, nfree);
+#if defined(HAVE_LAPACKE)
+ #ifdef MATSTORAGE_PACKED
+  if (LAPACKE_dppsv(LAPACK_COL_MAJOR,'L',nfree,1,amat,bmat,nfree) != 0)
+ #else
+  if (LAPACKE_dposv(LAPACK_COL_MAJOR,'L',nfree,1,amat,nfree,bmat,nfree) != 0)
+ #endif
+#else
+  if (clapack_dposv(CblasRowMajor,CblasUpper,nfree,1,amat,nfree,bmat,nfree)!=0)
+#endif
+    warning("Not a positive definite matrix", " in homogenization solver");
 
   QCALLOC(kernel, float, npix*ncoeff);
   bmatt = bmat;

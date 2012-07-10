@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/06/2012
+*	Last modified:		26/06/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -186,7 +186,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	17/06/2012
+VERSION	26/06/2012
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -345,7 +345,7 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Loaded_Min\" datatype=\"int\""
 	" ucd=\"meta.number;stat.min;meta.dataset\"/>\n");
-  fprintf(file, "   <FIELD name=\"NStars_Loaded_Mean\" datatype=\"int\""
+  fprintf(file, "   <FIELD name=\"NStars_Loaded_Mean\" datatype=\"float\""
 	" ucd=\"meta.number;stat.mean;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Loaded_Max\" datatype=\"int\""
 	" ucd=\"meta.number;stat.max;meta.dataset\"/>\n");

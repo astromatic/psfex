@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,7 +43,7 @@
 #include	"globals.h"
 #include	"fits/fitscat.h"
 #include	"fitswcs.h"
-#include	"levmar/lm.h"
+#include	"levmar/levmar.h"
 #include	"diagnostic.h"
 #include	"prefs.h"
 #include	"poly.h"

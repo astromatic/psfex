@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		25/06/2012
+#	Last modified:		10/07/2012
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.11.4, [bertin@iap.fr])
+AC_INIT(psfex, 3.12.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AM_CONFIG_HEADER(config.h)
@@ -47,6 +47,7 @@ AC_SUBST(DATE3, "$date3")
 # Include macros
 sinclude(acx_atlas.m4)
 sinclude(acx_fftw.m4)
+sinclude(acx_mkl.m4)
 sinclude(acx_plplot.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
@@ -55,44 +56,46 @@ sinclude(acx_urbi_resolve_dir.m4)
 # Display pakage and version number
 AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
 
-# Initialize the list of compilers to consider
-cclist="cc gcc"
-
-AC_MSG_CHECKING([if compilation flags are set automatically])
+# Provide special option for choosing automatically the compilation flags.
+AC_MSG_CHECKING([if compilation flags should be set automatically])
 AC_ARG_ENABLE(auto-flags,
 	[AC_HELP_STRING([--enable-auto-flags],
 	[Let the configure script choose the compilation flags \
 (off by default)])],
-	use_autoflag="yes"
 	AC_MSG_RESULT([yes]),
-	use_autoflag="no"
 	AC_MSG_RESULT([no]))
 
 # Provide special option for the Linux Intel C compiler
-AC_MSG_CHECKING([for Linux Intel C compiler mode])
+AC_MSG_CHECKING([whether we should use the INTEL compiler])
 AC_ARG_ENABLE(icc,
 	[AC_HELP_STRING([--enable-icc],
 	[Enable special mode for compilation with the Intel compiler \
 (off by default)])],
-        use_icc="yes"
-        cclist="icc $cclist"
+        CC="icc"
 	AC_MSG_RESULT([yes]),
-        use_icc="no"
+	AC_MSG_RESULT([no]))
+
+# Provide special options for INTEL MKL
+# We force the use of icc
+AC_MSG_CHECKING([whether we should use INTEL's MKL])
+AC_ARG_ENABLE(mkl,
+	[AS_HELP_STRING([--enable-mkl],
+	[Use INTEL's MKL for solvers and FFTs (off by default)])],
+        enable_icc="yes"
+        CC="icc"
+	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Checks for programs.
-# GCC is chosen last because it is likely to yield less optimized code
 AC_LANG(C)
-AC_PROG_CC([$cclist])
-# C Compiler: Check that it is ANSI C and POSIX-compliant
-AM_PROG_CC_STDC
-AC_ISC_POSIX
-if test "$use_autoflag" = "yes"; then
+
+AC_SEARCH_LIBS([strerror],[cposix])
+if test "$enable_auto_flags" = "yes"; then
   CFLAGS=""
   LDFLAGS =""
   ACX_PROG_CC_OPTIM
 fi
-AC_PROG_LIBTOOL
+LT_INIT
 AC_PROG_INSTALL
 
 # Checks for libraries.
@@ -100,8 +103,9 @@ AC_CHECK_LIB(m, sin)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h sys/types.h unistd.h])
-if test $use_icc = "yes" -a $CC = "icc"; then
+AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h \
+		sys/types.h unistd.h])
+if test $enable_icc = "yes" -a $CC = "icc"; then
   AC_CHECK_HEADERS(mathimf.h)
 fi
 
@@ -120,8 +124,8 @@ AC_FUNC_MMAP
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([atexit getenv memcpy memmove memset mkdir munmap strstr \
-sysconf setlinebuf dlopen dlsym dlclose])
+AC_CHECK_FUNCS([atexit getenv memcpy memmove memset mkdir munmap setlinebuf \
+		strstr sysconf])
 AC_CHECK_FUNC([isnan], AC_DEFINE_UNQUOTED([HAVE_ISNAN2], 1,
                 [Second isnan check]))
 AC_CHECK_FUNC([isinf], AC_DEFINE_UNQUOTED([HAVE_ISINF2], 1,
@@ -134,64 +138,44 @@ AC_FUNC_FSEEKO
 # Set the data directory to a true absolute path
 datadir2=$(URBI_RESOLVE_DIR([$datadir]))
 
-# Provide special options for PlPLOT
-AC_ARG_WITH(plplot,
-	[AC_HELP_STRING([--with-plplot@<:@=<PLPlot library dir>@:>@],
+# Provide special options for PLPlot
+enable_plplot="yes"
+AC_MSG_CHECKING([whether we should use PLPlot])
+AC_ARG_ENABLE(plplot,
+	[AS_HELP_STRING([--enable-plplot],
 	[Activate PLPlot library (default = yes)])],
-    if test "$withval" = "no"; then
-      use_plplot="no"
-    else
-      use_plplot="yes"
-      if test "$withval" != "yes"; then
-        plplot_dir=$withval
-      fi
-    fi,
-    use_plplot="yes"
-    )
+	AC_MSG_RESULT([yes]),
+	AC_MSG_RESULT([no]))
+AC_ARG_WITH(plplot-libdir,
+	[AC_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
+	[Provide an alternative path to the PLPlot library])])
 AC_ARG_WITH(plplot-incdir,
 	[AC_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
-	[Provide an alternative path to the PLPlot include directory])],
-    plplot_incdir=$withval,
-    plplot_incdir=""
-    )
+	[Provide an alternative path to the PLPlot include directory])])
 
 # Provide special options for ATLAS
-AC_ARG_WITH(atlas,
-	[AC_HELP_STRING([--with-atlas=<ATLAS library path>],
-	[Provide an alternative path to the ATLAS library])],
-	atlas_libdir=$withval,
-	atlas_libdir=""
-	)
+AC_ARG_WITH(atlas-libdir,
+	[AC_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
+	[Provide an alternative path to the ATLAS library])])
 AC_ARG_WITH(atlas-incdir,
 	[AC_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
-	[Provide an alternative path to the ATLAS include directory])],
-	atlas_incdir=$withval,
-	atlas_incdir=""
-	)
+	[Provide an alternative path to the ATLAS include directory])])
 
 # Provide special options for FFTW
-AC_ARG_WITH(fftw,
-	[AC_HELP_STRING([--with-fftw=<FFTW library path>],
-	[Provide an alternative path to the FFTW library])],
-	fftw_libdir=$withval,
-	fftw_libdir=""
-	)
+AC_ARG_WITH(fftw-libdir,
+	[AC_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
+	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
 	[AC_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
-	[Provide an alternative path to the FFTW include directory])],
-	fftw_incdir=$withval,
-	fftw_incdir=""
-	)
+	[Provide an alternative path to the FFTW include directory])])
 
 # Provide a special option for the default XSLT URL
+with_xsl_url="file://"$(URBI_RESOLVE_DIR([$datadir]))"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
 AC_ARG_WITH(xsl_url,
 	[AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
-	[Provide an alternative default URL of the XSLT filter])],
-	[xsl_url=$withval],
-	[xsl_url="file://$datadir2/$PACKAGE_NAME/$PACKAGE_NAME.xsl"]
-	)
+	[Provide an alternative default URL of the XSLT filter])])
 
-AC_DEFINE_UNQUOTED([XSL_URL], "$xsl_url",[Default URL of the XSLT filter])
+AC_DEFINE_UNQUOTED([XSL_URL], "$with_xsl_url",[Default URL of the XSLT filter])
 
 # Set flags for multithreading
 n_pthreads=1024
@@ -215,9 +199,7 @@ AC_ARG_ENABLE(gprof,
 	[AC_HELP_STRING([--enable-gprof],
 	[Enable special mode for compilation with the gprof profiler \
 (off by default)])],
-        use_gprof="yes"
 	AC_MSG_RESULT([yes]),
-        use_gprof="no"
 	AC_MSG_RESULT([no]))
 
 # Enable linking options for making the executable as portable as possible.
@@ -226,9 +208,7 @@ AC_ARG_ENABLE(best-link,
 	[AC_HELP_STRING([--enable-best-link],
 	[Choose the right combination of static and dynamic linking to make \
 the executable as portable as possible (off by default)])],
-        use_best="yes"
 	AC_MSG_RESULT([yes]),
-        use_best="no"
 	AC_MSG_RESULT([no]))
 
 ################# Actions to complete in case of multhreading ################
@@ -245,60 +225,62 @@ if test "$use_pthreads" = "yes"; then
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
-################## handle the ATLAS library(linear algebra) ##################
-ACX_ATLAS($atlas_libdir,$atlas_incdir,$use_pthreads,
-	[use_atlas=yes],[use_atlas=no])
-if test "$use_atlas" = "yes"; then
-  LIBS="$ATLAS_LIB $LIBS"
-  if test "$ATLAS_WARN" != ""; then
-    AC_MSG_WARN([$ATLAS_WARN])
+############ handle the INTEL MKL library (LAPACK) ###########
+if test "$enable_mkl" = "yes"; then
+  ACX_MKL()
+  if test "$MKL_WARN" != ""; then
+    AC_MSG_WARN([$MKL_WARN])
   fi
+  AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
+  LIBS="$MKL_LIBS $LIBS"
 else
-  AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
-fi
-
 ################ handle the FFTW library (Fourier transforms) ################
-ACX_FFTW($fftw_libdir,$fftw_incdir,$use_pthreads,yes,
-	[use_fftw=yes],[use_fftw=no])
-if test "$use_fftw" = "yes"; then
-  LIBS="$FFTW_LIBS $LIBS"
-  if test "$FFTW_WARN" != ""; then
-    AC_MSG_WARN([$FFTW_WARN])
-  fi
-else
-  AC_MSG_ERROR([$FFTW_ERROR Exiting.])
+  ACX_FFTW($with_fftw_libdir,$with_fftw_incdir,$use_pthreads,yes,
+	[LIBS="$FFTW_LIBS $LIBS"]
+	if test "$FFTW_WARN" != ""; then
+	  AC_MSG_WARN([$FFTW_WARN])
+	fi,
+	AC_MSG_ERROR([$FFTW_ERROR Exiting.]))
+################# handle the ATLAS library (linear algebra) ##################
+  ACX_ATLAS($with_atlas_libdir,$with_atlas_incdir,$use_pthreads,
+	[LIBS="$ATLAS_LIBS $LIBS"]
+	if test "$ATLAS_WARN" != ""; then
+	  AC_MSG_WARN([$ATLAS_WARN])
+	fi,
+	AC_MSG_ERROR([$ATLAS_ERROR Exiting.]))
 fi
 
 ################# handle the PLPlot library (graphic plots) ##################
-AC_MSG_CHECKING([for PLPlot configure option])
-if test "$use_plplot" = "yes"; then
-  AC_MSG_RESULT([yes])
-  ACX_PLPLOT($plplot_dir,$plplot_incdir,,[use_plplot=no])
-  if test "$use_plplot" = "yes"; then
+if test "$enable_plplot" = "yes"; then
+  ACX_PLPLOT($with_plplot_libdir,$with_plplot_incdir,
+    [use_plplot="yes"]
     [AM_CPPFLAGS="$AM_CPPFLAGS $PLPLOT_CFLAGS"]
-    [LIBS="$PLPLOT_LIBS $LIBS"]
-  else
-    AC_MSG_WARN(PLPlot library not found/incomplete! Plotting deactivated.)
-  fi
+    [LIBS="$PLPLOT_LIBS $LIBS"],
+    [use_plplot="no"]
+    AC_MSG_WARN([PLPlot library not found/incomplete! Plotting deactivated.]))
 else
-  AC_MSG_RESULT([no])
-  AC_MSG_WARN(Plotting deactivated.)
+  AC_MSG_WARN([Plotting deactivated by user.])
 fi
-AM_CONDITIONAL(USE_PLPLOT, test $use_plplot = "yes")
+AM_CONDITIONAL(USE_PLPLOT, test "$use_plplot" = "yes")
 
 # Link with gprof option
-if test "$use_gprof" = "yes"; then
-  if test "$use_icc" = "yes"; then
+if test "$enable_gprof" = "yes"; then
+  if test "$enable_icc" = "yes"; then
     AM_CFLAGS="$AM_CFLAGS -pq"
   else
     AM_CFLAGS="$AM_CFLAGS -pg"
   fi
-  use_best="no"
+  enable_best_link="no"
 fi
 
 # "Best" linking option
-if test "$use_best" = "yes"; then
-  AM_LDFLAGS="-shared-libgcc -static-libtool-libs $AM_LDFLAGS"
+if test "$enable_best_link" = "yes"; then
+  if test "$enable_icc" = "yes"; then
+    AM_LDFLAGS="-static-intel -openmp-link static -shared-libgcc \
+	-static-libtool-libs -avoid-version $AM_LDFLAGS"
+  else
+    AM_LDFLAGS="-shared-libgcc -static-libtool-libs -avoid-version $AM_LDFLAGS"
+  fi
 fi
 
 AC_SUBST(AM_CFLAGS)

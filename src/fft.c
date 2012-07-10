@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		10/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -34,7 +34,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef FFTW3_H
 #include FFTW_H
+#endif
 
 #include "define.h"
 #include "globals.h"
@@ -47,8 +49,6 @@
 #ifdef USE_THREADS
 pthread_mutex_t	fftmutex;
 #endif
-
-#define SWAP(a,b)       tempr=(a);(a)=(b);(b)=tempr
 
 /****** fft_init ************************************************************
 PROTO	void fft_init(int nthreads)

@@ -33,17 +33,8 @@
 /* Define to 1 if you have the <clapack.h> header file. */
 #undef HAVE_CLAPACK_H
 
-/* Define to 1 if you have the `dlclose' function. */
-#undef HAVE_DLCLOSE
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* Define to 1 if you have the `dlopen' function. */
-#undef HAVE_DLOPEN
-
-/* Define to 1 if you have the `dlsym' function. */
-#undef HAVE_DLSYM
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -79,6 +70,12 @@
 
 /* Second isnan check */
 #undef HAVE_ISNAN2
+
+/* Define if you have the LAPACK libraries. */
+#undef HAVE_LAPACK
+
+/* Define if you have the LAPACKe libraries. */
+#undef HAVE_LAPACKE
 
 /* Define to 1 if you have the `cblas' library (-lcblas). */
 #undef HAVE_LIBCBLAS
@@ -176,6 +173,12 @@
 
 /* Define to 1 if the system has the type `unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
+
+/* LAPACKe header filename. */
+#undef LAPACKE_H
+
+/* LAPACK header filename. */
+#undef LAPACK_H
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
