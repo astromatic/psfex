@@ -11721,8 +11721,8 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
 
-for ac_header in fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h \
-		sys/types.h unistd.h
+for ac_header in dlfcn.h fcntl.h limits.h malloc.h stdlib.h string.h \
+		sys/mman.h sys/types.h unistd.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -11735,7 +11735,7 @@ fi
 
 done
 
-if test $enable_icc = "yes" -a $CC = "icc"; then
+if test "$enable_icc" = "yes"; then
   for ac_header in mathimf.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "mathimf.h" "ac_cv_header_mathimf_h" "$ac_includes_default"
@@ -12797,37 +12797,6 @@ $as_echo "#define HAVE_FSEEKO 1" >>confdefs.h
 fi
 
 
-# Set the data directory to a true absolute path
-datadir2=$(# PATH urbi_resolve_dir(DIR)
-# --------------------------
-#
-urbi_resolve_dir ()
-{
-  ac_URBI_RESOLVE_DIR_PREPARE_dir=$1
-  ac_URBI_RESOLVE_DIR_PREPARE_res=
-  ac_URBI_RESOLVE_DIR_PREPARE_prefix_NONE=
-  ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=
-  test "x$prefix" = xNONE &&
-     ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=yes &&
-     prefix=$ac_default_prefix
-  test "x$exec_prefix" = xNONE &&
-     ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=yes &&
-     exec_prefix=$prefix
-  while true
-  do
-    eval ac_URBI_RESOLVE_DIR_PREPARE_res="$ac_URBI_RESOLVE_DIR_PREPARE_dir"
-    if test x"$ac_URBI_RESOLVE_DIR_PREPARE_dir" = x"$ac_URBI_RESOLVE_DIR_PREPARE_res"; then
-      break
-    fi
-    ac_URBI_RESOLVE_DIR_PREPARE_dir=$ac_URBI_RESOLVE_DIR_PREPARE_res
-  done
-  test "$ac_URBI_RESOLVE_DIR_PREPARE_prefix_NONE" && prefix=NONE
-  test "$ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE" && exec_prefix=NONE
-  echo "$ac_URBI_RESOLVE_DIR_PREPARE_res"
-}
-
-urbi_resolve_dir '$datadir')
-
 # Provide special options for PLPlot
 enable_plplot="yes"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we should use PLPlot" >&5
@@ -12883,7 +12852,35 @@ fi
 
 
 # Provide a special option for the default XSLT URL
-with_xsl_url="file://"$(urbi_resolve_dir '$datadir')"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
+with_xsl_url="file://"$(# PATH urbi_resolve_dir(DIR)
+# --------------------------
+#
+urbi_resolve_dir ()
+{
+  ac_URBI_RESOLVE_DIR_PREPARE_dir=$1
+  ac_URBI_RESOLVE_DIR_PREPARE_res=
+  ac_URBI_RESOLVE_DIR_PREPARE_prefix_NONE=
+  ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=
+  test "x$prefix" = xNONE &&
+     ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=yes &&
+     prefix=$ac_default_prefix
+  test "x$exec_prefix" = xNONE &&
+     ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE=yes &&
+     exec_prefix=$prefix
+  while true
+  do
+    eval ac_URBI_RESOLVE_DIR_PREPARE_res="$ac_URBI_RESOLVE_DIR_PREPARE_dir"
+    if test x"$ac_URBI_RESOLVE_DIR_PREPARE_dir" = x"$ac_URBI_RESOLVE_DIR_PREPARE_res"; then
+      break
+    fi
+    ac_URBI_RESOLVE_DIR_PREPARE_dir=$ac_URBI_RESOLVE_DIR_PREPARE_res
+  done
+  test "$ac_URBI_RESOLVE_DIR_PREPARE_prefix_NONE" && prefix=NONE
+  test "$ac_URBI_RESOLVE_DIR_PREPARE_exec_prefix_NONE" && exec_prefix=NONE
+  echo "$ac_URBI_RESOLVE_DIR_PREPARE_res"
+}
+
+urbi_resolve_dir '$datadir')"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
 
 # Check whether --with-xsl_url was given.
 if test "${with_xsl_url+set}" = set; then :

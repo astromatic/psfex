@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		10/07/2012
+#	Last modified:		11/07/2012
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -34,7 +34,7 @@ define([AC_CACHE_SAVE],)
 AC_INIT(psfex, 3.12.0, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE
 date=`date +%Y-%m-%d`
 date2=`date +"%a %b %d %Y"`
@@ -59,7 +59,7 @@ AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
 # Provide special option for choosing automatically the compilation flags.
 AC_MSG_CHECKING([if compilation flags should be set automatically])
 AC_ARG_ENABLE(auto-flags,
-	[AC_HELP_STRING([--enable-auto-flags],
+	[AS_HELP_STRING([--enable-auto-flags],
 	[Let the configure script choose the compilation flags \
 (off by default)])],
 	AC_MSG_RESULT([yes]),
@@ -68,7 +68,7 @@ AC_ARG_ENABLE(auto-flags,
 # Provide special option for the Linux Intel C compiler
 AC_MSG_CHECKING([whether we should use the INTEL compiler])
 AC_ARG_ENABLE(icc,
-	[AC_HELP_STRING([--enable-icc],
+	[AS_HELP_STRING([--enable-icc],
 	[Enable special mode for compilation with the Intel compiler \
 (off by default)])],
         CC="icc"
@@ -103,9 +103,9 @@ AC_CHECK_LIB(m, sin)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h limits.h malloc.h stdlib.h string.h sys/mman.h \
-		sys/types.h unistd.h])
-if test $enable_icc = "yes" -a $CC = "icc"; then
+AC_CHECK_HEADERS([dlfcn.h fcntl.h limits.h malloc.h stdlib.h string.h \
+		sys/mman.h sys/types.h unistd.h])
+if test "$enable_icc" = "yes"; then
   AC_CHECK_HEADERS(mathimf.h)
 fi
 
@@ -135,9 +135,6 @@ AC_CHECK_FUNC([isinf], AC_DEFINE_UNQUOTED([HAVE_ISINF2], 1,
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-# Set the data directory to a true absolute path
-datadir2=$(URBI_RESOLVE_DIR([$datadir]))
-
 # Provide special options for PLPlot
 enable_plplot="yes"
 AC_MSG_CHECKING([whether we should use PLPlot])
@@ -147,32 +144,32 @@ AC_ARG_ENABLE(plplot,
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 AC_ARG_WITH(plplot-libdir,
-	[AC_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
+	[AS_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
 	[Provide an alternative path to the PLPlot library])])
 AC_ARG_WITH(plplot-incdir,
-	[AC_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
+	[AS_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
 	[Provide an alternative path to the PLPlot include directory])])
 
 # Provide special options for ATLAS
 AC_ARG_WITH(atlas-libdir,
-	[AC_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
+	[AS_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
 	[Provide an alternative path to the ATLAS library])])
 AC_ARG_WITH(atlas-incdir,
-	[AC_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
+	[AS_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
 	[Provide an alternative path to the ATLAS include directory])])
 
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,
-	[AC_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
+	[AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
 	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
-	[AC_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
+	[AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
 	[Provide an alternative path to the FFTW include directory])])
 
 # Provide a special option for the default XSLT URL
 with_xsl_url="file://"$(URBI_RESOLVE_DIR([$datadir]))"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
 AC_ARG_WITH(xsl_url,
-	[AC_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
+	[AS_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
 	[Provide an alternative default URL of the XSLT filter])])
 
 AC_DEFINE_UNQUOTED([XSL_URL], "$with_xsl_url",[Default URL of the XSLT filter])
@@ -180,7 +177,7 @@ AC_DEFINE_UNQUOTED([XSL_URL], "$with_xsl_url",[Default URL of the XSLT filter])
 # Set flags for multithreading
 n_pthreads=1024
 AC_ARG_ENABLE(threads,
-	[AC_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
+	[AS_HELP_STRING([--enable-threads@<:@=<max_number_of_threads>@:>@],
 	[Enable multhreading (on with up to 1024 threads by default)])],
     if test "$enableval" = "no"; then
       use_pthreads="no"
@@ -196,7 +193,7 @@ AC_ARG_ENABLE(threads,
 # Provide special option for gprof profiling
 AC_MSG_CHECKING([for gprof profiler mode])
 AC_ARG_ENABLE(gprof,
-	[AC_HELP_STRING([--enable-gprof],
+	[AS_HELP_STRING([--enable-gprof],
 	[Enable special mode for compilation with the gprof profiler \
 (off by default)])],
 	AC_MSG_RESULT([yes]),
@@ -205,7 +202,7 @@ AC_ARG_ENABLE(gprof,
 # Enable linking options for making the executable as portable as possible.
 AC_MSG_CHECKING([best linking option])
 AC_ARG_ENABLE(best-link,
-	[AC_HELP_STRING([--enable-best-link],
+	[AS_HELP_STRING([--enable-best-link],
 	[Choose the right combination of static and dynamic linking to make \
 the executable as portable as possible (off by default)])],
 	AC_MSG_RESULT([yes]),
