@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/10/2011
+*	Last modified:		11/07/2011
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -102,7 +102,7 @@ pkeystruct key[] =
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
 	{"NONE", "PCA_INDEPENDENT", "PCA_COMMON", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
-  {"NTHREADS", P_INT, &prefs.nthreads, 0, THREADS_PREFMAX},
+  {"NTHREADS", P_INT, &prefs.nthreads, -THREADS_PREFMAX, THREADS_PREFMAX},
   {"PHOTFLUX_KEY", P_STRING, prefs.photflux_key},
   {"PHOTFLUXERR_KEY", P_STRING, prefs.photfluxerr_key},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
