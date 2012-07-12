@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		11/07/2012
+*	Last modified:		12/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -522,21 +522,22 @@ void	useprefs()
       warning("Cannot find the number of CPUs on this system:", str);
       }
     }
-#ifndef HAVE_ATLAS_MP
+
+#ifdef HAVE_MKL
+  mkl_set_num_threads(prefs.nthreads);
+#else
+ #ifndef HAVE_ATLAS_MP
    if (prefs.nthreads>1)
      warning("This executable has been compiled using a version of the ATLAS "
 	"library without support for multithreading. ",
 	"Performance will be degraded.");
-#endif
-#ifndef HAVE_FFTWF_MP
+ #endif
+ #ifndef HAVE_FFTWF_MP
    if (prefs.nthreads>1)
      warning("This executable has been compiled using a version of the FFTW "
 	"library without support for multithreading. ",
 	"Performance will be degraded.");
-#endif
-
-#ifdef HAVE_MKL
-  mkl_set_num_threads(prefs.nthreads);
+ #endif
 #endif
 
 #else
