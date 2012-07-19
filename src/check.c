@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/10/2011
+*	Last modified:		19/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/10/2011
+VERSION 19/07/2012
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -1192,6 +1192,12 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
           }
         }
     }
+
+/*-- Add and write important scalars as FITS keywords */
+  addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
+  val = 0.0;
+  fitswrite(tab->headbuf, "PSF_SAMP",
+	psf->samples_accepted? &psf->pixstep : &val, H_FLOAT, T_FLOAT);
 
   if (next == 1)
     prim_head(tab);

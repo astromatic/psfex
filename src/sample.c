@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		29/09/2011
+*	Last modified:		18/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,7 +60,7 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 29/09/2011
+VERSION 18/07/2012
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -122,14 +122,9 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
       if (!(cat = read_cat(filename[icat])))
         error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[icat]);
 
-      e=0;
-      ldflag = 1;
-      ext2 = 0;
-      tab = cat->tab;
-
 /*---- Load the objects */
       e = 0;
-      ext2 = ext;
+      e = ext;
       tab = cat->tab;
       for (j=cat->ntab; j--; tab=tab->nexttab)
         if (!strcmp("LDAC_OBJECTS", tab->extname)
@@ -137,14 +132,14 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           {
           if (ext != ALL_EXTENSIONS)
             {
-            if (ext2 < ext)
+            if (e>0)
               {
-              ext2++;
+              e--;
               continue;
               }
-            else if (ext2 > ext)
+            else if (e<0)
               break;
-            ext2++;
+            e--;
             }
 
 /*-------- Read the data */
@@ -197,7 +192,6 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
               *(fwhmt++) = fval;
               }
             }
-          e++;
           }
       free_cat(&cat, 1);
       fwhmindex[i+1] = nobj;

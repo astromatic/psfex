@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		18/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -75,6 +75,7 @@ typedef struct
   double	fwhmrange[2];			/* Allowed FWHM range */
   int		nfwhmrange;	       		/* nb of params */
   int		flag_mask;			/* Rejection mask on SEx FLAGS*/
+  int		nmax;				/* Max. nb of samples per set*/
   double	prof_accuracy;			/* Required PSF accuracy */
   double	psf_step;			/* Oversampling (pixels) */
   double	psf_pixsize[2];			/* Eff. pixel size (pixels) */

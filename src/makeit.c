@@ -22,12 +22,18 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		19/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifdef HAVE_CONFIG_H
 #include        "config.h"
+#endif
+
+#ifdef USE_THREADS
+ #ifdef HAVE_MKL
+  #include MKL_H
+ #endif
 #endif
 
 #include	<math.h>
@@ -420,6 +426,13 @@ void	makeit(void)
     free(psfbasis);
 
 /* Compute diagnostics and check-images */
+#ifdef USE_THREADS
+/* Force MKL using a single thread as diagnostic code is already multithreaded*/ 
+ #ifdef HAVE_MKL
+  if (prefs.context_nsnap>2)
+    mkl_set_num_threads(1);
+ #endif
+#endif
   QIPRINTF(OUTPUT,
         "   filename      [ext] accepted/total samp. chi2/dof FWHM ellip."
 	" resi. asym.");
@@ -481,6 +494,13 @@ void	makeit(void)
       end_set(set2);
       }
     }
+
+#ifdef USE_THREADS
+/* Back to multithreaded MKL */
+ #ifdef HAVE_MKL
+   mkl_set_num_threads(prefs.nthreads);
+ #endif
+#endif
 
 /* Save result */
   for (c=0; c<ncat; c++)

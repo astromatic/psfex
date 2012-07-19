@@ -7,7 +7,7 @@ dnl %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 dnl
 dnl	This file part of:	AstrOmatic software
 dnl
-dnl	Copyright:		(C) 2002-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+dnl	Copyright:		(C) 2002-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 dnl				(C) 2002 Ville Lauriki (original version)
 dnl
 dnl	Licenses:		GPL (this version)
@@ -25,7 +25,7 @@ dnl	You should have received a copy of the GNU General Public License
 dnl	along with AstrOmatic software.
 dnl	If not, see <http://www.gnu.org/licenses/>.
 dnl
-dnl	Last modified:		09/10/2010
+dnl	Last modified:		19/07/2012
 dnl
 dnl %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 dnl
@@ -60,14 +60,14 @@ EOF
       if $CC -V 2>&1 | grep -i "Intel(R) 64" > /dev/null 2>&1 &&
            $CC -c -O conftest.c > /dev/null 2>&1 &&
            test -f conftest.o; then
-        prog_cc_optim_cv_flags="-O3 -axSSE3,SSE4.1,SSE4.2,AVX -no-prec-div -unroll"
+        prog_cc_optim_cv_flags="-O3 -axSSE3,SSE4.1,SSE4.2,AVX,CORE-AVX2,CORE-AVX-I -no-prec-div -unroll"
         prog_ld_optim_cv_flags="-static-intel"
 
       dnl INTEL C 32bits compiler
       elif $CC -V 2>&1 | grep -i "Intel(R)" > /dev/null 2>&1 &&
            $CC -c -O conftest.c > /dev/null 2>&1 &&
            test -f conftest.o; then
-        prog_cc_optim_cv_flags="-O3 -axSSE2,SSE3,SSE4.1,SSE4.2,AVX -no-prec-div -unroll"
+        prog_cc_optim_cv_flags="-O3 -axSSE2,SSE3,SSE4.1,SSE4.2,AVX,CORE-AVX2,CORE-AVX-I -no-prec-div -unroll"
         prog_ld_optim_cv_flags="-static-intel"
 
       dnl GCC
