@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		10/10/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -77,6 +77,8 @@ typedef struct set
   double	*contextscale;		/* Scaling to apply to context data */
   float		fwhm;			/* FWHM of the PSF core */
   int		badflags;		/* # discarded with bad SEx flags */
+  int		badwflags;		/* # discarded with bad SEx flags */
+  int		badimaflags;		/* # discarded with bad SEx flags */
   int		badsn;			/* # discarded with S/N too low*/
   int		badfrmin;		/* # discarded with radius too small */
   int		badfrmax;		/* # discarded with radius too large */

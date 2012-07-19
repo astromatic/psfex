@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/07/2012
+*	Last modified:		19/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -60,7 +60,7 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 18/07/2012
+VERSION 19/07/2012
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -77,7 +77,8 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
    float		*fwhmmin,*fwhmmax,*fwhmmode,
 			*fwhm,*fwhmt, *elong, *hl, *snr,
 			backnoise, minsn, maxelong, min,max, mode,  fval;
-   short		*flags;
+   unsigned int		*imaflags;
+   unsigned short	*flags, *wflags;
    int			*fwhmindex,
 			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, nkeys;
 
@@ -146,20 +147,29 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 
           read_keys(tab, pkeynames, NULL, nkeys, NULL);
 
-          if (!(key = name_to_key(tab, "ELONGATION")))
-              {
-              sprintf(str, "ELONGATION not found in catalog %s",
+          if ((key = name_to_key(tab, "ELONGATION")))
+            elong = (float *)key->ptr;
+          else
+            {
+            warning("ELONGATION parameter not found in catalog ",
 			filename[icat]);
-              error(EXIT_FAILURE, "*Error*: ", str);
-              }
-          elong = (float *)key->ptr;
-          if (!(key = name_to_key(tab, "FLAGS")))
-              {
-              sprintf(str, "FLAGS not found in catalog %s",
-			filename[icat]);
-              error(EXIT_FAILURE, "*Error*: ", str);
-              }
-          flags = (short *)key->ptr;
+            elong = NULL;
+            }
+          if ((key = name_to_key(tab, "FLAGS")))
+            flags = (unsigned short *)key->ptr;
+          else
+            {
+            warning("FLAGS parameter not found in catalog ", filename[icat]);
+            flags = NULL;
+            }
+          if ((key = name_to_key(tab, "FLAGS_WEIGHT")))
+            wflags = (unsigned short *)key->ptr;
+          else
+            wflags = NULL;
+          if ((key = name_to_key(tab, "IMAFLAGS_ISO")))
+            imaflags = (unsigned int *)key->ptr;
+          else
+            imaflags = NULL;
           if (!(key = name_to_key(tab, "FLUX_RADIUS")))
               {
               sprintf(str, "FLUS_RADIUS not found in catalog %s",
@@ -178,8 +188,10 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           for (n=tab->naxisn[1]; n--; hl++, snr++, flags++, elong++)
             {
             if (*snr>minsn
-		&& !(*flags&prefs.flag_mask)
-		&& *elong<maxelong
+		&& !(flags && (*flags&prefs.flag_mask))
+		&& !(wflags && (*wflags&prefs.wflag_mask))
+		&& !(imaflags && (*imaflags&prefs.imaflag_mask))
+		&& (!(elong && *elong>=maxelong))
 		&& (fval=2.0**hl)>=min
 		&& fval<max)
               {
@@ -372,7 +384,7 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/05/2011
+VERSION 19/07/2012
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
@@ -389,7 +401,8 @@ setstruct *read_samples(setstruct *set, char *filename,
    static char		str[MAXCHAR], str2[MAXCHAR];
    char			**kstr,
 			*head, *buf;
-   unsigned short	*flags;
+   unsigned int		*imaflags;
+   unsigned short	*flags, *wflags;
    double		contextval[MAXCONTEXT],
 			*dxm,*dym, *cmin, *cmax, dval;
    float		*xm, *ym, *vignet,*vignett, *flux, *fluxrad, *elong,
@@ -550,21 +563,35 @@ setstruct *read_samples(setstruct *set, char *filename,
     }
   snr = (float *)key->ptr;
 
-  if (!(key = name_to_key(keytab, "ELONGATION")))
-    error(EXIT_FAILURE, "*Error*: ELONGATION parameter not found in catalog ",
-		filename);
-  elong = (float *)key->ptr;
+  if ((key = name_to_key(keytab, "ELONGATION")))
+    elong = (float *)key->ptr;
+  else
+    elong = NULL;
 
-  if (!(key = name_to_key(keytab, "FLAGS")))
-    error(EXIT_FAILURE, "*Error*: FLAGS parameter not found in catalog ",
-		filename);
-  flags = (unsigned short *)key->ptr;
-  nobj = key->nobj;
+/* Load optional SExtractor FLAGS parameter */
+  if ((key = name_to_key(keytab, "FLAGS")))
+    flags = (unsigned short *)key->ptr;
+  else
+    flags = NULL;
+
+/* Load optional SExtractor FLAGS_WEIGHT parameter */
+  if ((key = name_to_key(keytab, "FLAGS_WEIGHT")))
+    wflags = (unsigned short *)key->ptr;
+  else
+    wflags = NULL;
+
+/* Load optional SExtractor IMAFLAGS_ISO parameter */
+  if ((key = name_to_key(keytab, "IMAFLAGS_ISO")))
+    imaflags = (unsigned int *)key->ptr;
+  else
+    imaflags = NULL;
 
   if (!(key = name_to_key(keytab, "VIGNET")))
     error(EXIT_FAILURE,
 	"*Error*: VIGNET parameter not found in catalog ", filename);
   vignet = (float *)key->ptr;
+  nobj = key->nobj;
+
   if (key->naxis != 2)
     error(EXIT_FAILURE, "*Error*: VIGNET should be a 2D vector", "");
   vigkey = key;
@@ -629,10 +656,20 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /*---- Apply some selection over flags, fluxes... */
     contflag = 0;
-    if (*flags&prefs.flag_mask)
+    if (flags && (*flags&prefs.flag_mask))
       {
       contflag++;
       set->badflags++;
+      }
+    if (wflags && (*wflags&prefs.wflag_mask))
+      {
+      contflag++;
+      set->badwflags++;
+      }
+    if (imaflags && (*imaflags&prefs.imaflag_mask))
+      {
+      contflag++;
+      set->badwflags++;
       }
     if (*snr<minsn)
       {
@@ -649,7 +686,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       contflag++;
       set->badfrmax++;
       }
-    if (*elong>maxelong)
+    if (elong && *elong>maxelong)
       {
       contflag++;
       set->badelong++;

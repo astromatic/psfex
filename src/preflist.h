@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		11/07/2011
+*	Last modified:		19/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -125,10 +125,12 @@ pkeystruct key[] =
   {"SAMPLE_FLAGMASK", P_INT, &prefs.flag_mask, 0,0xffff},
   {"SAMPLE_FWHMRANGE", P_FLOATLIST, prefs.fwhmrange, 0,0, 0.0,1e3, {""},
      2,2, &prefs.nfwhmrange},
+  {"SAMPLE_IMAFLAGMASK", P_INT, &prefs.imaflag_mask, 0,0xff, 0.0,0.0},
   {"SAMPLE_MAXELLIP", P_FLOAT, &prefs.maxellip, 0,0, 0.0, 1.0},
   {"SAMPLE_MINSN", P_FLOAT, &prefs.minsn, 0,0, 1e-6,1e15},
 //  {"SAMPLE_NMAX", P_INT, &prefs.nmax, 0,2147483648},
   {"SAMPLE_VARIABILITY", P_FLOAT, &prefs.maxvar, 0,0, 0.0, BIG},
+  {"SAMPLE_WFLAGMASK", P_INT, &prefs.wflag_mask, 0,0xff, 0.0,0.0},
   {"SAMPLEVAR_TYPE", P_KEY, &prefs.var_type, 0,0, 0.0,0.0,
 	{"NONE", "SEEING",""}},
   {"STABILITY_TYPE", P_KEY, &prefs.stability_type, 0,0, 0.0,0.0,
@@ -190,6 +192,8 @@ char *default_prefs[] =
 "SAMPLE_MINSN       20           # Minimum S/N for a source to be used",
 "SAMPLE_MAXELLIP    0.3          # Maximum (A-B)/(A+B) for a source to be used",
 "*SAMPLE_FLAGMASK    0x00fe       # Rejection mask on SExtractor FLAGS",
+"*SAMPLE_WFLAGMASK   0x00ff       # Rejection mask on SExtractor FLAGS_WEIGHT",
+"*SAMPLE_IMAFLAGMASK 0x0          # Rejection mask on SExtractor IMAFLAGS_ISO",
 //"*SAMPLE_NMAX        0            # Maximum number of samples per extension",
 "*BADPIXEL_FILTER    N            # Filter bad-pixels in samples (Y/N) ?",
 "*BADPIXEL_NMAX      0            # Maximum number of bad pixels allowed",
