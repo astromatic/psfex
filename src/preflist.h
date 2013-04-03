@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/07/2012
+*	Last modified:		27/03/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -192,7 +192,7 @@ char *default_prefs[] =
 "SAMPLE_MINSN       20           # Minimum S/N for a source to be used",
 "SAMPLE_MAXELLIP    0.3          # Maximum (A-B)/(A+B) for a source to be used",
 "*SAMPLE_FLAGMASK    0x00fe       # Rejection mask on SExtractor FLAGS",
-"*SAMPLE_WFLAGMASK   0x00ff       # Rejection mask on SExtractor FLAGS_WEIGHT",
+"*SAMPLE_WFLAGMASK   0x0000       # Rejection mask on SExtractor FLAGS_WEIGHT",
 "*SAMPLE_IMAFLAGMASK 0x0          # Rejection mask on SExtractor IMAFLAGS_ISO",
 //"*SAMPLE_NMAX        0            # Maximum number of samples per extension",
 "*BADPIXEL_FILTER    N            # Filter bad-pixels in samples (Y/N) ?",

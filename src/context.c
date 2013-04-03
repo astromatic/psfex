@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		20/07/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -41,7 +41,7 @@
 #include "fits/fitscat.h"
 #include "prefs.h"
 #include "context.h"
-#include "poly.h"
+#include "wcs/poly.h"
 #include "psf.h"
 #include "field.h"
 

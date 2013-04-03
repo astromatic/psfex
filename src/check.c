@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/07/2012
+*	Last modified:		20/11/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,7 +42,7 @@
 #include	"check.h"
 #include	"diagnostic.h"
 #include	"field.h"
-#include	"poly.h"
+#include	"wcs/poly.h"
 #include	"prefs.h"
 #include	"psf.h"
 #include	"sample.h"

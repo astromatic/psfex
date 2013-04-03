@@ -398,7 +398,6 @@ float	vignet_aperflux(float *ima, float *var, int w, int h,
   xmax = (int)(mx+raper+1.499999);
   ymin = (int)(my-raper+0.499999);
   ymax = (int)(my+raper+1.499999);
-printf("%d %d %d %d \n", xmin,xmax,ymin,ymax);
   if (xmin < 0 || xmax > w || ymin < 0 || ymax > h)
     return 0.0;
 

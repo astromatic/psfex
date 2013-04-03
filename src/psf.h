@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2011 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,12 +22,12 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/06/2012
+*	Last modified:		20/02/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifndef _POLY_H_
-#include "poly.h"
+#include "wcs/poly.h"
 #endif
 
 #ifndef _SAMPLE_H_
@@ -41,7 +41,7 @@
 
 #define	PSF_NODIAG	0	/* Don't do diagnostics */
 #define	PSF_DIAG	1	/* Do diagnostics */
-#define	PSF_FREEDFACTOR	1.0	/* Margin against overfitting */
+#define	PSF_FREEDFACTOR	1.1	/* Margin against overfitting (10%) */
 #define	PSF_NMASKDIM	3	/* Number of dimensions for PSF data */
 #define	PSF_MAXSHIFT	3.0	/* Max shift from initial guess (pixels)*/
 #define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/

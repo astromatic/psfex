@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/07/2012
+*	Last modified:		02/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,7 +42,7 @@
 #include	"prefs.h"
 #include	"context.h"
 #include	"misc.h"
-#include	"poly.h"
+#include	"wcs/poly.h"
 #include	"psf.h"
 #include	"sample.h"
 #include	"vignet.h"
@@ -240,7 +240,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 14/10/2009
+VERSION 19/02/2013
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
 			float psfstep, float *pixsize, int nsample)
@@ -248,6 +248,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
    psfstruct	*psf;
    static char	str[MAXCHAR];
    char		**names2, **names2t;
+   double	psfelemdens;
    int		*group2, *dim2,
 		d, ndim,ndim2,ngroup2, npix, nsnap;
 
@@ -270,11 +271,11 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 
   psf->poly = poly_init(group2, ndim2, dim2, ngroup2);
 
+/* Add additional constraint for supersampled PSFs */
+  psfelemdens = (psfstep>0.0 && psfstep<1.0)? 1.0/psfstep*psfstep : 1.0;
 /*-- Compute the maximum advised number of degrees of freedom */
   if (ngroup2)
-    while (psf->poly->ncoeff>nsample
-	|| (int)(psf->poly->ncoeff/(psfstep*psfstep*PSF_FREEDFACTOR)+0.499)
-	   >nsample)
+    while (psf->poly->ncoeff*psfelemdens*PSF_FREEDFACTOR+0.499 > nsample)
       {
       poly_end(psf->poly);
       if (ngroup2)
@@ -502,7 +503,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/11/2009
+VERSION 20/11/2012
  ***/
 void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -581,7 +582,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
       }
 
 /*-- Polynomial fitting */
-    poly_fit(poly, i?NULL:pos, pstack, wstack, nsample, basis);
+    poly_fit(poly, i?NULL:pos, pstack, wstack, nsample, basis, 1000.0);
 
 /*-- Store as a PSF component */
     for (coeff=poly->coeff, comp=psf->comp+i,  c=ncoeff; c--; comp+=npix)
@@ -607,7 +608,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 12/11/2007
+VERSION 02/04/2013
  ***/
 void	psf_build(psfstruct *psf, double *pos)
   {
@@ -628,6 +629,7 @@ void	psf_build(psfstruct *psf, double *pos)
     {
     pl = psf->loc;
     fac = (float)*(basis++);
+#pragma ivdep
     for (p=npix; p--;)
       *(pl++) +=  fac**(ppc++);
     }
@@ -835,6 +837,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     for (iy=set->vigsize[1]; iy--; y+=1.0)
       {
       x = -xc;
+#pragma ivdep
       for (ix=set->vigsize[0]; ix--; x+=1.0, vig++, vigresi++, dresit++,
 						vigchi++)
         {
@@ -898,7 +901,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 10/07/2012
+VERSION 02/04/2013
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -1145,6 +1148,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
       {
       vec = &psf->basis[j*npix];
       dval = *(betamatt++);
+#pragma ivdep
       for (i=npix; i--;)
         *(ppix++) += dval**(vec++);
       if (psf->basiscoeff)
@@ -1169,7 +1173,7 @@ INPUT	PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 05/11/2008
+VERSION 02/04/2013
  ***/
 void psf_orthopoly(psfstruct *psf, setstruct *set)
   {
@@ -1198,6 +1202,7 @@ void psf_orthopoly(psfstruct *psf, setstruct *set)
     basis = poly->basis;
     datat = data + n;
 /*-- Fill basis matrix as a series of row vectors */
+#pragma ivdep
     for (c=ncoeff; c--; datat+=ndata)
       *datat = *(basis++)*norm;
     }

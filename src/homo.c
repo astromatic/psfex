@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/07/2012
+*	Last modified:		20/11/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,7 +43,7 @@
 #include	"fft.h"
 #include	"homo.h"
 #include	"prefs.h"
-#include	"poly.h"
+#include	"wcs/poly.h"
 #include	"psf.h"
 #include	"vignet.h"
 

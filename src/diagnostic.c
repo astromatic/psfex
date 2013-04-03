@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/07/2012
+*	Last modified:		02/04/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,7 +46,7 @@
 #include	"levmar/levmar.h"
 #include	"diagnostic.h"
 #include	"prefs.h"
-#include	"poly.h"
+#include	"wcs/poly.h"
 #include	"psf.h"
 #ifdef USE_THREADS
 #include	"threads.h"
@@ -498,14 +498,13 @@ INPUT	Pointer to the PSF structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 25/09/2011
+VERSION 02/04/2013
  ***/
 void	psf_compdiag(psfstruct *psf0, moffatstruct *moffat, double *dpos,
 			int oversamp)
   {
    psfstruct		*psf;
-   double		dparam[PSF_DIAGNPARAM],
-			*dresi;
+   double		dparam[PSF_DIAGNPARAM];
    float		param[PSF_DIAGNPARAM],
 			fwhm;
    int			i,m,w,h, npc,niter;
@@ -542,12 +541,10 @@ void	psf_compdiag(psfstruct *psf0, moffatstruct *moffat, double *dpos,
 /*-- Moffat beta */
     param[6] = 3.0;
     psf_boundtounbound(param, dparam);
-    QCALLOC(dresi, double, m);
-    niter = dlevmar_dif(psf_diagresi, dparam, dresi,
+    niter = dlevmar_dif(psf_diagresi, dparam, NULL,
 	PSF_DIAGNPARAM, m, 
 	PSF_DIAGMAXITER, 
 	lm_opts, NULL, NULL, NULL, psf);
-    free(dresi);
     psf_unboundtobound(dparam,param);
     }
   else

@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		13/07/2012
+*	Last modified:		20/11/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -616,7 +616,7 @@ INPUT	tab structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	01/09/2010
+VERSION	20/11/2012
  ***/
 void	write_wcs(tabstruct *tab, wcsstruct *wcs)
 
@@ -644,26 +644,26 @@ void	write_wcs(tabstruct *tab, wcsstruct *wcs)
     addkeywordto_head(tab, "MJD-OBS ", "Modified Julian date at start");
     fitswrite(tab->headbuf, "MJD-OBS ", &mjd, H_EXPO,T_DOUBLE);
     }
-  addkeywordto_head(tab, "RADECSYS", "Astrometric system");
+  addkeywordto_head(tab, "RADESYS ", "Astrometric system");
   switch(wcs->radecsys)
     {
     case RDSYS_ICRS:
-      fitswrite(tab->headbuf, "RADECSYS", "ICRS", H_STRING, T_STRING);
+      fitswrite(tab->headbuf, "RADESYS ", "ICRS", H_STRING, T_STRING);
       break;
     case RDSYS_FK5:
-      fitswrite(tab->headbuf, "RADECSYS", "FK5", H_STRING, T_STRING);
+      fitswrite(tab->headbuf, "RADESYS ", "FK5", H_STRING, T_STRING);
       break;
     case RDSYS_FK4:
-      fitswrite(tab->headbuf, "RADECSYS", "FK4", H_STRING, T_STRING);
+      fitswrite(tab->headbuf, "RADESYS ", "FK4", H_STRING, T_STRING);
       break;
     case RDSYS_FK4_NO_E:
-      fitswrite(tab->headbuf, "RADECSYS", "FK4-NO-E", H_STRING, T_STRING);
+      fitswrite(tab->headbuf, "RADESYS ", "FK4-NO-E", H_STRING, T_STRING);
       break;
     case RDSYS_GAPPT:
-      fitswrite(tab->headbuf, "RADECSYS", "GAPPT", H_STRING, T_STRING);
+      fitswrite(tab->headbuf, "RADESYS ", "GAPPT", H_STRING, T_STRING);
       break;
     default:
-      error(EXIT_FAILURE, "*Error*: unknown RADECSYS type in write_wcs()", "");
+      error(EXIT_FAILURE, "*Error*: unknown RADESYS type in write_wcs()", "");
     }
   for (l=0; l<naxis; l++)
     {
@@ -773,7 +773,7 @@ INPUT	WCS structure.
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	13/07/2012
+VERSION	20/11/2012
  ***/
 void	invert_wcs(wcsstruct *wcs)
 
@@ -856,7 +856,8 @@ void	invert_wcs(wcsstruct *wcs)
     if (deg>1)
       poly_end(poly);
     poly = poly_init(group, 2, &deg, 1);
-    poly_fit(poly, outpos, lngpos, NULL, WCS_NGRIDPOINTS2, NULL);
+    poly_fit(poly, outpos, lngpos, NULL, WCS_NGRIDPOINTS2, NULL,
+	1.0e-9/WCS_NGRIDPOINTS2);
     maxflag = 0;
     outpost = outpos;
     lngpost = lngpos;
@@ -890,7 +891,8 @@ void	invert_wcs(wcsstruct *wcs)
     if (deg>1)
       poly_end(poly);
     poly = poly_init(group, 2, &deg, 1);
-    poly_fit(poly, outpos, latpos, NULL, WCS_NGRIDPOINTS2, NULL);
+    poly_fit(poly, outpos, latpos, NULL, WCS_NGRIDPOINTS2, NULL,
+	1.0e-9/WCS_NGRIDPOINTS2);
     maxflag = 0;
     outpost = outpos;
     latpost = latpos;
