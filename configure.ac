@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		27/03/2013
+#	Last modified:		03/06/2013
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard Bertin source code...
-AC_INIT(psfex, 3.15.0, [bertin@iap.fr])
+AC_INIT(psfex, 3.15.2, [bertin@iap.fr])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS(config.h)
@@ -136,7 +136,6 @@ AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
 # Provide special options for PLPlot
-enable_plplot="yes"
 AC_MSG_CHECKING([whether we should use PLPlot])
 AC_ARG_ENABLE(plplot,
 	[AS_HELP_STRING([--enable-plplot],
@@ -165,6 +164,12 @@ AC_ARG_WITH(fftw-libdir,
 AC_ARG_WITH(fftw-incdir,
 	[AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
 	[Provide an alternative path to the FFTW include directory])])
+
+# Provide special options for the MKL library
+AC_ARG_WITH(mkl-dir,
+	[AS_HELP_STRING([--with-mkl-dir=<MKL path>],
+	[Provide an alternative path to the MKL library])])
+
 
 # Provide a special option for the default XSLT URL
 with_xsl_url="file://"$(URBI_RESOLVE_DIR([$datadir]))"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
@@ -224,7 +229,7 @@ AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 ############ handle the INTEL MKL library (LAPACK) ###########
 if test "$enable_mkl" = "yes"; then
   convlibs="${srcdir}/wcs/libwcs_c.a,${srcdir}/levmar/liblevmar.a"
-  ACX_MKL(,,$enable_best_link,$convlibs)
+  ACX_MKL($with_mkl_dir,,$enable_best_link,$convlibs)
   if test "$MKL_WARN" != ""; then
     AC_MSG_WARN([$MKL_WARN])
   fi
@@ -249,7 +254,7 @@ else
 fi
 
 ################# handle the PLPlot library (graphic plots) ##################
-if test "$enable_plplot" = "yes"; then
+if test "$enable_plplot" != "no"; then
   ACX_PLPLOT($with_plplot_libdir,$with_plplot_incdir,
     [use_plplot="yes"]
     [AM_CPPFLAGS="$AM_CPPFLAGS $PLPLOT_CFLAGS"]
