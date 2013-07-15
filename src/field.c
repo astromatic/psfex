@@ -189,6 +189,10 @@ void	field_locate(fieldstruct *field)
 			cosalpha,sinalpha, sindelta, dist, maxradius;
    int			i, e, lat,lng, naxis;
 
+  if (field->next == 0) {
+     return;
+  }
+
 /* Some initializations */
   cosalpha = sinalpha = sindelta = 0.0;
   wcs = field->wcs[0];
