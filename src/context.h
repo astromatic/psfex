@@ -53,7 +53,7 @@ typedef struct context
 
 contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
 			int ngroup, int pcexflag);
-
+void context_end(contextstruct *context);
 
 #endif
 
