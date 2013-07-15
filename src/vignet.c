@@ -369,7 +369,7 @@ float	vignet_aperflux(float *ima, float *var, int w, int h,
 			offsetx,offsety,scalex,scaley,scale2, locarea, vthresh;
    double		tv, sigtv;
    int			x,y, x2,y2, xmin,xmax,ymin,ymax, sx,sy,
-			gainflag;
+			gainflag = 0;
    long			pos;
 
   pvar = backnoise*backnoise;
