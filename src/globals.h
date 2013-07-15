@@ -25,10 +25,20 @@
 *	Last modified:		06/01/2012
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+#include	<time.h>
 
 /*----------------------- miscellaneous variables ---------------------------*/
 char		gstr[MAXCHAR];
 
 /*------------------------------- functions ---------------------------------*/
-extern  void	makeit(void);
+#include "fits/fitscat.h"
+#include "psf.h"
+#include "sample.h"
+#include "field.h"
 
+extern  void	error(int, char *, char *),
+		makeit(void),
+		makeit_body(fieldstruct **fields, contextstruct **context,
+                            contextstruct **fullcontext, int free_sets);
+psfstruct	*make_psf(setstruct *set, float psfstep,
+                          float *basis, int nbasis, contextstruct *context);

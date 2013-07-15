@@ -62,7 +62,7 @@ fieldstruct	*field_init(char *catname)
    tabstruct	*tab, *imatab;
    keystruct	*key;
    char		*pstr;
-   int		e, next, next0, ntab, countsize;
+   int		next, next0, ntab;
 
   QCALLOC(field, fieldstruct, 1);
 /* Compute the number of valid input extensions */
@@ -130,26 +130,10 @@ fieldstruct	*field_init(char *catname)
 
   free_cat(&cat, 1);
 
-  field_locate(field);
-  QCALLOC(field->ccat, catstruct *, MAXCHECK);
-  countsize = prefs.context_nsnap*prefs.context_nsnap;
-  QMALLOC(field->lcount, int *, next0);
-  QMALLOC(field->acount, int *, next0);
-  QMALLOC(field->count, int *, next0);
-  QMALLOC(field->modchi2, double *, next0);
-  QMALLOC(field->modresi, double *, next0);
-  for (e=0; e<next0; e++)
-    {
-    QCALLOC(field->lcount[e], int, countsize);
-    QCALLOC(field->acount[e], int, countsize);
-    QCALLOC(field->count[e], int, countsize);
-    QCALLOC(field->modchi2[e], double, countsize);
-    QCALLOC(field->modresi[e], double, countsize);
-    }
+  field_init_finalize(field);
 
   return field;
   }
-
 
 /****** field_end *************************************************************
 PROTO	void field_end(fieldstruct *field)

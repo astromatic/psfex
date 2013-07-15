@@ -80,6 +80,7 @@ extern fieldstruct	*field_init(char *catname);
 extern void		field_count(fieldstruct **fields, setstruct *set,
 				int counttype),
 			field_end(fieldstruct *field),
+			field_init_finalize(fieldstruct *field),
 			field_locate(fieldstruct *field),
 			field_psfsave(fieldstruct *field, char *filename),
 			field_stats(fieldstruct **fields, setstruct *set);
