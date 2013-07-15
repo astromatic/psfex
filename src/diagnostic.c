@@ -83,7 +83,7 @@ void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
 		xstep,ystep, dval,dpfval, fwhm,mfwhm,fwhmmin,fwhmmax,
 		pffwhm,mpffwhm,pffwhmmin,pffwhmmax,
 		pixscale,mpixscale,pixscalemin,pixscalemax;
-   int		e,i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
+   int		i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
 
   if (!psf->samples_accepted || !wcs || wcs->naxis<2)
     {
