@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -42,7 +43,9 @@ blank_keys(tabstruct *tab)
 void
 end_wcs(wcsstruct *wcs)
 {
-   abort();
+   if (wcs != NULL) {
+      abort();
+   }
 }
 
 int
@@ -113,8 +116,11 @@ wcs_dist(wcsstruct *wcs, double *wcspos1, double *wcspos2)
 double
 wcs_scale(wcsstruct *wcs, double *pixpos)
 {
-   abort();
+#if defined(NAN)
+   return NAN;
+#else
    return -1.0;
+#endif
 }
    
 void
