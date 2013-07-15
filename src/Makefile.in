@@ -83,7 +83,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am__psfex_SOURCES_DIST = check.c context.c cplot.c diagnostic.c fft.c \
 	field.c field_utils.c fitswcs.c homo.c main.c makeit.c \
 	makeit2.c misc.c pca.c prefs.c psf.c sample.c sample_utils.c \
-	vignet.c xml.c check.h context.h cplot.h define.h diagnostic.h \
+	vignet.c wcs_utils.c xml.c check.h context.h cplot.h define.h diagnostic.h \
 	fft.h field.h fitswcs.h globals.h homo.h key.h misc.h pca.h \
 	prefs.h preflist.h psf.h sample.h threads.h types.h vignet.h \
 	wcscelsys.h xml.h
@@ -93,7 +93,7 @@ am_psfex_OBJECTS = check.$(OBJEXT) context.$(OBJEXT) $(am__objects_1) \
 	field_utils.$(OBJEXT) fitswcs.$(OBJEXT) homo.$(OBJEXT) \
 	main.$(OBJEXT) makeit.$(OBJEXT) makeit2.$(OBJEXT) \
 	misc.$(OBJEXT) pca.$(OBJEXT) prefs.$(OBJEXT) psf.$(OBJEXT) \
-	sample.$(OBJEXT) sample_utils.$(OBJEXT) vignet.$(OBJEXT) \
+	sample.$(OBJEXT) sample_utils.$(OBJEXT) vignet.$(OBJEXT) wcs_utils.$(OBJEXT) \
 	xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(srcdir)/fits/libfits.a \
@@ -262,7 +262,7 @@ SUBDIRS = fits levmar wcs
 @USE_PLPLOT_TRUE@CPLOTSOURCE = cplot.c
 psfex_SOURCES = check.c context.c $(CPLOTSOURCE) diagnostic.c fft.c \
 			  field.c field_utils.c fitswcs.c homo.c main.c makeit.c makeit2.c misc.c \
-			  pca.c prefs.c psf.c sample.c sample_utils.c vignet.c xml.c \
+			  pca.c prefs.c psf.c sample.c sample_utils.c vignet.c wcs_utils.c xml.c \
 			  check.h context.h cplot.h define.h diagnostic.h \
 			  fft.h field.h fitswcs.h globals.h homo.h key.h \
 			  misc.h pca.h prefs.h preflist.h psf.h \
@@ -363,6 +363,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vignet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wcs_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xml.Po@am__quote@
 
 .c.o:

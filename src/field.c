@@ -245,8 +245,8 @@ void	field_locate(fieldstruct *field)
     {
     wcs = field->wcs[e];
 /*-- The distance is the distance to the center + the diagonal of the image */
-    dist = wcs_dist(wcs, wcs->wcsscalepos, field->meanwcspos)
-		+ wcs->wcsmaxradius;
+    dist = wcs_dist_impl(wcs->naxis, wcs->lat, wcs->lng, 
+			 wcs->wcsscalepos, field->meanwcspos) + wcs->wcsmaxradius;
     if (dist>maxradius)
       maxradius = dist;
     }
