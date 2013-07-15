@@ -332,6 +332,6 @@ extern  void	error(int, const char *, const char *),
 		warning(char *msg1, char *msg2);
 
 
-int		bswapflag;
+extern int		bswapflag;
 
 #endif

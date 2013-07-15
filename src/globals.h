@@ -28,7 +28,7 @@
 #include	<time.h>
 
 /*----------------------- miscellaneous variables ---------------------------*/
-char		gstr[MAXCHAR];
+extern char		gstr[MAXCHAR];
 
 /*------------------------------- functions ---------------------------------*/
 #include "fits/fitscat.h"

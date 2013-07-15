@@ -16,6 +16,7 @@ typedef enum {T_TYPE} t_type;
 typedef enum {ACCESS_TYPE_T} access_type_t;
 typedef float PIXTYPE;
 
+int bswapflag;
 const int t_size[] = {0};
 time_t thetime, thetime2;
 

@@ -53,6 +53,8 @@ EXECUTABLE " catalog1 [catalog2,...][@catalog_list1 [@catalog_list2 ...]]\n" \
 "> to dump a default configuration file: " EXECUTABLE " -d \n" \
 "> to dump a default extended configuration file: " EXECUTABLE " -dd \n"
 
+int			bswapflag;
+char			gstr[MAXCHAR];
 extern const char       notokstr[];
 
 /********************************** main ************************************/
