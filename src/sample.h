@@ -65,9 +65,11 @@ typedef struct sample
 typedef struct set
   {
   char		*head;			/* Table structure */
-  struct sample	*sample;		/* Array of samples */
+  struct sample	**sample;		/* Array of samples */
+  struct sample	*s_sample;		/* Memory for array of samples */
   int		nsample;		/* Number of samples in stack */
   int		nsamplemax;		/* Max number of samples in stack */
+  struct set    *samples_owner;         /* set which owns the samples and will need to free them */
   int		*vigsize;		/* Dimensions of vignette frames */
   int		vigdim;			/* Dimensionality of the vignette */
   int		nvig;			/* Number of pixels of the vignette */

@@ -30,6 +30,7 @@
 #include        "config.h"
 #endif
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -598,7 +599,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   vigw = *(vigkey->naxisn);
   vigh = *(vigkey->naxisn+1);
   vigsize = vigw*vigh;
-  if (!set->sample)
+  if (!set->nsample)
     {
     set->vigsize[0] = vigw;
     set->vigsize[1] = vigh;
@@ -706,7 +707,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     
 /*-- Allocate memory for the first shipment */
-    if (!set->sample)
+    if (!set->nsample)
       {
       nsample = 0;
       nsamplemax = LSAMPLE_DEFSIZE;
@@ -727,7 +728,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       realloc_samples(set, nsamplemax);
       }
 
-    sample = set->sample + nsample;
+    sample = set->sample[nsample];
     sample->catindex = catindex;
     sample->extindex = ext;
 
@@ -768,7 +769,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     make_weights(set, sample);
     recenter_sample(sample, set, *fluxrad);
-    nsample++;
+    nsample = ++set->nsample;
     }
 
 /* Update the scaling */
@@ -785,8 +786,6 @@ setstruct *read_samples(setstruct *set, char *filename,
     }
   end_readobj(keytab,tab, buf);
   free_cat(&cat, 1); 
-
-  set->nsample = nsample;
 
 /* Don't waste memory! */
   if (nsample)
@@ -953,10 +952,15 @@ void	malloc_samples(setstruct *set, int nsample)
    samplestruct	*sample;
    int		n;
 
-  QMALLOC(set->sample, samplestruct, nsample);
-  sample = set->sample;
-  for (n=nsample; n--; sample++)
+  QMALLOC(set->sample, samplestruct *, nsample);
+  set->nsamplemax = nsample;
+  if (set != set->samples_owner)
+    return;
+
+  QMALLOC(set->s_sample, samplestruct, nsample);
+  for (n=0; n!=nsample; ++n)
     {
+    sample = set->sample[n] = &set->s_sample[n];
     QMALLOC(sample->vig, float, set->nvig);
     QMALLOC(sample->vigresi, float, set->nvig);
     QMALLOC(sample->vigweight, float, set->nvig);
@@ -964,8 +968,6 @@ void	malloc_samples(setstruct *set, int nsample)
     if (set->ncontext)
       QMALLOC(sample->context, double, set->ncontext);
     }
-
-  set->nsamplemax = nsample;
 
   return;
   }
@@ -987,6 +989,12 @@ void	realloc_samples(setstruct *set, int nsample)
    samplestruct	*sample;
    int		n;
 
+  if (set != set->samples_owner)
+    {
+    assert(nsample <= set->nsamplemax);
+    return;
+    }
+
 /* If we want to reallocate 0 samples, better free the whole thing! */
   if (!nsample)
     free_samples(set);
@@ -994,10 +1002,12 @@ void	realloc_samples(setstruct *set, int nsample)
 /* Two cases: either more samples are required, or the opposite! */
   if (nsample>set->nsamplemax)
     {
-    QREALLOC(set->sample, samplestruct, nsample);
-    sample = set->sample + set->nsamplemax;
-    for (n = nsample - set->nsamplemax; n--; sample++)
+    QREALLOC(set->s_sample, samplestruct, nsample);
+    free(set->sample);
+    QMALLOC(set->sample, samplestruct *, nsample);
+    for (n = set->nsamplemax; n<nsample; n++)
       {
+      sample = &set->s_sample[n];
       QMALLOC(sample->vig, float, set->nvig);
       QMALLOC(sample->vigresi, float, set->nvig);
       QMALLOC(sample->vigchi, float, set->nvig);
@@ -1008,9 +1018,9 @@ void	realloc_samples(setstruct *set, int nsample)
     }
   else if (nsample<set->nsamplemax)
     {
-    sample = set->sample + nsample;
-    for (n = set->nsamplemax - nsample; n--; sample++)
+    for (n = nsample; n<set->nsamplemax; n++)
       {
+      sample = &set->s_sample[n];
       free(sample->vig);
       free(sample->vigresi);
       free(sample->vigchi);
@@ -1018,10 +1028,15 @@ void	realloc_samples(setstruct *set, int nsample)
       if (set->ncontext)
         free(sample->context);
       }
-    QREALLOC(set->sample, samplestruct, nsample);
+    QREALLOC(set->s_sample, samplestruct, nsample);
+    free(set->sample);
+    QMALLOC(set->sample, samplestruct *, nsample);
     }
 
   set->nsamplemax = nsample;
+
+  for (n = 0; n<nsample; n++)
+     set->sample[n] = &set->s_sample[n];
 
   return;
   }
@@ -1043,16 +1058,20 @@ void	free_samples(setstruct *set)
    samplestruct	*sample;
    int		n;
 
-  sample = set->sample;
-  for (n = set->nsamplemax; n--; sample++)
-    {
-    free(sample->vig);
-    free(sample->vigresi);
-    free(sample->vigweight);
-    free(sample->vigchi);
-    if (set->ncontext)
-      free(sample->context);
-    }
+   if (set->samples_owner == set)
+     {
+     for (n = set->nsamplemax; n--; sample++)
+       {
+       sample = set->sample[n];
+       free(sample->vig);
+       free(sample->vigresi);
+       free(sample->vigweight);
+       free(sample->vigchi);
+       if (set->ncontext)
+	 free(sample->context);
+       }
+       free(set->s_sample);
+     }
 
   free(set->sample);
   set->sample = NULL;
@@ -1083,9 +1102,9 @@ samplestruct	*remove_sample(setstruct *set, int isample)
   nsample = set->nsample-1;
   if (nsample>0)
     {
-    sample = set->sample + isample;
-    exsample = *(set->sample+nsample);
-    *(set->sample+nsample) = *sample;
+    sample = set->sample[isample];
+    exsample = *set->sample[nsample];
+    *set->sample[nsample] = *sample;
     *sample = exsample;
     }
    else
@@ -1093,7 +1112,7 @@ samplestruct	*remove_sample(setstruct *set, int isample)
   realloc_samples(set, nsample);
   set->nsample = nsample;
 
-  return set->sample+isample;
+  return set->sample[isample];
   }
 
 
@@ -1114,6 +1133,7 @@ setstruct	*init_set(contextstruct *context)
 
   QCALLOC(set, setstruct, 1);
   set->nsample = set->nsamplemax = 0;
+  set->samples_owner = set;		/* we'll own the samples, so we'll need to free them */
   set->vigdim = 2;
   QMALLOC(set->vigsize, int, set->vigdim);
   set->ncontext = context->ncontext;

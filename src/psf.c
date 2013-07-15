@@ -87,8 +87,11 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   nsample = set->nsample;
   QMALLOC(chi, float, nsample);
   chit = chi;
-  for (sample=set->sample, n=nsample; n--; sample++)
+  for (n=0; n<nsample; n++)
+    {
+    sample = set->sample[n];
     *(chit++) = (float)sqrt(sample->chi2);
+    }
 /* Produce k-sigma-clipped statistiscs */
   locut = -BIG;
   hicut = BIG;
@@ -131,14 +134,18 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   chi2max = (float)hicut;
   chi2max *= chi2max;
   nsample=set->nsample;
-  for (sample=set->sample, n=0; n<nsample;)
-  if ((sample++)->chi2>chi2max)
+
+  for (n=0; n<nsample; )
     {
-    sample=remove_sample(set, n);
-    nsample--;
+    sample = set->sample[n];
+    if ((sample++)->chi2>chi2max)
+      {
+      sample=remove_sample(set, n);
+      nsample--;
+      }
+    else
+       n++;
     }
-  else
-    n++;
 
   return chi2;
 #undef EPS
@@ -169,8 +176,11 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
 //  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
   nsample = set->nsample;
   chi2 = 0.0;
-  for (sample=set->sample, n=nsample; n--; sample++)
+  for (n=0; n<nsample; n++)
+    {
+    sample=set->sample[n];
     chi2 += sample->chi2;
+    }
   chi2 /= (nsample-(nsample>1?1:0));
 
   return chi2;
@@ -539,7 +549,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   post = pos;
   for (n=0; n<nsample; n++)
     {
-    sample = &set->sample[n];
+    sample = set->sample[n];
 /*-- Normalize approximately the image and produce a weight-map */
     norm = sample->norm;
     norm2 = norm*norm;
@@ -718,8 +728,9 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
   mse = 0.0; 				/* To avoid gcc -Wall warnings */
 
 /* Compute the chi2 */
-  for (sample=set->sample, n=nsample; n--; sample++)
+  for (n=0; n<nsample; n++)
     {
+    sample=set->sample[n];
 /*-- Build the local PSF */
     for (i=0; i<ndim; i++)
       pos[i] = (sample->context[i]-set->contextoffset[i])
@@ -960,8 +971,9 @@ int	psf_refine(psfstruct *psf, setstruct *set)
   psf_orthopoly(psf, set);
 */
 /* Go through each sample */
-  for (sample=set->sample, n=0; n<nsample ; n++, sample++)
+  for (n=0; n<nsample; n++)
     {
+    sample=set->sample[n];
     sprintf(str, "Processing sample #%d", n+1);
 //    NFPRINTF(OUTPUT, str);
 /*-- Delta-x and Delta-y in PSF-pixel units */
@@ -1192,8 +1204,9 @@ void psf_orthopoly(psfstruct *psf, setstruct *set)
 
   QMALLOC(data, double, ndata*ncoeff);
 /* Go through each sample */
-  for (sample=set->sample, n=0; n<ndata ; n++, sample++)
+  for (n=0; n<ndata; n++)
     {
+    sample = set->sample[n];
 /*-- Get the local context coordinates */
     for (i=0; i<ndim; i++)
       pos[i] = (sample->context[i]-set->contextoffset[i])

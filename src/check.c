@@ -188,9 +188,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           fpix = (sample++)->vigchi;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
@@ -209,9 +209,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           fpix = (sample++)->vigchi;
           for (y=h; y--; pix += step)
@@ -283,9 +283,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           fpix = (sample++)->vigresi;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
@@ -304,9 +304,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           fpix = (sample++)->vigresi;
           for (y=h; y--; pix += step)
@@ -325,9 +325,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       QCALLOC(gridsample, samplestruct *, nt);
       dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
       dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
-      sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {
+	sample = set->sample[n];
         ipos = (int)(dstepx * (sample->x+0.5)) ;
         if (ipos<0)
           ipos = 0;
@@ -408,9 +408,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           fpix = (sample++)->vig;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
@@ -429,9 +429,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           fpix = (sample++)->vig;
           for (y=h; y--; pix += step)
@@ -450,9 +450,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       QCALLOC(gridsample, samplestruct *, nt);
       dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
       dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
-      sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {
+	sample = set->sample[n];
         ipos = (int)(dstepx * (sample->x+0.5)) ;
         if (ipos<0)
           ipos = 0;
@@ -533,9 +533,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           fpix = (sample++)->vigweight;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
@@ -554,9 +554,9 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         tab->tabsize = tab->bytepix*tab->naxisn[0]*tab->naxisn[1];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
-        sample = set->sample;
         for (n=0; n<set->nsample; n++)
           {
+	  sample = set->sample[n];
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           fpix = (sample++)->vigweight;
           for (y=h; y--; pix += step)
