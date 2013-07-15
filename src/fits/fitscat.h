@@ -218,7 +218,7 @@ extern void	add_cleanupfilename(char *filename),
 		encode_checksum(unsigned int sum, char *str),
 		end_readobj(tabstruct *keytab, tabstruct *tab, char *buf),
 		end_writeobj(catstruct *cat, tabstruct *tab, char *buf),
-		error_installfunc(void (*func)(char *msg1, char *msg2)),
+		error_installfunc(void (*func)(const char *msg1, const char *msg2)),
 		fixexponent(char *s),
 		free_body(tabstruct *tab),
 		free_cat(catstruct **cat, int ncat),
@@ -327,7 +327,7 @@ extern FLAGTYPE	*alloc_ibody(tabstruct *tab,
 
 extern t_type	ttypeof(char *str);
 
-extern  void	error(int, char *, char *),
+extern  void	error(int, const char *, const char *),
 		swapbytes(void *ptr, int nb, int n),
 		warning(char *msg1, char *msg2);
 

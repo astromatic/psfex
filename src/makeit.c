@@ -58,7 +58,7 @@
 #include	"xml.h"
 
 time_t		thetime, thetime2;
-void		write_error(char *msg1, char *msg2);
+void		write_error(const char *msg1, const char *msg2);
 
 /********************************** makeit ***********************************/
 /*
@@ -250,7 +250,7 @@ void	makeit(void)
 
 
 /****** write_error ********************************************************
-PROTO	void    write_error(char *msg1, char *msg2)
+PROTO	void    write_error(const char *msg1, const char *msg2)
 PURPOSE	Manage files in case of a catched error
 INPUT	a character string,
 	another character string
@@ -259,7 +259,7 @@ NOTES	-.
 AUTHOR	E. Bertin (IAP)
 VERSION	23/02/2007
  ***/
-void	write_error(char *msg1, char *msg2)
+void	write_error(const char *msg1, const char *msg2)
   {
    char	error[MAXCHAR];
 

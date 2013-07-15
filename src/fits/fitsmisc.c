@@ -40,7 +40,7 @@
 #include	"fitscat_defs.h"
 #include	"fitscat.h"
 
-static void	(*errorfunc)(char *msg1, char *msg2) = NULL;
+static void	(*errorfunc)(const char *msg1, const char *msg2) = NULL;
 static char	warning_historystr[WARNING_NMAX][192]={""};
 static int	nwarning = 0, nwarning_history = 0, nerror = 0;
 
@@ -48,7 +48,7 @@ static int	nwarning = 0, nwarning_history = 0, nerror = 0;
 /*
 I hope it will never be used!
 */
-void	error(int num, char *msg1, char *msg2)
+void	error(int num, const char *msg1, const char *msg2)
   {
   fprintf(stderr, "\n> %s%s\n\n",msg1,msg2);
   if (num && errorfunc && !nerror)
@@ -64,7 +64,7 @@ void	error(int num, char *msg1, char *msg2)
 /*
 I hope it will never be used!
 */
-void	error_installfunc(void (*func)(char *msg1, char *msg2))
+void	error_installfunc(void (*func)(const char *msg1, const char *msg2))
   {
   if (func)
     errorfunc = func;

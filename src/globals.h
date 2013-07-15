@@ -36,7 +36,7 @@ char		gstr[MAXCHAR];
 #include "sample.h"
 #include "field.h"
 
-extern  void	error(int, char *, char *),
+extern  void	error(int, const char *, const char *),
 		makeit(void),
 		makeit_body(fieldstruct **fields, contextstruct **context,
                             contextstruct **fullcontext, int free_sets);
