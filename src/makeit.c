@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/07/2012
+*	Last modified:		02/12/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -58,9 +58,7 @@
 #include	"sample.h"
 #include	"xml.h"
 
-psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, contextstruct *context);
-void		write_error(char *msg1, char *msg2);
+void		write_error(const char *msg1, const char *msg2);
 time_t		thetime, thetime2;
 
 /********************************** makeit ***********************************/
@@ -688,16 +686,16 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 
 
 /****** write_error ********************************************************
-PROTO	void    write_error(char *msg1, char *msg2)
+PROTO	void    write_error(const char *msg1, const char *msg2)
 PURPOSE	Manage files in case of a catched error
 INPUT	a character string,
 	another character string
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	23/02/2007
+VERSION	02/12/2013
  ***/
-void	write_error(char *msg1, char *msg2)
+void	write_error(const char *msg1, const char *msg2)
   {
    char	error[MAXCHAR];
 

@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/07/2012
+*	Last modified:		02/12/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -86,10 +86,8 @@ typedef struct
   int		badpix_nmax;			/* Max number of bad pixels */
   char		photflux_key[MAXCHAR];		/* Name of phot. flux key */
   char		photflux_rkey[MAXCHAR];		/* Reduced phot. flux key */
-  int		photflux_num;			/* Phot. aperture # */
   char		photfluxerr_key[MAXCHAR];	/* Name of phot. flux err. key*/
   char		photfluxerr_rkey[MAXCHAR];	/* Reduced phot. flux err. key*/
-  int		photfluxerr_num;		/* Phot.flux err. aperture # */
 /* Vector basis */
   basistypenum	basis_type;			/* PSF vector basis set */
   int		basis_number;			/* nb of supersampled pixels */
@@ -155,7 +153,7 @@ typedef struct
   double	time_diff;			/* Execution time */
   }	prefstruct;
 
-  prefstruct		prefs;
+extern prefstruct	prefs;
 
 /*-------------------------------- protos -----------------------------------*/
 extern char	*list_to_str(char *listname);

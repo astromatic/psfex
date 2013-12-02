@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/04/2013
+*	Last modified:		20/11/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -75,7 +75,7 @@ INPUT   Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 25/06/2012
+VERSION 20/11/2013
  ***/
 void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
   {
@@ -83,7 +83,7 @@ void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
 		xstep,ystep, dval,dpfval, fwhm,mfwhm,fwhmmin,fwhmmax,
 		pffwhm,mpffwhm,pffwhmmin,pffwhmmax,
 		pixscale,mpixscale,pixscalemin,pixscalemax;
-   int		e,i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
+   int		i,j, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2;
 
   if (!psf->samples_accepted || !wcs || wcs->naxis<2)
     {

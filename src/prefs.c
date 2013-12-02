@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/07/2012
+*	Last modified:		02/12/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -56,6 +56,7 @@
 #include	"prefs.h"
 #include	"preflist.h"
 
+prefstruct	prefs;
 
 /********************************* dumpprefs ********************************/
 /*
@@ -581,14 +582,6 @@ void	useprefs()
   if (!prefs.autoselect_flag && !prefs.psf_step)
     warning("SAMPLE_AUTOSELECT set to N and PSF_SAMPLING set to 0.0:\n",
 		" PSF_SAMPLING will default to 1 pixel");
-
-/*---------------------------- Measurement arrays --------------------------*/
-  strcpy(prefs.photflux_rkey, prefs.photflux_key);
-  strtok(prefs.photflux_rkey,"([{}])");
-  prefs.photflux_num = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) : 1;
-  strcpy(prefs.photfluxerr_rkey, prefs.photfluxerr_key);
-  strtok(prefs.photfluxerr_rkey,"([{}])");
-  prefs.photfluxerr_num = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) : 1;
 
 /*------------------------------- Contexts ---------------------------------*/
   if ((prefs.group_deg[0]!=0) && prefs.ncontext_group != prefs.ncontext_name)

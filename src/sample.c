@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/07/2012
+*	Last modified:		02/12/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -30,6 +30,7 @@
 #include        "config.h"
 #endif
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -384,7 +385,7 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/07/2012
+VERSION 02/12/2013
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
@@ -399,8 +400,9 @@ setstruct *read_samples(setstruct *set, char *filename,
    t_type		contexttyp[MAXCONTEXT];
    void			*contextvalp[MAXCONTEXT];
    static char		str[MAXCHAR], str2[MAXCHAR];
-   char			**kstr,
-			*head, *buf;
+   char			rkeyname[MAXCHAR],
+			**kstr,
+			*head, *buf, *pstr;
    unsigned int		*imaflags;
    unsigned short	*flags, *wflags;
    double		contextval[MAXCONTEXT],
@@ -535,14 +537,16 @@ setstruct *read_samples(setstruct *set, char *filename,
 		filename);
   fluxrad = (float *)key->ptr;
 
-  if (!(key = name_to_key(keytab, prefs.photflux_rkey)))
+  strcpy(rkeyname, prefs.photflux_key);
+  strtok(rkeyname, "([{}])");
+  n = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) - 1 : 0;
+  if (!(key = name_to_key(keytab, rkeyname)))
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
 	prefs.photflux_rkey);
     error(EXIT_FAILURE, str, filename);
     }
   flux = (float *)key->ptr;
-  n = prefs.photflux_num - 1;
   if (n)
     {
     if (key->naxis==1 && n<key->naxisn[0])
@@ -550,9 +554,8 @@ setstruct *read_samples(setstruct *set, char *filename,
     else
       {
       sprintf(str, "Not enough apertures for %s in catalogue %s: ",
-	prefs.photflux_rkey,
-	filename);
-      warning(str, "using first aperture");
+	prefs.photflux_key, filename);
+      warning(str, "using first aperture instead");
       }
     }
 
@@ -628,13 +631,27 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
     else
       {
-      if (!(key = name_to_key(keytab, *kstr)))
+      strcpy(rkeyname, *kstr);
+      strtok(rkeyname,"([{}])");
+      n= (pstr = strtok(NULL,"([{}])"))? atoi(pstr) - 1 : -1;
+      if (!(key = name_to_key(keytab, rkeyname)))
         {
         sprintf(str, "*Error*: %s parameter not found in catalog ", *kstr);
         error(EXIT_FAILURE, str, filename);
         }
       contextvalp[i] = key->ptr;
       contexttyp[i] = key->ttype;
+      if (n >= 0)
+        {
+        if (key->naxis==1 && n<key->naxisn[0])
+          contextvalp[i] += n * (key->nbytes / key->naxisn[0]);
+        else
+          {
+          sprintf(str, "Not enough %s elements in catalogue %s: ", rkeyname,
+		filename);
+          warning(str, "using first element instead");
+          }
+        }
       strcpy(set->contextname[i], key->name);
       }
   if (next>1)

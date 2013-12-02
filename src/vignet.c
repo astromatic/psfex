@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		20/11/2013
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -369,10 +369,8 @@ float	vignet_aperflux(float *ima, float *var, int w, int h,
 			offsetx,offsety,scalex,scaley,scale2, locarea, vthresh;
    double		tv, sigtv;
    int			x,y, x2,y2, xmin,xmax,ymin,ymax, sx,sy,
-			fymin,fymax, pflag,corrflag, gainflag;
+			fymin,fymax, pflag,corrflag;
    long			pos;
-   PIXTYPE		*strip,*stript, *wstrip,*wstript,
-			wthresh = 0.0;
 
   pvar = backnoise*backnoise;
   invbacknoise2 = pvar>0.0? 1.0/pvar : 0.0;
@@ -453,13 +451,13 @@ float	vignet_aperflux(float *ima, float *var, int w, int h,
           }
         tv += locarea*pix;
         sigtv += locarea*pvar;
-        if (gainflag && pix>0.0 && gain>0.0)
+        if (pix>0.0 && gain>0.0)
           sigtv += pix*invgain*pvar*invbacknoise2;
         }
       }
     }
 
-  if (!gainflag && tv>0.0)
+  if (tv>0.0)
     sigtv += tv*invgain;
 
   if (fluxvar)
