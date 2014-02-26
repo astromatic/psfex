@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2005-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/06/2012
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -1391,7 +1391,7 @@ INPUT	Output stream (file) pointer,
 OUTPUT	RETURN_OK if the keyword exists, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	29/05/2012
+VERSION	26/02/2014
  ***/
 int	write_xmlconfigparam(FILE *file, char *name, char *unit,
 		 char *ucd, char *format)
@@ -1488,7 +1488,7 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
 		name, ucd);
       break;
     case P_STRING:
-      sprintf(value, (char *)key[i].ptr);
+      sprintf(value, "%s", (char *)key[i].ptr);
       fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\" arraysize=\"*\""
 	" ucd=\"%s\" value=\"%s\"/>\n",
 	name, ucd, *value? value: " ");
@@ -1497,13 +1497,13 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
       n = *(key[i].nlistptr);
       if (n)
         {
-        sprintf(value, ((char **)key[i].ptr)[0]);
+        sprintf(value, "%s", ((char **)key[i].ptr)[0]);
         fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\""
 		" arraysize=\"*\" ucd=\"%s\" value=\"%s",
 		name, ucd, *value? value: " ");
         for (j=1; j<n; j++)
           {
-          sprintf(value, ((char **)key[i].ptr)[j]);
+          sprintf(value, "%s", ((char **)key[i].ptr)[j]);
           fprintf(file, ",%s", *value? value: " ");
           }
         fprintf(file, "\"/>\n");
@@ -1514,7 +1514,7 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
 		name, ucd);
       break;
     case P_KEY:
-      sprintf(value, key[i].keylist[*((int *)key[i].ptr)]);
+      sprintf(value, "%s", key[i].keylist[*((int *)key[i].ptr)]);
       fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\" arraysize=\"*\""
 	" ucd=\"%s\" value=\"%s\"/>\n",
 	name, ucd, value);
@@ -1523,13 +1523,13 @@ int	write_xmlconfigparam(FILE *file, char *name, char *unit,
       n = *(key[i].nlistptr);
       if (n)
         {
-        sprintf(value, key[i].keylist[((int *)key[i].ptr)[0]]);
+        sprintf(value, "%s", key[i].keylist[((int *)key[i].ptr)[0]]);
         fprintf(file, "   <PARAM name=\"%s\" datatype=\"char\""
 		" arraysize=\"*\" ucd=\"%s\" value=\"%s",
 		name, ucd, value);
         for (j=1; j<n; j++)
           {
-          sprintf(value, key[i].keylist[((int *)key[i].ptr)[j]]);
+          sprintf(value, "%s", key[i].keylist[((int *)key[i].ptr)[j]]);
           fprintf(file, ",%s", value);
           }
         fprintf(file, "\"/>\n");

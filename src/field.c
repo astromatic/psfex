@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -379,7 +379,7 @@ INPUT   Pointer to the field structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/10/2009
+VERSION 26/02/2014
  ***/
 void	field_psfsave(fieldstruct *field, char *filename)
   {
@@ -394,7 +394,7 @@ void	field_psfsave(fieldstruct *field, char *filename)
 
   cat = new_cat(1);
   init_cat(cat);
-  sprintf(cat->filename, filename);
+  sprintf(cat->filename, "%s", filename);
   if (open_cat(cat, WRITE_ONLY) != RETURN_OK)
     error(EXIT_FAILURE, "*Error*: cannot open for writing ", cat->filename);
 /* Write primary HDU */

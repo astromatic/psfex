@@ -745,7 +745,7 @@ void	poly_initortho(polystruct *poly, double *data, int ndata)
 
 
 /****** poly_ortho ************************************************************
-PROTO   void poly_ortho(polystruct *poly, double *datain, double *dataout)
+PROTO   double *poly_ortho(polystruct *poly, double *datain, double *dataout)
 PURPOSE Apply orthonormalization to the poly basis vector ("ket>").
 INPUT   polystruct pointer,
 	pointer to the input vector,
