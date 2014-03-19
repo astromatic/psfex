@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		27/03/2013
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -103,6 +103,9 @@ pkeystruct key[] =
 	{"NONE", "PCA_INDEPENDENT", "PCA_COMMON", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},
   {"NTHREADS", P_INT, &prefs.nthreads, -THREADS_PREFMAX, THREADS_PREFMAX},
+  {"OUTCAT_NAME", P_STRING, prefs.outcat_name},
+  {"OUTCAT_TYPE", P_KEY, &prefs.outcat_type, 0,0, 0.0,0.0,
+   {"NONE", "ASCII_HEAD", "ASCII", "ASCII_VOTABLE", "FITS_LDAC", ""}},
   {"PHOTFLUX_KEY", P_STRING, prefs.photflux_key},
   {"PHOTFLUXERR_KEY", P_STRING, prefs.photfluxerr_key},
   {"PSFVAR_DEGREES", P_INTLIST, prefs.group_deg, 0,32,0.0,0.0,
@@ -206,6 +209,11 @@ char *default_prefs[] =
 "*HOMOPSF_PARAMS     2.0, 3.0     # Moffat parameters of the idealised PSF",
 "*HOMOKERNEL_DIR                  # Where to write kernels (empty=same as input)",
 "*HOMOKERNEL_SUFFIX  .homo.fits   # Filename extension for homogenisation kernels",
+"*",
+"*#----------------------------- Output catalogs -------------------------------",
+"*",
+"*OUTCAT_TYPE        NONE         # NONE, ASCII_HEAD, ASCII, FITS_LDAC",
+"*OUTCAT_NAME        psfex_out.cat  # Output catalog filename",
 "*",
 "#------------------------------- Check-plots ----------------------------------",
 " ",

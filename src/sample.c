@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -385,7 +385,7 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 02/12/2013
+VERSION 26/02/2014
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
@@ -413,7 +413,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    static int		ncat;
    int			*lxm,*lym,
 			i,j, n, nsample,nsamplemax,
-			vigw, vigh, vigsize, nobj, nt,
+			vigw, vigh, vigsize, nobj, nt, ndet,
 			maxbad, maxbadflag, ldflag, ext2, pc, contflag;
    short 		*sxm,*sym;
 
@@ -661,8 +661,10 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /* Now examine each vector of the shipment */
   nt = keytab->naxisn[1];
+  ndet = 0;
   for (n=0; nt; n++)
     {
+    ndet++;
     nt = read_obj(keytab,tab, buf);
     if (!(n%100))
       {
@@ -745,8 +747,9 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
 
     sample = set->sample + nsample;
-    sample->catindex = catindex;
+    sample->detindex = ndet;
     sample->extindex = ext;
+    sample->catindex = catindex;
 
 /*-- Copy the vignet to the training set */
     memcpy(sample->vig, vignet, vigsize*sizeof(float));

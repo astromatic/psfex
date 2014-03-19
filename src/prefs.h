@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,9 +22,13 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _CATOUT_H_
+#include "catout.h"
+#endif
 
 #ifndef	_CHECK_H_
 #include "check.h"
@@ -128,6 +132,10 @@ typedef struct
   double	homobasis_scale;		/* Gauss-Laguerre beta param */
   double	homopsf_params[2];		/* Idealised Moffat PSF params*/
   int		nhomopsf_params;		/* nb of params */
+/* Output catalogs */
+  char		outcat_name[MAXCHAR];		/* Output filename */
+  cattypenum	outcat_type;			/* Output catalog type */
+  int		outcatpipe_flag;		/* Pipe output catalogs? */
 /* Check-plots */
   cplotenum	cplot_device[MAXCHECK];		/* check-plot format */
   int		ncplot_device;			/* nb of params */

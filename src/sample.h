@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2012
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,8 +46,9 @@
 
 typedef struct sample
   {
-  int		catindex;		/* Catalogue index */
+  int		detindex;		/* Detection index */
   int		extindex;		/* Extension index */
+  int		catindex;		/* Catalogue index */
   float		*vig;			/* Vignette array */
   float		*vigresi;		/* Residual-map of the PSF-residuals */
   float		*vigchi;		/* Chi-map of the PSF-residuals */

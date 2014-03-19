@@ -23,7 +23,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2012 IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2014 IAP/CNRS/UPMC
 #
 #	Author:			Emmanuel Bertin (IAP)
 #
@@ -40,7 +40,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		03/04/2013
+#	Last modified:		26/02/2014
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -99,18 +99,20 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__psfex_SOURCES_DIST = check.c context.c cplot.c diagnostic.c fft.c \
-	field.c fitswcs.c homo.c main.c makeit.c misc.c pca.c prefs.c \
-	psf.c sample.c vignet.c xml.c check.h context.h cplot.h \
-	define.h diagnostic.h fft.h field.h fitswcs.h globals.h homo.h \
-	key.h misc.h pca.h prefs.h preflist.h psf.h sample.h threads.h \
-	types.h vignet.h wcscelsys.h xml.h
+am__psfex_SOURCES_DIST = catout.c check.c context.c cplot.c \
+	diagnostic.c fft.c field.c fitswcs.c homo.c main.c makeit.c \
+	misc.c pca.c prefs.c psf.c sample.c vignet.c xml.c cathead.h \
+	catout.h check.h context.h cplot.h define.h diagnostic.h fft.h \
+	field.h fitswcs.h globals.h homo.h key.h misc.h pca.h prefs.h \
+	preflist.h psf.h sample.h threads.h types.h vignet.h \
+	wcscelsys.h xml.h
 @USE_PLPLOT_TRUE@am__objects_1 = cplot.$(OBJEXT)
-am_psfex_OBJECTS = check.$(OBJEXT) context.$(OBJEXT) $(am__objects_1) \
-	diagnostic.$(OBJEXT) fft.$(OBJEXT) field.$(OBJEXT) \
-	fitswcs.$(OBJEXT) homo.$(OBJEXT) main.$(OBJEXT) \
-	makeit.$(OBJEXT) misc.$(OBJEXT) pca.$(OBJEXT) prefs.$(OBJEXT) \
-	psf.$(OBJEXT) sample.$(OBJEXT) vignet.$(OBJEXT) xml.$(OBJEXT)
+am_psfex_OBJECTS = catout.$(OBJEXT) check.$(OBJEXT) context.$(OBJEXT) \
+	$(am__objects_1) diagnostic.$(OBJEXT) fft.$(OBJEXT) \
+	field.$(OBJEXT) fitswcs.$(OBJEXT) homo.$(OBJEXT) \
+	main.$(OBJEXT) makeit.$(OBJEXT) misc.$(OBJEXT) pca.$(OBJEXT) \
+	prefs.$(OBJEXT) psf.$(OBJEXT) sample.$(OBJEXT) \
+	vignet.$(OBJEXT) xml.$(OBJEXT)
 psfex_OBJECTS = $(am_psfex_OBJECTS)
 psfex_DEPENDENCIES = $(srcdir)/fits/libfits.a \
 	$(srcdir)/levmar/liblevmar.a $(srcdir)/wcs/libwcs_c.a
@@ -313,13 +315,15 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = fits levmar wcs
 @USE_PLPLOT_TRUE@CPLOTSOURCE = cplot.c
-psfex_SOURCES = check.c context.c $(CPLOTSOURCE) diagnostic.c fft.c \
-			  field.c fitswcs.c homo.c main.c makeit.c misc.c \
-			  pca.c prefs.c psf.c sample.c vignet.c xml.c \
-			  check.h context.h cplot.h define.h diagnostic.h \
-			  fft.h field.h fitswcs.h globals.h homo.h key.h \
-			  misc.h pca.h prefs.h preflist.h psf.h \
-			  sample.h threads.h types.h vignet.h wcscelsys.h xml.h
+psfex_SOURCES = catout.c check.c context.c $(CPLOTSOURCE) \
+			  diagnostic.c fft.c field.c fitswcs.c homo.c main.c \
+			  makeit.c misc.c pca.c prefs.c psf.c sample.c \
+			  vignet.c xml.c \
+			  cathead.h catout.h check.h context.h cplot.h \
+			  define.h diagnostic.h fft.h field.h fitswcs.h \
+			  globals.h homo.h key.h misc.h pca.h prefs.h \
+			  preflist.h psf.h sample.h threads.h types.h vignet.h \
+			  wcscelsys.h xml.h
 
 psfex_LDADD = $(srcdir)/fits/libfits.a \
 			  $(srcdir)/levmar/liblevmar.a \
@@ -416,6 +420,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/catout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cplot.Po@am__quote@

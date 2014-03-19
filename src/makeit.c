@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -52,6 +52,7 @@
 #include	"diagnostic.h"
 #include	"field.h"
 #include	"homo.h"
+#include	"catout.h"
 #include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
@@ -74,6 +75,7 @@ void	makeit(void)
 			*psf;
    setstruct		*set, *set2;
    contextstruct	*context, *fullcontext;
+   outcatstruct		*outcat;
    struct tm		*tm;
    char			str[MAXCHAR];
    char			**incatnames,
@@ -434,6 +436,11 @@ void	makeit(void)
   QIPRINTF(OUTPUT,
         "   filename      [ext] accepted/total samp. chi2/dof FWHM ellip."
 	" resi. asym.");
+
+/* Initialize output catalog */
+  if (prefs.outcat_type != CAT_NONE)
+    outcat = init_outcat(prefs.outcat_name, context->ncontext);
+
   for (c=0; c<ncat; c++)
     {
     field = fields[c];
@@ -488,10 +495,16 @@ void	makeit(void)
           check_write(field, set2, prefs.check_name[i], prefs.check_type[i],
 		ext, next, prefs.check_cubeflag);
           }
+/*---- Write Catalog */
+      if (prefs.outcat_type != CAT_NONE)
+        write_outcat(outcat, set2);
 /*---- Free memory */
       end_set(set2);
       }
     }
+
+  if (prefs.outcat_type != CAT_NONE)
+    end_outcat(outcat);
 
 #ifdef USE_THREADS
 /* Back to multithreaded MKL */

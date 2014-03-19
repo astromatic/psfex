@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		26/02/2014
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -629,6 +629,10 @@ void	useprefs()
   if ((i=strlen(prefs.homokernel_dir)-1) > 0
 	&& *(pstr=prefs.homokernel_dir+i) == (char)'/')
     *pstr = (char)'\0';
+
+/* Output catalog */
+  if (!strcmp(prefs.outcat_name, "STDOUT"))
+    prefs.outcatpipe_flag = 1;
 
 /*----------------------------- CHECK-images -------------------------------*/
   flag = 0;
