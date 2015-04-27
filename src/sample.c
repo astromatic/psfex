@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		27/02/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -385,7 +385,7 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/02/2014
+VERSION 27/02/2015
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,
@@ -595,7 +595,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   vignet = (float *)key->ptr;
   nobj = key->nobj;
 
-  if (key->naxis != 2)
+  if (key->naxis < 2)
     error(EXIT_FAILURE, "*Error*: VIGNET should be a 2D vector", "");
   vigkey = key;
   vigw = *(vigkey->naxisn);

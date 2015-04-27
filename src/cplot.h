@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		26/02/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -55,6 +55,24 @@
 
 /*---------------------------- return messages ------------------------------*/
 /*-------------------------------- macros -----------------------------------*/
+// Work-around to emulate the plwid() function replaced in later versions of
+// the PLPlot library.
+#ifdef HAVE_PLPLOT
+ #ifndef __PLPLOT_H__
+  #include	PLPLOT_H
+ #endif
+
+ #ifndef __PLPLOTP_H__
+  #include	PLPLOTP_H
+  #endif
+
+ #ifdef plwidth
+  #define	CPLOT_PLWID(wid)	plwidth((PLFLT)(wid))
+ #else
+  #define	CPLOT_PLWID		plwid
+ #endif
+#endif
+
 /*--------------------------------- typedefs --------------------------------*/
 typedef enum {CPLOT_NONE, CPLOT_FWHM, CPLOT_ELLIPTICITY, CPLOT_MOFFATRESI,
 		CPLOT_ASYMRESI, CPLOT_COUNTS, CPLOT_COUNTFRAC, CPLOT_CHI2,

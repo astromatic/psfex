@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/04/2012
+*	Last modified:		26/02/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -405,7 +405,7 @@ INPUT	Pointer to the WCS projection structure,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/10/2005
+VERSION	26/02/2015
  ***/
 int	cplot_drawloccoordgrid(wcsstruct *wcs, double xmin, double xmax,
 				double ymin, double ymax)
@@ -527,7 +527,7 @@ int	cplot_drawloccoordgrid(wcsstruct *wcs, double xmin, double xmax,
 
 /* Draw meridians */
   plschr(0.0, 0.33);
-  plwid(0);
+  CPLOT_PLWID(0);
   pllsty(2);
   xmd = xmu = xdo = -0.5;
   ymd = ymu = ydo = -0.5;
@@ -663,7 +663,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -709,14 +709,14 @@ int	cplot_fwhm(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: FWHM map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -830,7 +830,7 @@ int	cplot_fwhm(fieldstruct *field)
       plFree2dGrid(fwhm, nsnap2, nsnap2);
       }
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -941,14 +941,14 @@ int	cplot_ellipticity(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: ellipticity map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1062,7 +1062,7 @@ int	cplot_ellipticity(fieldstruct *field)
       plFree2dGrid(ellip, nsnap2, nsnap2);
       }
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -1113,7 +1113,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1159,14 +1159,14 @@ int	cplot_moffatresi(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: map of Moffat fit residuals", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1278,7 +1278,7 @@ int	cplot_moffatresi(fieldstruct *field)
       plFree2dGrid(resi, nsnap2, nsnap2);
       }
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -1332,7 +1332,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1378,14 +1378,14 @@ int	cplot_asymresi(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: PSF asymmetry map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1497,7 +1497,7 @@ int	cplot_asymresi(fieldstruct *field)
       plFree2dGrid(resi, nsnap2, nsnap2);
       }
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -1546,7 +1546,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1592,14 +1592,14 @@ int	cplot_counts(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: source count map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1666,7 +1666,7 @@ int	cplot_counts(fieldstruct *field)
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
     plFree2dGrid(count, nsnap2, nsnap2);
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -1705,7 +1705,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1751,14 +1751,14 @@ int	cplot_countfrac(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: source count fraction map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1826,7 +1826,7 @@ int	cplot_countfrac(fieldstruct *field)
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
     plFree2dGrid(count, nsnap2, nsnap2);
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -1864,7 +1864,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
@@ -1911,14 +1911,14 @@ int	cplot_modchi2(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: #gx#u2#d/d.o.f. map", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -1985,7 +1985,7 @@ int	cplot_modchi2(fieldstruct *field)
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
     plFree2dGrid(count, nsnap2, nsnap2);
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
@@ -2023,7 +2023,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	26/02/2015
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
@@ -2070,14 +2070,14 @@ int	cplot_modresi(fieldstruct *field)
   ymin = 0.5;
   ymax = 100.5;
   lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
-  plwid(lwid);
+  CPLOT_PLWID(lwid);
   plfont(2);
   plcol0(15);
   plenv((PLFLT)xmin, (PLFLT)xmax, (PLFLT)ymin, (PLFLT)ymax, 1, -1);
   sprintf(str, "#uField %.24s: map of residuals", field->rtcatname);
   plschr(0.0, 1.0);
   pllab("","", str);
-  plwid(0);
+  CPLOT_PLWID(0);
   plcol0(7);
   cplot_drawloccoordgrid(wcsout, xmin, xmax, ymin, ymax);
 
@@ -2144,7 +2144,7 @@ int	cplot_modresi(fieldstruct *field)
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
     plFree2dGrid(count, nsnap2, nsnap2);
     plcol0(7);
-    plwid(lwid);
+    CPLOT_PLWID(lwid);
     cplot_drawbounds(wcs, wcsout);
     }
 
