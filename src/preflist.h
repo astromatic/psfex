@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -85,7 +85,7 @@ pkeystruct key[] =
     {""}, 1, 2, &prefs.ncplot_res},
    {"CHECKPLOT_TYPE", P_KEYLIST, prefs.cplot_type, 0,0, 0.0,0.0,
     {"NONE", "FWHM", "ELLIPTICITY", "MOFFAT_RESIDUALS", "ASYMMETRY",
-	"COUNTS", "COUNT_FRACTION", "CHI2", "RESIDUALS", "GREAT10", ""},
+	"COUNTS", "COUNT_FRACTION", "CHI2", "RESIDUALS", "SELECTION_FWHM", ""},
     0, MAXCHECK, &prefs.ncplot_type},
   {"HIDDENMEF_TYPE", P_KEY, &prefs.hidden_mef_type, 0,0, 0.0,0.0,
 	{"INDEPENDENT", "COMMON", ""}},
@@ -221,9 +221,9 @@ char *default_prefs[] =
 "                                # JPEG, AQT, PDF or SVG",
 "*CHECKPLOT_RES       0           # Check-plot resolution (0 = default)",
 "*CHECKPLOT_ANTIALIAS Y           # Anti-aliasing using convert (Y/N) ?",
-"CHECKPLOT_TYPE      FWHM,ELLIPTICITY,COUNTS, COUNT_FRACTION, CHI2, RESIDUALS",
+"CHECKPLOT_TYPE      SELECTION_FWHM,FWHM,ELLIPTICITY,COUNTS,COUNT_FRACTION,CHI2, RESIDUALS",
 "                                # or NONE",
-"CHECKPLOT_NAME      fwhm, ellipticity, counts, countfrac, chi2, resi",
+"CHECKPLOT_NAME      selfwhm,fwhm,ellipticity,counts,countfrac,chi2,resi",
 " ",
 "#------------------------------ Check-Images ---------------------------------",
 " ",

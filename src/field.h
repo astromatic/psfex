@@ -62,7 +62,7 @@ typedef struct field
   int		ndet;			/* Number of detections (info only) */
   psfstruct	**psf;			/* Array of PSFs */
   wcsstruct	**wcs;			/* Array of WCS structures */
-  setstruct	*set;			/* Array of catalogues */
+  setstruct	*set;			/* Catalogue or array of catalogues */
   catstruct	**ccat;			/* Pointers to check-image files */
   double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
   double	meanwcsscale[NAXIS];	/* Mean pixel scale */

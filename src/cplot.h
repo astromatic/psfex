@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2015
+*	Last modified:		28/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,15 +43,17 @@
 
 /*------------------------------- constants ---------------------------------*/
 
-#define		CPLOT_DEFRESX	800	/* Default X resol. for PNG and JPG */
-#define		CPLOT_DEFRESY	600	/* Default X resol. for PNG and JPG */
-#define		CPLOT_AAFAC	3	/* Anti-aliasing factor */
-#define		CPLOT_NPOINTDEF	1024	/* Default number of points to plot */
-#define		CPLOT_FGRIDLINES   9	/* Number of grid lines per axis */
-#define		CPLOT_NDISTGRID	32	/* # of distort steps in each CCD dim*/
-#define		CPLOT_ASTNSUBPLOTS 3	/* Number of subplot/dim/detector*/
-#define		CPLOT_NTYPES	 128 /* Number of CPLOT types (typedef below)*/
-#define		CPLOT_NSHADES	  32	/* Number of shading levels */
+#define	CPLOT_DEFRESX		800	/* Default X resol. for PNG and JPG */
+#define	CPLOT_DEFRESY		600	/* Default X resol. for PNG and JPG */
+#define	CPLOT_AAFAC		3	/* Anti-aliasing factor */
+#define	CPLOT_NPOINTDEF		1024	/* Default number of points to plot */
+#define	CPLOT_FGRIDLINES	9	/* Number of grid lines per axis */
+#define	CPLOT_NDISTGRID		32	/* # of distort steps in each CCD dim*/
+#define	CPLOT_ASTNSUBPLOTS	3	/* Number of subplot/dim/detector*/
+#define	CPLOT_NTYPES		128	/* Number of CPLOT types (typedef below)*/
+#define	CPLOT_NSHADES		32	/* Number of shading levels */
+#define	CPLOT_SNRVSFWHM_NX	255	/* X resolution of SNR vs FWHM plots */
+#define	CPLOT_SNRVSFWHM_NY	255	/* Y resolution of SNR vs FWHM plots */
 
 /*---------------------------- return messages ------------------------------*/
 /*-------------------------------- macros -----------------------------------*/
@@ -76,8 +78,7 @@
 /*--------------------------------- typedefs --------------------------------*/
 typedef enum {CPLOT_NONE, CPLOT_FWHM, CPLOT_ELLIPTICITY, CPLOT_MOFFATRESI,
 		CPLOT_ASYMRESI, CPLOT_COUNTS, CPLOT_COUNTFRAC, CPLOT_CHI2,
-		CPLOT_MODRESI}
-		cplotenum;
+		CPLOT_MODRESI, CPLOT_SNRVSFWHM}	cplotenum;
 
 typedef enum {CPLOT_NULL, CPLOT_XWIN, CPLOT_TK, CPLOT_XTERM, CPLOT_PLMETA,
 	CPLOT_PS, CPLOT_PSC, CPLOT_XFIG, CPLOT_LJIIP, CPLOT_LJHPGL, CPLOT_IMP,
@@ -90,8 +91,7 @@ typedef struct {cplotdevenum device; char *devname; char *extension;}
 /*---------------------------------- svgp -----------------------------------*/
 /*------------------------------- functions ---------------------------------*/
 
-extern int		cplot_modchi2(fieldstruct *field),
-			cplot_modresi(fieldstruct *field),
+extern int		cplot_asymresi(fieldstruct *field),
 			cplot_countfrac(fieldstruct *field),
 			cplot_counts(fieldstruct *field),
 			cplot_check(cplotenum cplottype),
@@ -101,10 +101,11 @@ extern int		cplot_modchi2(fieldstruct *field),
 			cplot_ellipticity(fieldstruct *field),
 			cplot_end(cplotenum cplottype),
 			cplot_fwhm(fieldstruct *field),
-			cplot_init(char *name, int nx, int ny,
-				cplotenum cplottype),
+			cplot_init(char *name, cplotenum cplottype),
+			cplot_modchi2(fieldstruct *field),
+			cplot_modresi(fieldstruct *field),
 			cplot_moffatresi(fieldstruct *field),
-			cplot_asymresi(fieldstruct *field);
+			cplot_snrvsfwhm(fieldstruct *field, setstruct *set);
 			
 char			*cplot_degtosexal(char *str, double alpha,double step),
 			*cplot_degtosexde(char *str, double delta,double step);

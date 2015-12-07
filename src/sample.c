@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		27/02/2015
+*	Last modified:		28/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -61,7 +61,7 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/07/2012
+VERSION 15/11/2015
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -72,16 +72,18 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
    keystruct		*fkey, *key;
    char			keynames[][32]={"ELONGATION", "FLAGS", "FLUX_RADIUS",
 				"SNR_WIN", ""};
-   char			str[MAXCHAR];
+   char			str[MAXCHAR], fluxname[32];
    char			**pkeynames,
-			*head;
+			*head, *pstr;
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt, *elong, *hl, *snr,
-			backnoise, minsn, maxelong, min,max, mode,  fval;
+			*fwhm,*fwhmt, *elong, *hl, *snr, *flux, *phot,
+			backnoise, minsn, maxelong, min,max, mode,  fval,
+			fraclim, fluxlim;
    unsigned int		*imaflags;
    unsigned short	*flags, *wflags;
    int			*fwhmindex,
-			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, nkeys;
+			e,i,j,k,n,p, icat, nobj,nobjmax, nsample, fluxoffset,
+			fluxstep, ldflag, ext2, nkeys;
 
 //  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -101,16 +103,24 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 /*-- Allocate memory */
     nobjmax = LSAMPLE_DEFSIZE;
     QMALLOC(fwhm, float, nobjmax);
+    QMALLOC(phot, float, nobjmax);
     QMALLOC(fwhmindex, int, ncat+1);
     fwhmindex[0] = nobj = 0;
     fwhmt=fwhm;
 
 /*-- Initialize string array */
-    for (i=0; (*keynames[i]); i++);
-    nkeys = i;
-    QMALLOC(pkeynames, char *, nkeys);
-    for (i=0; i<nkeys; i++)
-      pkeynames[i] = keynames[i];
+    for (k=0; (*keynames[k]); k++);
+    nkeys = k;
+    QMALLOC(pkeynames, char *, nkeys + 1);
+    for (k=0; k<nkeys; k++) {
+      pkeynames[k] = keynames[k];
+    }
+    pkeynames[nkeys] = fluxname;
+    strcpy(fluxname, prefs.photflux_key);
+    strtok(fluxname, "([{}])");
+    fluxoffset = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) - 1 : 0;
+    fluxstep = 1;
+    nkeys++; 
 
 /*-- Try to estimate the most appropriate Half-light Radius range */
 /*-- Get the Half-light radii */
@@ -144,15 +154,18 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
             e--;
             }
 
-/*-------- Read the data */
+          nsample = tab->naxisn[1];
+          if (!nsample)
+            continue;
 
+/*-------- Read the data */
           read_keys(tab, pkeynames, NULL, nkeys, NULL);
 
           if ((key = name_to_key(tab, "ELONGATION")))
             elong = (float *)key->ptr;
           else
             {
-            warning("ELONGATION parameter not found in catalog ",
+            warning("ELONGATION parameter not found in catalogue ",
 			filename[icat]);
             elong = NULL;
             }
@@ -160,7 +173,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
             flags = (unsigned short *)key->ptr;
           else
             {
-            warning("FLAGS parameter not found in catalog ", filename[icat]);
+            warning("FLAGS parameter not found in catalogue ", filename[icat]);
             flags = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS_WEIGHT")))
@@ -172,43 +185,86 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           else
             imaflags = NULL;
           if (!(key = name_to_key(tab, "FLUX_RADIUS")))
-              {
-              sprintf(str, "FLUS_RADIUS not found in catalog %s",
+            {
+            sprintf(str, "FLUS_RADIUS not found in catalogue %s",
 			filename[icat]);
-              error(EXIT_FAILURE, "*Error*: ", str);
-              }
+            error(EXIT_FAILURE, "*Error*: ", str);
+            }
           hl = (float *)key->ptr;
           if (!(key = name_to_key(tab, "SNR_WIN")))
-              {
-              sprintf(str, "SNR_WIN not found in catalog %s",
+            {
+            sprintf(str, "SNR_WIN not found in catalogue %s",
 			filename[icat]);
-              error(EXIT_FAILURE, "*Error*: ", str);
-              }
+            error(EXIT_FAILURE, "*Error*: ", str);
+            }
           snr = (float *)key->ptr;
 
-          for (n=tab->naxisn[1]; n--; hl++, snr++, flags++, elong++)
+          if (!(key = name_to_key(tab, fluxname)))
             {
-            if (*snr>minsn
-		&& !(flags && (*flags&prefs.flag_mask))
-		&& !(wflags && (*wflags&prefs.wflag_mask))
-		&& !(imaflags && (*imaflags&prefs.imaflag_mask))
-		&& (!(elong && *elong>=maxelong))
-		&& (fval=2.0**hl)>=min
+            sprintf(str, "*Error*: %s parameter not found in catalogue %s",
+		fluxname, filename[icat]);
+            error(EXIT_FAILURE, "*Error*: ", str);
+            }
+          flux = (float *)key->ptr;
+          if (fluxoffset)
+            {
+            if (key->naxis==1 && n<key->naxisn[0])
+              {
+              flux += fluxoffset;
+              fluxstep = key->naxisn[0];
+              }
+            else
+              {
+              sprintf(str, "Not enough apertures for %s in catalogue %s: ",
+	      prefs.photflux_key, filename[icat]);
+              warning(str, "using first aperture instead");
+              }
+            }
+
+          for (n=0; n<nsample; n++)
+            {
+            if (snr[n]>minsn
+		&& !(flags && (flags[n]&prefs.flag_mask))
+		&& !(wflags && (wflags[n]&prefs.wflag_mask))
+		&& !(imaflags && (imaflags[n]&prefs.imaflag_mask))
+		&& (!(elong && elong[n]>=maxelong))
+		&& (fval=2.0*hl[n])>=min
 		&& fval<max)
               {
-              if (++nobj>nobjmax)
+              if (nobj>nobjmax)
                 {
                 nobjmax += LSAMPLE_DEFSIZE;
                 QREALLOC(fwhm, float, nobjmax);
-                fwhmt=fwhm+nobj-1;
+                QREALLOC(phot, float, nobjmax);
                 }
-              *(fwhmt++) = fval;
+              fwhm[nobj] = fval;
+              phot[nobj] = flux[n*fluxstep];
+              nobj++;
               }
             }
           }
-      free_cat(&cat, 1);
       fwhmindex[i+1] = nobj;
+      free_cat(&cat, 1);
       }
+
+    // Select a small subset of bright stars
+    fraclim = 1.0 - 1.0*LSAMPLE_NBRIGHTSTARS / nsample;
+    if (fraclim > 1.0)
+      fluxlim = 0.0;
+    else {
+      fluxlim = fast_quantile(phot, nobj, fraclim);
+    }
+    p = i = 0;
+    for (n=0; n<nobj; n++) {
+      if (n == fwhmindex[i]) {
+        fwhmindex[i++] = p;
+      }
+      if (phot[n] > fluxlim) {
+        fwhm[p++] = fwhm[n];
+      }
+    }
+    nobj = fwhmindex[ncat] = p;
+
 
     if (prefs.var_type == VAR_NONE)
       {
@@ -236,7 +292,8 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           fwhmmode[i] = compute_fwhmrange(&fwhm[fwhmindex[i]],
 		fwhmindex[i+1]-fwhmindex[i], prefs.maxvar,
 		prefs.fwhmrange[0],prefs.fwhmrange[1], &fwhmmin[i],&fwhmmax[i]);
-          }
+ printf("\n%d %g  %g %g %g %g\n\n", nobj, fluxlim, prefs.fwhmrange[0],prefs.fwhmrange[1], fwhmmin[i],fwhmmax[i]);
+         }
         else
           {
           warning("No source with appropriate FWHM found!!","");
@@ -245,6 +302,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
         }
     free(fwhm);
     free(fwhmindex);
+    free(phot);
     free(pkeynames);
     }
   else
@@ -264,10 +322,10 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
     icat = catindex + i;
     if (ext == ALL_EXTENSIONS)
       for (e=0; e<next; e++)
-        set = read_samples(set, filename[icat], fwhmmin[i]/2.0, fwhmmax[i]/2.0,
+        set = read_samples(set, filename[icat], fwhmmin[i], fwhmmax[i],
 			e, next, icat, context, context->pc+i*context->npc);
     else
-      set = read_samples(set, filename[icat], fwhmmin[i]/2.0, fwhmmax[i]/2.0,
+      set = read_samples(set, filename[icat], fwhmmin[i], fwhmmax[i],
 			ext, next, icat, context, context->pc+i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];
@@ -331,6 +389,7 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		df, dfmin,fmin;
    int		i, nw;
 
+printf("%d \n", nfwhm);
 /* Sort FWHMs */
    fqmedian(fwhm, nfwhm);
 
@@ -375,8 +434,8 @@ PROTO	setstruct *read_samples(setstruct *set, char *filename,
 PURPOSE	Read point source data for a given set.
 INPUT	Pointer to the data set,
 	catalogue filename,
-	minimum flux radius,
-	maximum flux radius,
+	minimum FWHM,
+	maximum FWHM,
 	current extension,
 	number of extensions,
 	catalogue index
@@ -385,10 +444,10 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 27/02/2015
+VERSION 23/09/2015
 */
 setstruct *read_samples(setstruct *set, char *filename,
-			float frmin, float frmax,
+			float fwhmmin, float fwhmmax,
 			int ext, int next, int catindex,
 			contextstruct *context, double *pcval)
 
@@ -409,20 +468,18 @@ setstruct *read_samples(setstruct *set, char *filename,
 			*dxm,*dym, *cmin, *cmax, dval;
    float		*xm, *ym, *vignet,*vignett, *flux, *fluxrad, *elong,
 			*snr,
-			backnoise, backnoise2, gain, minsn,maxelong;
+			backnoise, backnoise2, gain, minsn, ellip, maxellip;
    static int		ncat;
    int			*lxm,*lym,
 			i,j, n, nsample,nsamplemax,
-			vigw, vigh, vigsize, nobj, nt, ndet,
-			maxbad, maxbadflag, ldflag, ext2, pc, contflag;
+			vigw, vigh, vigsize, nobj, nt, ndet, ngood,
+			badflag, maxbad, maxbadflag, ldflag, ext2, pc;
    short 		*sxm,*sym;
 
 
   maxbad = prefs.badpix_nmax;
   maxbadflag = prefs.badpix_flag;
-  maxelong = (float)(prefs.maxellip < 1.0?
-	(prefs.maxellip + 1.0)/(1.0 - prefs.maxellip)
-	: 100.0);
+  maxellip = (float)prefs.maxellip;
   minsn = prefs.minsn;
 
 /* If a NULL pointer is provided, we allocate a new set */
@@ -520,7 +577,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   if (!(key = name_to_key(keytab, prefs.center_key[1])))
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
-	prefs.center_key[0]);
+	prefs.center_key[1]);
     error(EXIT_FAILURE, str, filename);
     }
    if (key->ttype == T_DOUBLE)
@@ -543,7 +600,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   if (!(key = name_to_key(keytab, rkeyname)))
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
-	prefs.photflux_rkey);
+	rkeyname);
     error(EXIT_FAILURE, str, filename);
     }
   flux = (float *)key->ptr;
@@ -661,7 +718,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /* Now examine each vector of the shipment */
   nt = keytab->naxisn[1];
-  ndet = 0;
+  ndet = ngood = 0;
   for (n=0; nt; n++)
     {
     ndet++;
@@ -674,45 +731,43 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
 
 /*---- Apply some selection over flags, fluxes... */
-    contflag = 0;
+    badflag = 0;
     if (flags && (*flags&prefs.flag_mask))
       {
-      contflag++;
+      badflag |= BAD_SEXFLAG;
       set->badflags++;
       }
     if (wflags && (*wflags&prefs.wflag_mask))
       {
-      contflag++;
+      badflag |= BAD_WEIGHTFLAG;
       set->badwflags++;
       }
     if (imaflags && (*imaflags&prefs.imaflag_mask))
       {
-      contflag++;
+      badflag |= BAD_IMAFLAG;
       set->badwflags++;
       }
     if (*snr<minsn)
       {
-      contflag++;
+      badflag |= BAD_SNR;
       set->badsn++;
       }
-    if (*fluxrad<frmin)
+    if (2.0**fluxrad<fwhmmin)
       {
-      contflag++;
-      set->badfrmin++;
+      badflag |= BAD_SIZE;
+      set->badfwhmmin++;
       }
-    if (*fluxrad>frmax)
+    if (2.0**fluxrad>fwhmmax)
       {
-      contflag++;
-      set->badfrmax++;
+      badflag |= BAD_SIZE;
+      set->badfwhmmax++;
       }
-    if (elong && *elong>maxelong)
+    if (elong && (ellip=(*elong - 1.0) / (*elong + 1.0)) > maxellip)
       {
-      contflag++;
-      set->badelong++;
+      badflag |= BAD_ELLIP;
+      set->badellip++;
       }
-    if (contflag)
-      continue;
-/*-- ... and check the integrity of the sample */
+/*-- ... and check the integrity of the pixel data */
     j = 0;
     vignett = vignet;
     for (i=vigsize; i--; vignett++)
@@ -720,10 +775,10 @@ setstruct *read_samples(setstruct *set, char *filename,
         j++;
     if (maxbadflag && j > maxbad)
       {
+      badflag |= BAD_PIXEL;
       set->badpix++;
-      continue; 
       }
-    
+   
 /*-- Allocate memory for the first shipment */
     if (!set->sample)
       {
@@ -750,11 +805,12 @@ setstruct *read_samples(setstruct *set, char *filename,
     sample->detindex = ndet;
     sample->extindex = ext;
     sample->catindex = catindex;
-
-/*-- Copy the vignet to the training set */
-    memcpy(sample->vig, vignet, vigsize*sizeof(float));
+    sample->badflag = badflag;
 
     sample->norm = *flux;
+    sample->fwhm = 2.0**fluxrad;
+    sample->ellip = elong? ellip : 0.0;
+    sample->snr = *snr;
     sample->backnoise2 = backnoise2;
     sample->gain = gain;
     if (dxm)
@@ -786,8 +842,14 @@ setstruct *read_samples(setstruct *set, char *filename,
       if (dval>cmax[i])
         cmax[i] = dval;
       }
-    make_weights(set, sample);
-    recenter_sample(sample, set, *fluxrad);
+/*-- Copy the vignet to the training set */
+    if (!badflag) {
+      malloc_samplevig(sample, vigsize);
+      memcpy(sample->vig, vignet, vigsize*sizeof(float));
+      make_weights(set, sample);
+      recenter_sample(sample, set, *fluxrad);
+      ngood++;
+    }
     nsample++;
     }
 
@@ -807,6 +869,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   free_cat(&cat, 1); 
 
   set->nsample = nsample;
+  set->ngood = ngood;
 
 /* Don't waste memory! */
   if (nsample)
@@ -965,7 +1028,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/03/2008
+VERSION 18/09/2015
 */
 void	malloc_samples(setstruct *set, int nsample)
 
@@ -973,17 +1036,11 @@ void	malloc_samples(setstruct *set, int nsample)
    samplestruct	*sample;
    int		n;
 
-  QMALLOC(set->sample, samplestruct, nsample);
+  QCALLOC(set->sample, samplestruct, nsample);
   sample = set->sample;
   for (n=nsample; n--; sample++)
-    {
-    QMALLOC(sample->vig, float, set->nvig);
-    QMALLOC(sample->vigresi, float, set->nvig);
-    QMALLOC(sample->vigweight, float, set->nvig);
-    QMALLOC(sample->vigchi, float, set->nvig);
     if (set->ncontext)
       QMALLOC(sample->context, double, set->ncontext);
-    }
 
   set->nsamplemax = nsample;
 
@@ -999,7 +1056,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/03/2008
+VERSION 18/09/2015
 */
 void	realloc_samples(setstruct *set, int nsample)
 
@@ -1018,10 +1075,7 @@ void	realloc_samples(setstruct *set, int nsample)
     sample = set->sample + set->nsamplemax;
     for (n = nsample - set->nsamplemax; n--; sample++)
       {
-      QMALLOC(sample->vig, float, set->nvig);
-      QMALLOC(sample->vigresi, float, set->nvig);
-      QMALLOC(sample->vigchi, float, set->nvig);
-      QMALLOC(sample->vigweight, float, set->nvig);
+      memset(sample, 0, sizeof(samplestruct));
       if (set->ncontext)
         QMALLOC(sample->context, double, set->ncontext);
       }
@@ -1031,10 +1085,7 @@ void	realloc_samples(setstruct *set, int nsample)
     sample = set->sample + nsample;
     for (n = set->nsamplemax - nsample; n--; sample++)
       {
-      free(sample->vig);
-      free(sample->vigresi);
-      free(sample->vigchi);
-      free(sample->vigweight);
+      free_samplevig(sample);
       if (set->ncontext)
         free(sample->context);
       }
@@ -1055,7 +1106,7 @@ INPUT   set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/03/2008
+VERSION 18/09/2015
 */
 void	free_samples(setstruct *set)
 
@@ -1066,10 +1117,7 @@ void	free_samples(setstruct *set)
   sample = set->sample;
   for (n = set->nsamplemax; n--; sample++)
     {
-    free(sample->vig);
-    free(sample->vigresi);
-    free(sample->vigweight);
-    free(sample->vigchi);
+    free_samplevig(sample);
     if (set->ncontext)
       free(sample->context);
     }
@@ -1077,6 +1125,49 @@ void	free_samples(setstruct *set)
   free(set->sample);
   set->sample = NULL;
   set->nsample = set->nsamplemax = 0;
+
+  return;
+  }
+
+
+/****** malloc_samplevig *******************************************************
+PROTO   void free_samplevig(samplestruct *sample, int npix)
+PURPOSE Free pixel memory for a sample.
+INPUT   sample structure pointer,
+        number of pixels.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 18/09/2015
+*/
+void	malloc_samplevig(samplestruct *sample, int npix)
+
+  {
+  QMALLOC(sample->vig, float, npix);
+  QMALLOC(sample->vigresi, float, npix);
+  QMALLOC(sample->vigweight, float, npix);
+  QMALLOC(sample->vigchi, float, npix);
+
+  return;
+  }
+
+
+/****** free_samplevig *******************************************************
+PROTO   void free_samplevig(samplestruct *sample)
+PURPOSE Free pixel memory for a sample.
+INPUT   sample structure pointer.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 28/09/2015
+*/
+void	free_samplevig(samplestruct *sample)
+
+  {
+  QFREE(sample->vig);
+  QFREE(sample->vigresi);
+  QFREE(sample->vigweight);
+  QFREE(sample->vigchi);
 
   return;
   }
@@ -1117,6 +1208,52 @@ samplestruct	*remove_sample(setstruct *set, int isample)
   }
 
 
+/****** add_set ************************************************************
+PROTO   void add_set(setstruct *destset, setstruct *set)
+PURPOSE Add the content of one set to another set (without the pixel data).
+INPUT   destination set structure pointer,
+        input set structure pointer.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 28/09/2015
+*/
+void	add_set(setstruct *destset, setstruct *set) {
+   samplestruct	*destsample, *sample;
+   int		c,n, ncontext;
+
+  // (Re-)allocate memory
+  if (!destset->nsamplemax) {
+    destset->nsample = set->nsample;
+    malloc_samples(destset, destset->nsample);
+  } else if ((destset->nsample += set->nsample) > destset->nsamplemax)
+    realloc_samples(destset, destset->nsample);
+  // Restrict to the smallest amount of contexts to avoid issues
+  ncontext = destset->ncontext > set->ncontext? set->ncontext:destset->ncontext;
+  // Set context if necessary
+  if (ncontext && destset->contextscale[0] == 0.0)
+    for (c=0; c<ncontext; c++) {
+      destset->contextoffset[c] = set->contextoffset[c];
+      destset->contextscale[c] = set->contextscale[c];
+      strcpy(destset->contextname[c], set->contextname[c]);
+    }
+  destsample = destset->sample + destset->nsample - set->nsample;
+  sample = set->sample;
+  for (n=set->nsample; n--; sample++, destsample++) {
+    // Copy scalars
+    *destsample = *sample;
+    // Copy contexts
+    if (ncontext)
+      QMEMCPY(sample->context, destsample->context, double, ncontext);
+    // Don't copy pixel data
+    destsample->vig = destsample->vigresi = destsample->vigweight = destsample->vigchi = NULL;
+  }
+
+  return;
+}
+
+
+
 /****** init_set ************************************************************
 PROTO   setstruct *init_set()
 PURPOSE Allocate and initialize a set structure.
@@ -1139,11 +1276,11 @@ setstruct	*init_set(contextstruct *context)
   set->ncontext = context->ncontext;
   if (set->ncontext)
     {
-    QMALLOC(set->contextoffset, double, set->ncontext);
-    QMALLOC(set->contextscale, double, set->ncontext);
-    QMALLOC(set->contextname, char *, set->ncontext);
+    QCALLOC(set->contextoffset, double, set->ncontext);
+    QCALLOC(set->contextscale, double, set->ncontext);
+    QCALLOC(set->contextname, char *, set->ncontext);
     for (i=0; i<set->ncontext; i++)
-      QMALLOC(set->contextname[i], char, 80);
+      QCALLOC(set->contextname[i], char, 80);
     }
 
   return set;

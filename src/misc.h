@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2010-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/11/2010
+*	Last modified:		17/11/2010
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -31,5 +31,6 @@
 extern double	dqmedian(double *ra, int n);
 
 extern float	fast_median(float *arr, int n),
-		fqmedian(float *ra, int n);
+		fqmedian(float *ra, int n),
+		fast_quantile(float *arr, long n, float frac);
 

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		28/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -73,7 +73,7 @@ void	makeit(void)
 			*field;
    psfstruct		**cpsf,
 			*psf;
-   setstruct		*set, *set2;
+   setstruct		*set, *bigset;
    contextstruct	*context, *fullcontext;
    outcatstruct		*outcat;
    struct tm		*tm;
@@ -444,6 +444,8 @@ void	makeit(void)
   for (c=0; c<ncat; c++)
     {
     field = fields[c];
+    if (next > 1)
+      bigset = init_set(context);
     for (ext=0 ; ext<next; ext++)
       {
       psf = field->psf[ext];
@@ -456,20 +458,20 @@ void	makeit(void)
 		field->rtcatname);
       NFPRINTF(OUTPUT, str);
 /*---- Check PSF with individual datasets */
-      set2 = load_samples(incatnames, c, 1, ext, next, context);
-      psf->samples_loaded = set2->nsample;
-      if (set2->nsample>1)
+      set = load_samples(incatnames, c, 1, ext, next, context);
+      psf->samples_loaded = set->ngood;
+      if (set->nsample>1)
         {
 /*------ Remove bad PSF candidates */
-        psf_clean(psf, set2, prefs.prof_accuracy);
-        psf->chi2 = set2->nsample? psf_chi2(psf, set2) : 0.0;
+        psf_clean(psf, set, prefs.prof_accuracy);
+        psf->chi2 = set->nsample? psf_chi2(psf, set) : 0.0;
         }
-      psf->samples_accepted = set2->nsample;
+      psf->samples_accepted = set->ngood;
 /*---- Compute diagnostics and field statistics */
       psf_diagnostic(psf);
       psf_wcsdiagnostic(psf, wcs);
       nmed = psf->nmed;
-      field_stats(fields, set2);
+      field_stats(fields, set);
 /*---- Display stats for current catalog/extension */
       if (next>1)
         sprintf(str, "[%d/%d]", ext+1, next);
@@ -492,19 +494,29 @@ void	makeit(void)
           {
           sprintf(str, "Saving CHECK-image #%d...", i+1);
           NFPRINTF(OUTPUT, str);
-          check_write(field, set2, prefs.check_name[i], prefs.check_type[i],
+          check_write(field, set, prefs.check_name[i], prefs.check_type[i],
 		ext, next, prefs.check_cubeflag);
           }
 /*---- Write Catalog */
       if (prefs.outcat_type != CAT_NONE)
-        write_outcat(outcat, set2);
-/*---- Free memory */
-      end_set(set2);
+        write_outcat(outcat, set);
+/*---- Append set sources to bigset */
+      if (next > 1) {
+        add_set(bigset, set);
+/*------ Free memory */
+        end_set(set);
       }
+      }
+#ifdef HAVE_PLPLOT
+    NFPRINTF(OUTPUT, "Plotting source selection diagrams...");
+    cplot_snrvsfwhm(field, next>1? bigset : set);
+#endif
+    end_set(next>1 ? bigset : set);
     }
 
   if (prefs.outcat_type != CAT_NONE)
     end_outcat(outcat);
+
 
 #ifdef USE_THREADS
 /* Back to multithreaded MKL */
@@ -565,6 +577,7 @@ void	makeit(void)
       }
 #ifdef HAVE_PLPLOT
 /* Plot diagnostic maps for all catalogs */
+    NFPRINTF(OUTPUT, "Plotting PSF maps...");
     cplot_ellipticity(fields[c]);
     cplot_fwhm(fields[c]);
     cplot_moffatresi(fields[c]);
@@ -621,7 +634,7 @@ INPUT	Pointer to a sample set,
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/09/2009
+VERSION 21/09/2015
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
 			float *basis, int nbasis, contextstruct *context)
@@ -635,7 +648,8 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
 //  NFPRINTF(OUTPUT,"Initializing PSF modules...");
   psf = psf_init(context, prefs.psf_size, psfstep, pixsize, set->nsample);
 
-  psf->samples_loaded = set->nsample;
+  psf->samples_total = set->nsample;
+  psf->samples_loaded = set->ngood;
   psf->fwhm = set->fwhm;
   
 /* Make the basic PSF-model (1st pass) */
@@ -657,7 +671,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   psf_refine(psf, set);
 
 /* Remove bad PSF candidates */
-  if (set->nsample>1)
+  if (set->ngood>1)
     {
     psf_clean(psf, set, 0.2);
  
@@ -668,7 +682,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     }
  
 /* Remove bad PSF candidates */
-  if (set->nsample>1)
+  if (set->ngood>1)
     {
     psf_clean(psf, set, 0.1);
  
@@ -679,10 +693,10 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     }
  
 /* Remove bad PSF candidates */
-  if (set->nsample>1)
+  if (set->ngood>1)
     psf_clean(psf, set, 0.05);
  
-  psf->samples_accepted = set->nsample;
+  psf->samples_accepted = set->ngood;
  
 /* Refine the PSF-model */
   psf_make(psf, set, prefs.prof_accuracy);
@@ -692,7 +706,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   psf_clip(psf);
 
 /*-- Just check the Chi2 */
-  psf->chi2 = set->nsample? psf_chi2(psf, set) : 0.0;
+  psf->chi2 = set->ngood? psf_chi2(psf, set) : 0.0;
 
   return psf;
   }

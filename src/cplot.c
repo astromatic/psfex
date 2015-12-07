@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2015
+*	Last modified:		29/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -73,6 +73,7 @@ int	plotnum[CPLOT_NTYPES];
 int	plotdev[CPLOT_NTYPES];
 char	plotfilename[MAXCHAR];
 int	plotaaflag;
+double	plotaspect;
 
 /****** cplot_check ***********************************************************
 PROTO	int cplot_check(cplotenum cplottype)
@@ -99,20 +100,20 @@ int	 cplot_check(cplotenum cplottype)
 
 
 /****** cplot_init ***********************************************************
-PROTO	int cplot_init(char *name, int nx, int ny, cplotenum cplottype)
+PROTO	int cplot_init(char *name, cplotenum cplottype)
 PURPOSE	Initialize a check plot.
 INPUT	Input name,
-	Number of plots along the x axis,
-	number of plots along the y axis,
 	plot type,
 	device number.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	10/09/2009
+VERSION	28/09/2015
  ***/
-int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
+int	cplot_init(char *name, cplotenum cplottype)
   {
+   PLFLT	p_xp,p_yp;
+   PLINT	p_xleng,p_yleng, p_xoff,p_yoff;
    char		**devmenu, **devname;
    char		str[MAXCHAR],
 		*pstr;
@@ -155,7 +156,6 @@ int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
 			cplot_device[j].extension);
     plsfnam(plotfilename);		/* file name */
     }
-  plssub(nx, ny);
   plsdev(cplot_device[j].devname);
 
   plotaaflag = 0;
@@ -212,6 +212,8 @@ int	cplot_init(char *name, int nx, int ny, cplotenum cplottype)
   plscol0(7, 128,128,128);	/* Force the midground colour to grey */
   plscol0(8, 64,0,0);		/* Force the brown colour to darken */
   plinit();
+  plgpage(&p_xp, &p_yp, &p_xleng, &p_yleng, &p_xoff, &p_yoff);
+  plotaspect = (double)p_yleng / (double)p_xleng;
 
   return RETURN_OK;
   }
@@ -663,7 +665,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -681,7 +683,7 @@ int	cplot_fwhm(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,n2,ncx,ncy,nt, nfwhm, naxis, nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_FWHM) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_FWHM) == RETURN_ERROR)
     {
     cplot_end(CPLOT_FWHM);
     return RETURN_OK;
@@ -895,7 +897,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	16/04/2012
+VERSION	28/09/2015
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -913,7 +915,7 @@ int	cplot_ellipticity(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,n2, ncx,ncy,nt, nellip, naxis, nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_ELLIPTICITY) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_ELLIPTICITY) == RETURN_ERROR)
     {
     cplot_end(CPLOT_ELLIPTICITY);
     return RETURN_OK;
@@ -1113,7 +1115,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1131,7 +1133,7 @@ int	cplot_moffatresi(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,n2,ncx,ncy,nt, nresi, naxis, nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_MOFFATRESI) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_MOFFATRESI) == RETURN_ERROR)
     {
     cplot_end(CPLOT_MOFFATRESI);
     return RETURN_OK;
@@ -1332,7 +1334,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1350,7 +1352,7 @@ int	cplot_asymresi(fieldstruct *field)
    int		naxisn[NAXIS],
 		i,j, e, n,n2,ncx,ncy,nt, nresi, naxis, nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_ASYMRESI) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_ASYMRESI) == RETURN_ERROR)
     {
     cplot_end(CPLOT_ASYMRESI);
     return RETURN_OK;
@@ -1546,7 +1548,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1564,7 +1566,7 @@ int	cplot_counts(fieldstruct *field)
 		**icount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTS) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_COUNTS) == RETURN_ERROR)
     {
     cplot_end(CPLOT_COUNTS);
     return RETURN_OK;
@@ -1705,7 +1707,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1723,7 +1725,7 @@ int	cplot_countfrac(fieldstruct *field)
 		**iacount,**ilcount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_COUNTFRAC) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_COUNTFRAC) == RETURN_ERROR)
     {
     cplot_end(CPLOT_COUNTFRAC);
     return RETURN_OK;
@@ -1864,7 +1866,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
@@ -1883,7 +1885,7 @@ int	cplot_modchi2(fieldstruct *field)
 		**scount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_CHI2) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_CHI2) == RETURN_ERROR)
     {
     cplot_end(CPLOT_CHI2);
     return RETURN_OK;
@@ -2023,7 +2025,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	28/09/2015
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
@@ -2042,7 +2044,7 @@ int	cplot_modresi(fieldstruct *field)
 		**scount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
-  if (cplot_init(field->rcatname, 1,1, CPLOT_MODRESI) == RETURN_ERROR)
+  if (cplot_init(field->rcatname, CPLOT_MODRESI) == RETURN_ERROR)
     {
     cplot_end(CPLOT_MODRESI);
     return RETURN_OK;
@@ -2173,5 +2175,163 @@ int	cplot_modresi(fieldstruct *field)
 
   return RETURN_OK;
   }
+
+
+/****** cplot_snrvsfwhm ******************************************************
+PROTO	cplot_snrvsfwhm(fieldstruct *field, setstruct *set)
+PURPOSE	Plot log(SNR) vs FWHM with flag values
+INPUT	Pointer to the field.
+OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
+NOTES	Global preferences are used.
+AUTHOR	E. Bertin (IAP)
+VERSION	29/09/2015
+ ***/
+int	cplot_snrvsfwhm(fieldstruct *field, setstruct *set)
+  {
+   samplestruct	*sample;
+   char		str[80];
+   PLFLT	**histo,**histo_acc,
+		r[2],g[2],b[2],cpoint[2], clevel[CPLOT_NSHADES], x[2],y[2],
+		aspect, minx,miny, maxx,maxy,
+		scalex,scaley, z,zmax,zmax_acc,
+		lfwhm, lsnr, fmin,fmax;
+   PLINT	lwid;
+   int		e,i,n,s, ix,iy, nx,ny, next;
+
+
+  // Define the plot grid according to the page aspect ratio
+  next = field->next;
+  if (cplot_init(field->rcatname, CPLOT_SNRVSFWHM) == RETURN_ERROR)
+    {
+    cplot_end(CPLOT_SNRVSFWHM);
+    return RETURN_OK;
+    }
+
+  ny = ceil(sqrt((double)next)*plotaspect);
+  nx = ceil((double)next / (double)ny);
+  aspect = (PLFLT)nx / (PLFLT)ny * plotaspect;
+  plssub(nx, ny);
+
+  // Plot boundaries (in log10 units)
+  minx = -0.222;
+  miny = 0.477;
+  maxx = 1.778;
+  maxy = 5.477;
+  scalex = CPLOT_SNRVSFWHM_NX / (maxx - minx);
+  scaley = CPLOT_SNRVSFWHM_NY / (maxy - miny);
+  plscmap1n(256);
+  cpoint[0] = 0.0;
+  cpoint[1] = 1.0;
+
+ for (e=0; e<next; e++) {
+    plAlloc2dGrid(&histo, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY);
+    plAlloc2dGrid(&histo_acc, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY);
+    zmax = zmax_acc = 0.0;
+    sample = set->sample;
+    for (n=set->nsample; n--; sample++)
+      {
+      if (sample->extindex != e)
+        continue;
+      lsnr = sample->snr > 0.0? log10f(sample->snr) : -10.0;
+      lfwhm = sample->fwhm > 0.0? log10f(sample->fwhm) : -10.0;
+      ix = (int)((lfwhm - minx)*scalex);
+      iy = (int)((lsnr - miny)*scaley);
+      if (ix>=0 && ix<CPLOT_SNRVSFWHM_NX && iy>=0 && iy<CPLOT_SNRVSFWHM_NY)
+        {
+        z = (histo[ix][iy] += 1.0);
+        if (z>zmax)
+          zmax = z;
+        if (!sample->badflag)
+          {
+          z = (histo_acc[ix][iy] += 1.0);
+          if (z>zmax_acc)
+            zmax_acc = z;
+          }
+        }
+      }
+    lwid = plotaaflag? ((CPLOT_AAFAC+1)/2) : 1;
+    CPLOT_PLWID(lwid);
+
+    plscolbg(255,255,255);	/* Force the background colour to white */
+    plscol0(15, 0,0,0);		/* Force the foreground colour to black */
+    plschr(0.0,1.01);
+    plcol0(15);
+    pladv(0);
+    if (next>1) {
+      if (aspect < 1.0)
+        plvpor(0.65 - 0.3 * aspect, 0.65 + 0.3 * aspect, 0.25, 0.85);
+      else
+        plvpor(0.35, 0.95, 0.55 - 0.3 / aspect, 0.55 + 0.3 / aspect);
+    } else
+      plvasp(1.0);
+    plwind((PLFLT)minx, (PLFLT)maxx, (PLFLT)miny, (PLFLT)maxy);
+
+    // Use a non-linear shade level distribution
+    if (zmax>=1.0) {
+      for (i=0; i<CPLOT_NSHADES; i++)
+        clevel[i] = pow(i/(CPLOT_NSHADES-1.0),1.8)*zmax+0.5;
+      r[0] = 1.0; g[0] = 0.8; b[0] = 0.8;
+      r[1] = 0.6; g[1] = 0.1; b[1] = 0.1;
+      plscmap1l(1, 2, cpoint, r, g, b, NULL);
+      plshades((const PLFLT **)histo, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY,
+	NULL, minx,maxx, miny,maxy,
+	clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+    } else {
+      plcol0(1);
+      plptex(0.0, maxx/2.0, 1.0, 0.0, 0.5, "No source!");
+    }
+    if (zmax_acc>=1.0) {
+      r[0] = 0.0; g[0] = 0.0; b[0] = 0.0;
+      r[1] = 0.8; g[1] = 0.8; b[1] = 0.8;
+      plscmap1l(1, 2, cpoint, r, g, b, NULL);
+      plimage((const PLFLT **)histo_acc, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY,
+	minx,maxx, miny,maxy,
+	0.5, zmax_acc,
+	minx,maxx, miny,maxy);
+    }
+
+  // Draw FWHM selection domain
+    y[0] = (PLFLT)(prefs.minsn > 0.0?
+	log10(prefs.minsn) : -10.0);
+    y[1] = (PLFLT)10.0;
+    x[0] = x[1] = fmin = (PLFLT)(prefs.fwhmrange[0] > 0.0?
+	log10(prefs.fwhmrange[0]) : -10.0);
+    plcol0(15);
+    pllsty(2);
+    plline(2,x,y);
+    x[0] = x[1] = fmax = (PLFLT)(prefs.fwhmrange[1] > 0.0?
+	log10(prefs.fwhmrange[1]) : -10.0);
+    plline(2,x,y);
+    x[0] = x[1] = (PLFLT)(field->psf && field->psf[e] &&
+	field->psf[e]->fwhm > 0.0? log10(field->psf[e]->fwhm) : -10.0);
+    pllsty(3);
+    plline(2,x,y);
+    x[0] = fmin;
+    x[1] = fmax;
+    y[0] = y[1] = (PLFLT)(prefs.minsn > 0.0?
+	log10(prefs.minsn) : -10.0);
+    pllsty(2);
+    plline(2,x,y);
+
+    pllsty(1);
+    plbox("bcflnst", 0.0, 0.0, "bclnstv", 0.0, 0.0);
+    if (next > 1)
+      sprintf(str, "%s[%d]", field->rtcatname, e+1);
+    else
+      sprintf(str, "FWHM selection for %s", field->rtcatname);
+    pllab( "FWHM [pix]", "SNR", str);
+
+    // Free array of points */
+    plFree2dGrid(histo, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY); 
+    plFree2dGrid(histo_acc, CPLOT_SNRVSFWHM_NX, CPLOT_SNRVSFWHM_NY); 
+
+  }
+
+  plend();
+  cplot_snrvsfwhm(field, set);	/* Recursive stuff */
+
+  return RETURN_OK;
+  }
+
 
 

@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2014,2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -49,9 +49,13 @@ typedef struct outsample
   int		detindex;		/* Detection index */
   short		extindex;		/* Extension index */
   int		catindex;		/* Catalog index */
+  int		badflag;		/* Rejection flags (0 = accepted) */
   double	context[MAXCONTEXT];	/* Context vector */
   int		ncontext;		/* Number of contexts */
   float		norm;			/* Normalisation flux */
+  float		fwhm;			/* FWHM (derived from input catalog) */
+  float		ellip;			/* Ellipticity */
+  float		snr;			/* Signal-to-Noise ratio */
   double	x,y;			/* x,y position estimate in frame */
   float		dx,dy;			/* x,y shift / vignet center */
   float		chi2;			/* Chi2 of the fit */

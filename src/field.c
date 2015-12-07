@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -286,7 +286,7 @@ INPUT	Pointer to an array of fieldstruct pointers,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 30/03/2009
+VERSION 21/09/2015
  ***/
 void	field_count(fieldstruct **fields, setstruct *set, int counttype)
   {
@@ -298,6 +298,8 @@ void	field_count(fieldstruct **fields, setstruct *set, int counttype)
   size = (double)prefs.context_nsnap;
   for (s=set->nsample; s--; sample++)
     {
+    if (sample->badflag)
+      continue;
     c = sample->catindex;
     e = sample->extindex;
     field = fields[c];
@@ -332,7 +334,7 @@ INPUT	Pointer to an array of fieldstruct pointers,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 25/06/2012
+VERSION 21/09/2015
  ***/
 void	field_stats(fieldstruct **fields, setstruct *set)
   {
@@ -344,6 +346,8 @@ void	field_stats(fieldstruct **fields, setstruct *set)
   size = (double)prefs.context_nsnap;
   for (s=set->nsample; s--; sample++)
     {
+    if (sample->badflag)
+      continue;
     c = sample->catindex;
     e = sample->extindex;
     field = fields[c];

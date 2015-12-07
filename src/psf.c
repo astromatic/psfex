@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/04/2013
+*	Last modified:		18/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -67,7 +67,7 @@ INPUT	Pointer to the PSF,
 OUTPUT	Reduced chi2.
 NOTES	-
 AUTHOR	E. Bertin (IAP)
-VERSION	19/02/2009
+VERSION	21/09/2015
  ***/
 double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -76,7 +76,7 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
    double	chi2,chimean,chivar,chisig,chisig1,chival, locut,hicut;
    float	*chi, *chit,*chit2,
 		chimed, chi2max;
-   int		i, n, nsample;
+   int		i, n, nchi, ngood;
 
 /* First compute residuals for each sample (chi^2) */
 //  NFPRINTF(OUTPUT,"Computing residuals...");
@@ -84,11 +84,15 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
 
 /* Store the chi's (sqrt(chi2) pdf close to Gaussian) */
 //  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
-  nsample = set->nsample;
-  QMALLOC(chi, float, nsample);
+  nchi = 0;
+  QMALLOC(chi, float, set->nsample);
   chit = chi;
-  for (sample=set->sample, n=nsample; n--; sample++)
-    *(chit++) = (float)sqrt(sample->chi2);
+  for (sample=set->sample, n=set->nsample; n--; sample++)
+    if (!sample->badflag) {
+      *(chit++) = (float)sqrt(sample->chi2);
+      nchi++;
+    }
+
 /* Produce k-sigma-clipped statistiscs */
   locut = -BIG;
   hicut = BIG;
@@ -98,10 +102,10 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   for (i=100; i-- && chisig>=0.1 && fabs(chisig/chisig1-1.0)>EPS;)
     {
     chisig1 = chisig;
-    chimed = fast_median(chi, nsample);
+    chimed = fast_median(chi, nchi);
     chimean = chivar = 0.0;
     chit2 = chit = chi;
-    for (n=nsample; n--;)
+    for (n=nchi; n--;)
       {
       chival = *(chit++);
       if (chival>locut && chival<hicut)
@@ -110,11 +114,11 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
         chivar += chival*chival;
         }
       else
-        nsample--;
+        nchi--;
       }
 
-    chimean /= (double)nsample;
-    chisig = sqrt((chivar-chimean*chimean*nsample)/(nsample-(nsample>1?1:0)));
+    chimean /= (double)nchi;
+    chisig = sqrt((chivar-chimean*chimean*nchi)/(nchi-(nchi>1?1:0)));
     locut = chimed - 3.0*chisig;
     hicut = chimed + 3.0*chisig;
     }
@@ -122,23 +126,22 @@ double	psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy)
   free(chi);
 /*
   NFPRINTF(OUTPUT, "");
-  NPRINTF(OUTPUT, "<Chi2/dof> = %.3f\n",chivar/(nsample-(nsample>1?1:0)));
+  NPRINTF(OUTPUT, "<Chi2/dof> = %.3f\n",chivar/(nchi-(nchi>1?1:0)));
 */
-  chi2 = chivar/(nsample-(nsample>1?1:0));
+  chi2 = chivar/(nchi-(nchi>1?1:0));
 
 /* Clip outliers */
 //  NFPRINTF(OUTPUT,"Filtering PSF-candidates...");
   chi2max = (float)hicut;
   chi2max *= chi2max;
-  nsample=set->nsample;
-  for (sample=set->sample, n=0; n<nsample;)
-  if ((sample++)->chi2>chi2max)
-    {
-    sample=remove_sample(set, n);
-    nsample--;
-    }
-  else
-    n++;
+  ngood = 0;
+  for (sample=set->sample, n=set->nsample; n--; sample++)
+    if (sample->chi2>chi2max)
+      sample->badflag |= BAD_CHI2;
+    else if (!sample->badflag)
+      ngood++;
+
+  set->ngood = ngood;
 
   return chi2;
 #undef EPS
@@ -153,13 +156,13 @@ INPUT	Pointer to the PSF,
 OUTPUT	Reduced chi2.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/02/2009
+VERSION	21/09/2015
  ***/
 double	psf_chi2(psfstruct *psf, setstruct *set)
   {
    samplestruct	*sample;
    double	chi2;
-   int		n, nsample;
+   int		n, nchi2;
 
 /* First compute residuals for each sample (chi^2) */
 //  NFPRINTF(OUTPUT,"Computing residuals...");
@@ -167,11 +170,16 @@ double	psf_chi2(psfstruct *psf, setstruct *set)
 
 /* Store the chi's (sqrt(chi2) pdf close to gaussian) */
 //  NFPRINTF(OUTPUT,"Computing Chi2 statistics...");
-  nsample = set->nsample;
   chi2 = 0.0;
-  for (sample=set->sample, n=nsample; n--; sample++)
-    chi2 += sample->chi2;
-  chi2 /= (nsample-(nsample>1?1:0));
+  nchi2 = 0;
+  for (sample=set->sample, n=set->nsample; n--; sample++)
+    if (!sample->badflag) { 
+      chi2 += sample->chi2;
+      nchi2++;
+    }
+
+  if (nchi2)
+    chi2 /= (nchi2-(nchi2>1?1:0));
 
   return chi2;
   }
@@ -503,7 +511,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/11/2012
+VERSION 21/09/2015
  ***/
 void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -512,7 +520,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
    double	*pstack,*wstack, *basis, *pix,*wpix, *coeff, *pos, *post;
    float	*comp,*image,*imaget, *weight,*weightt,
 		backnoise2, gain, norm, norm2, noise2, profaccu2, pixstep, val;
-   int		i,c,n, ncoeff,npix,nsample;
+   int		i,c,g,n, ncoeff,npix,nsample,ngood;
 
   poly = psf->poly;
 
@@ -523,31 +531,34 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     psf->contextscale[i] = set->contextscale[i];
     }
 
-  nsample = set->nsample;
-  if (!nsample)
+  ngood = set->ngood;
+  if (!ngood)
     return;
 
   ncoeff = poly->ncoeff;
   npix = psf->size[0]*psf->size[1];
-  QCALLOC(image, float, nsample*npix);
-  QMALLOC(weight, float, nsample*npix);
-  QMALLOC(pstack, double, nsample);
-  QMALLOC(wstack, double, nsample);
-  QMALLOC(pos, double, poly->ndim?(nsample*poly->ndim):1);
-  QMALLOC(basis, double, poly->ncoeff*nsample);
+  QCALLOC(image, float, ngood*npix);
+  QMALLOC(weight, float, ngood*npix);
+  QMALLOC(pstack, double, ngood);
+  QMALLOC(wstack, double, ngood);
+  QMALLOC(pos, double, poly->ndim?(ngood*poly->ndim):1);
+  QMALLOC(basis, double, poly->ncoeff*ngood);
   pixstep = psf->pixstep>1.0? psf->pixstep : 1.0;
   post = pos;
-  for (n=0; n<nsample; n++)
+  sample = set->sample;
+  g = 0;
+  for (n=set->nsample; n--; sample++)
     {
-    sample = &set->sample[n];
+    if (sample->badflag)
+      continue;
 /*-- Normalize approximately the image and produce a weight-map */
     norm = sample->norm;
     norm2 = norm*norm;
     profaccu2 = (float)(prof_accuracy*prof_accuracy)*norm2;
     gain = sample->gain;
     backnoise2 = sample->backnoise2;
-    imaget = image+n*npix;
-    weightt = weight+n*npix;
+    imaget = image+g*npix;
+    weightt = weight+g*npix;
     vignet_resample(sample->vig, set->vigsize[0], set->vigsize[1],
 	imaget, psf->size[0], psf->size[1],
 	sample->dx, sample->dy, psf->pixstep, pixstep);
@@ -563,6 +574,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     for (i=0; i<poly->ndim; i++)
       *(post++) = (sample->context[i]-set->contextoffset[i])
 		/set->contextscale[i];
+    g++;
     }
 
 /* Make a polynomial fit to each pixel */
@@ -573,7 +585,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     pix=pstack;
     wpix=wstack;
 /*-- Stack ith pixel from each PSF candidate */
-    for (n=nsample; n--;)
+    for (n=ngood; n--;)
       {
       *(pix++) = (double)*imaget;
       *(wpix++) = (double)*weightt;
@@ -582,7 +594,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
       }
 
 /*-- Polynomial fitting */
-    poly_fit(poly, i?NULL:pos, pstack, wstack, nsample, basis, 1000.0);
+    poly_fit(poly, i?NULL:pos, pstack, wstack, ngood, basis, 1000.0);
 
 /*-- Store as a PSF component */
     for (coeff=poly->coeff, comp=psf->comp+i,  c=ncoeff; c--; comp+=npix)
@@ -649,7 +661,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 10/07/2012
+VERSION 21/09/2015
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -664,12 +676,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
    float		*vigresi, *vig, *vigw, *fresi,*fresit, *vigchi,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
 			norm, fval, vigstep, psf_extraccu2, wval, sval;
-   int			i,j,n,ix,iy, ndim,npix,nsample, cw,ch,ncpix, okflag,
-			accuflag, nchi2;
+   int			i,j,n,ix,iy, ndim,npix, cw,ch,ncpix, okflag,
+			accuflag, nchi2, ngood;
 
   accuflag = (prof_accuracy > 1.0/BIG);
   vigstep = 1/psf->pixstep;
-  nsample = set->nsample;
   npix = set->vigsize[0]*set->vigsize[1];
   ndim = psf->poly->ndim;
   QCALLOC(dresi, double, npix);
@@ -718,8 +729,12 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
   mse = 0.0; 				/* To avoid gcc -Wall warnings */
 
 /* Compute the chi2 */
-  for (sample=set->sample, n=nsample; n--; sample++)
+  ngood = 0;
+  for (sample=set->sample, n=set->nsample; n--; sample++)
     {
+    if (sample->badflag)
+      continue;
+    ngood++;
 /*-- Build the local PSF */
     for (i=0; i<ndim; i++)
       pos[i] = (sample->context[i]-set->contextoffset[i])
@@ -866,10 +881,10 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     }
 
 /* Normalize and convert to floats the Residual array */
-  mse = sqrt(mse/nsample/nchi2);
+  mse = sqrt(mse/ngood/nchi2);
 /*printf("%g\n", mse);*/
   QMALLOC(fresi, float, npix); 
-  nm1 = nsample > 1?  (double)(nsample - 1): 1.0;
+  nm1 = ngood > 1?  (double)(ngood - 1): 1.0;
   for (dresit=dresi,fresit=fresi, i=npix; i--;)
       *(fresit++) = sqrt(*(dresit++)/nm1);
 
@@ -901,7 +916,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 02/04/2013
+VERSION 21/09/2015
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -923,7 +938,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 			ncontext, nunknown, matoffset, dindex;
 
 /* Exit if no pixel is to be "refined" or if no sample is available */
-  if (!set->nsample || !psf->basis)
+  if (!set->ngood || !psf->basis)
     return RETURN_ERROR;
 
   npix = psf->size[0]*psf->size[1];
@@ -962,6 +977,8 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Go through each sample */
   for (sample=set->sample, n=0; n<nsample ; n++, sample++)
     {
+    if (sample->badflag)
+      continue;
     sprintf(str, "Processing sample #%d", n+1);
 //    NFPRINTF(OUTPUT, str);
 /*-- Delta-x and Delta-y in PSF-pixel units */
@@ -1173,7 +1190,7 @@ INPUT	PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 02/04/2013
+VERSION 21/09/2015
  ***/
 void psf_orthopoly(psfstruct *psf, setstruct *set)
   {
@@ -1187,20 +1204,23 @@ void psf_orthopoly(psfstruct *psf, setstruct *set)
   poly = psf->poly;
   ncoeff = poly->ncoeff;
   ndim = poly->ndim;
-  ndata = set->nsample;
+
+  ndata = set->ngood;
   norm = -1.0/sqrt(ndata);
 
   QMALLOC(data, double, ndata*ncoeff);
 /* Go through each sample */
-  for (sample=set->sample, n=0; n<ndata ; n++, sample++)
+  for (sample=set->sample, n=0; n<ndata; sample++)
     {
+    if (sample->badflag)
+      continue;
 /*-- Get the local context coordinates */
     for (i=0; i<ndim; i++)
       pos[i] = (sample->context[i]-set->contextoffset[i])
 		/set->contextscale[i];
     poly_func(poly, pos);
     basis = poly->basis;
-    datat = data + n;
+    datat = data + n++;
 /*-- Fill basis matrix as a series of row vectors */
 #pragma ivdep
     for (c=ncoeff; c--; datat+=ndata)

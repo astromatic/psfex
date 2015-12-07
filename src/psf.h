@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/02/2013
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -87,6 +87,7 @@ typedef struct psf
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */
   float		pixsize[2];	/* Effective pixel size on each axis (pixel) */
+  int		samples_total;	/* Total number of detections */
   int		samples_loaded;	/* Number of detections loaded */
   int		samples_accepted;/* Number of detections accepted */
   double	chi2;		/* chi2/d.o.f. */

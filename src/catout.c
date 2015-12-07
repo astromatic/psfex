@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2014,2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -198,7 +198,7 @@ INPUT	Pointer to the output catalog structure,
 OUTPUT  -.
 NOTES   Global preferences are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/02/2014
+VERSION 21/09/2015
 */
 void	write_outcat(outcatstruct *outcat, setstruct *set)
 
@@ -216,6 +216,7 @@ void	write_outcat(outcatstruct *outcat, setstruct *set)
     outsample->detindex = samp->detindex;
     outsample->extindex = samp->extindex + 1;
     outsample->catindex = samp->catindex + 1;
+    outsample->badflag = samp->badflag;
     for (c=0; c<nc; c++)
       outsample->context[c] = samp->context[c];
     outsample->x = samp->x;
@@ -223,6 +224,9 @@ void	write_outcat(outcatstruct *outcat, setstruct *set)
     outsample->dx = samp->dx;
     outsample->dy = samp->dy;
     outsample->norm = samp->norm;
+    outsample->fwhm = samp->fwhm;
+    outsample->ellip = samp->ellip;
+    outsample->snr = samp->snr;
     outsample->chi2 = samp->chi2;
     outsample->modresi = samp->modresi; 
 

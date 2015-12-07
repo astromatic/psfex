@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		17/11/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,12 +35,24 @@
 
 /*--------------------------------- constants -------------------------------*/
 
+#define	LSAMPLE_NBRIGHTSTARS	64	/* Nb of bright stars for autoselect */
 #define	LSAMPLE_DEFSIZE		1000	/* Sample stacksize at the beginning */
 #define	RECENTER_NITERMAX	16	/* Max. number of recentering steps */
 #define	RECENTER_NSIG		4	/* Recentering measurement radius */
 #define	RECENTER_OVERSAMP	3	/* Oversampling for recentering */
 #define	RECENTER_STEPMIN	0.001	/* Min. recentering coordinate update */
 #define	RECENTER_GRADFAC	2.0	/* Gradient descent accel. factor */
+
+/*-------------------------------- flags ------------------------------------*/
+
+#define	BAD_CHI2	0x0001
+#define	BAD_SEXFLAG	0x0002
+#define	BAD_WEIGHTFLAG	0x0004
+#define	BAD_IMAFLAG	0x0008
+#define	BAD_SNR		0x0010
+#define	BAD_SIZE	0x0020
+#define	BAD_ELLIP	0x0040
+#define	BAD_PIXEL	0x0080
 
 /*--------------------------- structure definitions -------------------------*/
 
@@ -54,6 +66,9 @@ typedef struct sample
   float		*vigchi;		/* Chi-map of the PSF-residuals */
   float		*vigweight;		/* Vignette-weight array */
   float		norm;			/* Normalisation */
+  float		fwhm;			/* Source FWHM (derived from ) */
+  float		ellip;			/* Source ellipticity */
+  float		snr;			/* Source Signal-to-Noise ratio */
   double	x,y;			/* x,y position estimate in frame */
   float		dx,dy;			/* x,y shift / vignet center */
   float		backnoise2;		/* Variance of the background noise */
@@ -61,6 +76,7 @@ typedef struct sample
   float		chi2;			/* Chi2 of the fit */
   float		modresi;		/* Residual index */
   double	*context;		/* Context vector */
+  int		badflag;		/* True if sample is discarded */
   }	samplestruct;
 
 typedef struct set
@@ -68,6 +84,7 @@ typedef struct set
   char		*head;			/* Table structure */
   struct sample	*sample;		/* Array of samples */
   int		nsample;		/* Number of samples in stack */
+  int		ngood;			/* Number of "good" samples */
   int		nsamplemax;		/* Max number of samples in stack */
   int		*vigsize;		/* Dimensions of vignette frames */
   int		vigdim;			/* Dimensionality of the vignette */
@@ -81,9 +98,9 @@ typedef struct set
   int		badwflags;		/* # discarded with bad SEx flags */
   int		badimaflags;		/* # discarded with bad SEx flags */
   int		badsn;			/* # discarded with S/N too low*/
-  int		badfrmin;		/* # discarded with radius too small */
-  int		badfrmax;		/* # discarded with radius too large */
-  int		badelong;		/* # discarded with too much elong. */
+  int		badfwhmmin;		/* # discarded with size too small */
+  int		badfwhmmax;		/* # discarded with size too large */
+  int		badellip;		/* # discarded with too much ellipt. */
   int		badpix;			/* # discarded with too many bad pix. */
   }	setstruct;
 
@@ -99,9 +116,12 @@ setstruct	*init_set(contextstruct *context),
 			int ext, int next, int catindex,
 			contextstruct *context, double *pcval);
 
-void		end_set(setstruct *set),
+void		add_set(setstruct *destset, setstruct *set),
+		end_set(setstruct *set),
 		free_samples(setstruct *set),
+		free_samplevig(samplestruct *sample),
  		malloc_samples(setstruct *set, int nsample),
+		malloc_samplevig(samplestruct *sample, int npix),
 		make_weights(setstruct *set, samplestruct *sample),
 		realloc_samples(setstruct *set, int nsample),
 		recenter_sample(samplestruct *sample, setstruct *set,

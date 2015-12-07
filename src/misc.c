@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/11/2010
+*	Last modified:		17/11/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -135,6 +135,77 @@ float fast_median(float *arr, int n)
 
 #undef MEDIAN_SWAP
 
+/******* fast_quantile ********************************************************
+PROTO   float fast_quantile(float *arr, int n, float frac)
+PURPOSE Fast median from an input array, optimized version based on the
+        select() routine (Numerical Recipes, 2nd ed. Section 8.5.
+INPUT   Input pixel array ptr,
+        number of input pixels,
+	quantile fraction (>=0 & <1)
+OUTPUT  Value of the quantile.
+NOTES   n must be >0. Warning: changes the order of data (but does not sort
+        them)!
+AUTHOR  E. Bertin (IAP), optimized from Num.Rec. code
+VERSION 17/11/2015
+ ***/
+#define QUANTILE_SWAP(a,b) { register float t=(a);(a)=(b);(b)=t; }
+
+float fast_quantile(float *arr, long n, float frac)
+  {
+   float      *alow, *ahigh, *amedian, *amiddle, *all, *ahh;
+
+  if (frac>1.0)
+    frac = 1.0;
+  else if (frac<0.0)
+    frac = 0.0; 
+  alow = arr;
+  ahigh = arr + n - 1;
+  amedian = arr + (long)(frac*(n-0.5001));
+  while (ahigh > (all=alow + 1))
+    {
+/*-- Find median of low, middle and high items; swap into position low */
+    amiddle = alow + (ahigh-alow)/2;
+    if (*amiddle > *ahigh)
+      QUANTILE_SWAP(*amiddle, *ahigh);
+    if (*alow > *ahigh)
+      QUANTILE_SWAP(*alow, *ahigh);
+    if (*amiddle > *alow)
+      QUANTILE_SWAP(*amiddle, *alow);
+
+/*-- Swap low item (now in position middle) into position (low+1) */
+    QUANTILE_SWAP(*amiddle, *all);
+
+/*-- Nibble from each end towards middle, swapping items when stuck */
+    ahh = ahigh;
+    for (;;)
+      {
+      while (*alow > *(++all));
+      while (*(--ahh) > *alow);
+
+      if (ahh < all)
+        break;
+
+      QUANTILE_SWAP(*all, *ahh);
+      }
+
+/*-- Swap middle item (in position low) back into correct position */
+    QUANTILE_SWAP(*alow, *ahh) ;
+
+/*-- Re-set active partition */
+    if (ahh <= amedian)
+      alow = all;
+    if (ahh >= amedian)
+      ahigh = ahh - 1;
+    }
+
+/* One or two elements left */
+  if (ahigh == all && *alow > *ahigh)
+    QUANTILE_SWAP(*alow, *ahigh);
+
+  return *amedian;
+  }
+
+#undef QUANTILE_SWAP
 
 /*i**** dqcmp **************************************************************
 PROTO	int	dqcmp(const void *p1, const void *p2)

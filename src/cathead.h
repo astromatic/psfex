@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2014,2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,7 +43,10 @@ keystruct	refoutkey[] = {
    {"CATALOG_NUMBER", "File index",
 	&refoutsample.catindex, H_INT, T_LONG,
 	"%7d", "", "meta.number", ""},
-  {"VECTOR_CONTEXT", "Context vector",
+   {"FLAGS_PSF", "PSFEx rejection flags",
+	&refoutsample.badflag, H_INT, T_LONG,
+	"%7d", "", "meta.code", ""},
+   {"VECTOR_CONTEXT", "Context vector",
 	&refoutsample.context, H_FLOAT, T_DOUBLE,
 	"%12.6g", "", "obs.param", "",
 	1, &refoutsample.ncontext},
@@ -62,6 +65,15 @@ keystruct	refoutkey[] = {
    {"NORM_PSF", "Source (inverse) normalization factor",
 	&refoutsample.norm, H_FLOAT, T_FLOAT,
 	"%12.6g", "count", "phot.flux;instr.det.psf", "ct"},
+   {"FWHM_PSF", "Source (inverse) normalization factor",
+	&refoutsample.fwhm, H_FLOAT, T_FLOAT,
+	"%8.2f", "pixel", "phys.size.diameter;instr.det.psf", "pix",},
+   {"ELLIP_PSF", "Source (inverse) normalization factor",
+	&refoutsample.ellip, H_FLOAT, T_FLOAT,
+	"%7.5f", "", "src.ellipticity;instr.det.psf", ""},
+   {"SNR_PSF", "Signal-to-Noise ratio",
+	&refoutsample.snr, H_FLOAT, T_FLOAT,
+	"%10.4g", "", "stat.snr;instr.det.psf", ""},
    {"CHI2_PSF", "PSF fitting chi2/d.o.f.",
 	&refoutsample.chi2, H_FLOAT, T_FLOAT,
 	"%12.6g", "", "stat.fit.chi2;instr.det.psf", ""},

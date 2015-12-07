@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2012
+*	Last modified:		21/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/07/2012
+VERSION 21/09/2015
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -79,7 +79,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
    double		dstep,dstart, dval1,dval2, scalefac, dstepx,dstepy;
    float		*pix,*pix0, *vig,*vig0, *fpix,*fpixsym,
 			val;
-   int			i,j,l,x,y, w,h,n, npc,nt, nw,nh,np, npos,npos2,
+   int			i,g,j,l,x,y, w,h,n, npc,nt, nw,nh,np, npos,npos2,
 			step,step2, ipos, inpos, ival1,ival2, npix;
 
 /* Create the new cat (well it is not a "cat", but simply a FITS table */
@@ -182,25 +182,27 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample? set->nsample : 1;
+        tab->naxisn[2] = set->ngood? set->ngood : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        for (n=set->nsample; n--; sample++)
           {
-          fpix = (sample++)->vigchi;
+          if (sample->badflag)
+            continue;
+          fpix = sample->vigchi;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
           }
         }
       else
         {
-        nw = (int)sqrt((double)set->nsample);
+        nw = (int)sqrt((double)set->ngood);
         nw = nw? ((nw-1)/10+1)*10 : 1;
-        nh = (set->nsample-1)/nw + 1;
+        nh = (set->ngood-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
         tab->naxisn[0] = nw*w;
@@ -210,13 +212,17 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        g = 0;
+        for (n=set->nsample; n--; sample++)
           {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->vigchi;
+          if (sample->badflag)
+            continue;
+          pix = pix0 + ((g%nw) + (g/nw)*nw*h)*w;
+          fpix = sample->vigchi;
           for (y=h; y--; pix += step)
             for (x=w; x--;)
               *(pix++) = *(fpix++);
+          g++;
           }
         }
       break;
@@ -277,25 +283,27 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample? set->nsample : 1;
+        tab->naxisn[2] = set->ngood? set->ngood : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        for (n=set->nsample; n--; sample++)
           {
-          fpix = (sample++)->vigresi;
+          if (sample->badflag)
+            continue;
+          fpix = sample->vigresi;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
           }
         }
       else
         {
-        nw = (int)sqrt((double)set->nsample);
+        nw = (int)sqrt((double)set->ngood);
         nw = nw? ((nw-1)/10+1)*10 : 1;
-        nh = (set->nsample-1)/nw + 1;
+        nh = (set->ngood-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
         tab->naxisn[0] = nw*w;
@@ -305,13 +313,17 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        g = 0;
+        for (n=set->nsample; n--;  sample++)
           {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->vigresi;
+          if (sample->badflag)
+            continue;
+          pix = pix0 + ((g%nw) + (g/nw)*nw*h)*w;
+          fpix = sample->vigresi;
           for (y=h; y--; pix += step)
             for (x=w; x--;)
               *(pix++) = *(fpix++);
+          g++;
           }
         }
       break;
@@ -328,6 +340,8 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {
+        if (sample->badflag)
+          continue;
         ipos = (int)(dstepx * (sample->x+0.5)) ;
         if (ipos<0)
           ipos = 0;
@@ -402,25 +416,27 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample? set->nsample : 1;
+        tab->naxisn[2] = set->ngood? set->ngood : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        for (n=set->nsample; n--; sample++)
           {
-          fpix = (sample++)->vig;
+          if (sample->badflag)
+            continue;
+          fpix = sample->vig;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
           }
         }
       else
         {
-        nw = (int)sqrt((double)set->nsample);
+        nw = (int)sqrt((double)set->ngood);
         nw = nw? ((nw-1)/10+1)*10 : 1;
-        nh = (set->nsample-1)/nw + 1;
+        nh = (set->ngood-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
         tab->naxisn[0] = nw*w;
@@ -430,13 +446,17 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        g = 0;
+        for (n=set->nsample; n--; sample++)
           {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->vig;
+          if (sample->badflag)
+            continue;
+          pix = pix0 + ((g%nw) + (g/nw)*nw*h)*w;
+          fpix = sample->vig;
           for (y=h; y--; pix += step)
             for (x=w; x--;)
               *(pix++) = *(fpix++);
+          g++;
           }
         }
       break;
@@ -453,6 +473,8 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {
+        if (sample->badflag)
+          continue;
         ipos = (int)(dstepx * (sample->x+0.5)) ;
         if (ipos<0)
           ipos = 0;
@@ -527,25 +549,27 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QREALLOC(tab->naxisn, int, tab->naxis);
         tab->naxisn[0] = set->vigsize[0];
         tab->naxisn[1] = set->vigsize[1];
-        tab->naxisn[2] = set->nsample? set->nsample : 1;
+        tab->naxisn[2] = set->ngood? set->ngood : 1;
         npix = tab->naxisn[0]*tab->naxisn[1];
         tab->tabsize = tab->bytepix*npix*tab->naxisn[2];
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         pix = pix0;
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        for (n=set->nsample; n--; sample++)
           {
-          fpix = (sample++)->vigweight;
+          if (sample->badflag)
+            continue;
+          fpix = sample->vigweight;
           for (i=npix; i--;)
             *(pix++) = *(fpix++);
           }
         }
       else
         {
-        nw = (int)sqrt((double)set->nsample);
+        nw = (int)sqrt((double)set->ngood);
         nw = nw? ((nw-1)/10+1)*10 : 1;
-        nh = (set->nsample-1)/nw + 1;
+        nh = (set->ngood-1)/nw + 1;
         w = set->vigsize[0];
         h = set->vigdim>1? set->vigsize[1] : 1;
         tab->naxisn[0] = nw*w;
@@ -555,13 +579,17 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
         QCALLOC(pix0, float, tab->tabsize);
         tab->bodybuf = (char *)pix0; 
         sample = set->sample;
-        for (n=0; n<set->nsample; n++)
+        g = 0;
+        for (n=set->nsample; n--; sample++)
           {
-          pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
-          fpix = (sample++)->vigweight;
+          if (sample->badflag)
+            continue;
+          pix = pix0 + ((g%nw) + (g/nw)*nw*h)*w;
+          fpix = sample->vigweight;
           for (y=h; y--; pix += step)
             for (x=w; x--;)
               *(pix++) = *(fpix++);
+          g++;
           }
         }
       break;

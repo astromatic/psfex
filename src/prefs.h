@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		23/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -89,9 +89,7 @@ typedef struct
   int		badpix_flag;			/* Filter bad pixels? */
   int		badpix_nmax;			/* Max number of bad pixels */
   char		photflux_key[MAXCHAR];		/* Name of phot. flux key */
-  char		photflux_rkey[MAXCHAR];		/* Reduced phot. flux key */
   char		photfluxerr_key[MAXCHAR];	/* Name of phot. flux err. key*/
-  char		photfluxerr_rkey[MAXCHAR];	/* Reduced phot. flux err. key*/
 /* Vector basis */
   basistypenum	basis_type;			/* PSF vector basis set */
   int		basis_number;			/* nb of supersampled pixels */
