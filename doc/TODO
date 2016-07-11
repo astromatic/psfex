@@ -1,0 +1,31 @@
+Some outstanding issues in PSFEx doc, and other notes:
+
+- for html:
+ . parameter list / description: should find a way to put this directly into
+   the code, and extract the list with autodoc (aor something similar)
+ . cross-references ... to figures, tables, sections ... and labelling
+ . equation numbering / labelling / referencing
+ . external references (aka citations to papers / bibtex ...)
+
+- outstanding for pdf:
+ . \mathbb unknown (but inserted by sphinx in building tex file)
+ . \frac should be replaced (idem)
+ . some issues with figure labels (?) Not clear how this should work: there are
+   no obvious labelling commands (or is it \capstart?) in the sphinx-generated
+   tex file.
+   (looking at sphinx-generated tex file I note that labels for chapters /
+   sections are automatically generated, but not for figures)
+ . Figures are automatically numbered ... if built with figure directive.
+   Not numbered with image directive (used to put figures in table in order to
+   put two figures in same line ... Need a better way to do this
+
+- Other points
+ . optional titles in index.rst are used in html but not in pdf
+ . :maxdepth: option is used in html but not in pdf
+   idem for :caption: 
+ ==> in pdf maxdepth is always 2 and title is always "CONTENTS"
+ . figure numbering:  in pdf only (as chapt.numb) ...
+   BUT: only "figures" are numbered, but not "images"
+ . how to put two pngs into a single "figure" on the same line? 
+   (I can put them as "images" in a table, but then they are not numbered in pdf)
+

@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2016 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		21/09/2015
+#	Last modified:		11/07/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,8 +30,10 @@
 define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
-# This is your standard Bertin source code...
-AC_INIT(psfex, 3.18.0, [bertin@iap.fr])
+# This is your standard AstrOmatic source code...
+AC_INIT(PSFEx, 3.18.0, [https://github.com/astromatic/psfex],
+	psfex, [http://astromatic.net/software/psfex])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_HEADERS(config.h)
@@ -279,7 +281,7 @@ fi
 # "Best" linking option
 if test "$enable_best_link" = "yes"; then
   if test "$enable_icc" = "yes"; then
-    AM_LDFLAGS="-static-intel -openmp-link static -shared-libgcc \
+    AM_LDFLAGS="-static-intel -qopenmp-link static -shared-libgcc \
 	-static-libtool-libs -no-intel-extensions -avoid-version $AM_LDFLAGS"
   else
     AM_LDFLAGS="-shared-libgcc -static-libtool-libs -avoid-version $AM_LDFLAGS"
@@ -299,11 +301,13 @@ AC_MSG_RESULT([***************************************************************])
 
 AC_CONFIG_FILES([
 Makefile
+psfex.spec]
+doc/conf.py
 man/Makefile
+man/psfex.1
 src/Makefile
 src/fits/Makefile
 src/levmar/Makefile
 src/wcs/Makefile
-psfex.spec
-man/psfex.1])
+)
 AC_OUTPUT
