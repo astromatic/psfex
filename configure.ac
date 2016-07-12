@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		11/07/2016
+#	Last modified:		12/07/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -302,7 +302,7 @@ AC_MSG_RESULT([***************************************************************])
 AC_CONFIG_FILES([
 Makefile
 psfex.spec]
-doc/conf.py
+doc/src/conf.py
 man/Makefile
 man/psfex.1
 src/Makefile
