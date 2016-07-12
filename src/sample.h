@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		17/11/2015
+*	Last modified:		28/09/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -35,7 +35,6 @@
 
 /*--------------------------------- constants -------------------------------*/
 
-#define	LSAMPLE_NBRIGHTSTARS	64	/* Nb of bright stars for autoselect */
 #define	LSAMPLE_DEFSIZE		1000	/* Sample stacksize at the beginning */
 #define	RECENTER_NITERMAX	16	/* Max. number of recentering steps */
 #define	RECENTER_NSIG		4	/* Recentering measurement radius */

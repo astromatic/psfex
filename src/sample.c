@@ -61,7 +61,7 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/11/2015
+VERSION 21/09/2015
 */
 setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
@@ -72,18 +72,16 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
    keystruct		*fkey, *key;
    char			keynames[][32]={"ELONGATION", "FLAGS", "FLUX_RADIUS",
 				"SNR_WIN", ""};
-   char			str[MAXCHAR], fluxname[32];
+   char			str[MAXCHAR];
    char			**pkeynames,
-			*head, *pstr;
+			*head;
    float		*fwhmmin,*fwhmmax,*fwhmmode,
-			*fwhm,*fwhmt, *elong, *hl, *snr, *flux, *phot,
-			backnoise, minsn, maxelong, min,max, mode,  fval,
-			fraclim, fluxlim;
+			*fwhm,*fwhmt, *elong, *hl, *snr,
+			backnoise, minsn, maxelong, min,max, mode,  fval;
    unsigned int		*imaflags;
    unsigned short	*flags, *wflags;
    int			*fwhmindex,
-			e,i,j,k,n,p, icat, nobj,nobjmax, nsample, fluxoffset,
-			fluxstep, ldflag, ext2, nkeys;
+			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, nkeys;
 
 //  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -103,24 +101,16 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 /*-- Allocate memory */
     nobjmax = LSAMPLE_DEFSIZE;
     QMALLOC(fwhm, float, nobjmax);
-    QMALLOC(phot, float, nobjmax);
     QMALLOC(fwhmindex, int, ncat+1);
     fwhmindex[0] = nobj = 0;
     fwhmt=fwhm;
 
 /*-- Initialize string array */
-    for (k=0; (*keynames[k]); k++);
-    nkeys = k;
-    QMALLOC(pkeynames, char *, nkeys + 1);
-    for (k=0; k<nkeys; k++) {
-      pkeynames[k] = keynames[k];
-    }
-    pkeynames[nkeys] = fluxname;
-    strcpy(fluxname, prefs.photflux_key);
-    strtok(fluxname, "([{}])");
-    fluxoffset = (pstr = strtok(NULL,"([{}])"))? atoi(pstr) - 1 : 0;
-    fluxstep = 1;
-    nkeys++; 
+    for (i=0; (*keynames[i]); i++);
+    nkeys = i;
+    QMALLOC(pkeynames, char *, nkeys);
+    for (i=0; i<nkeys; i++)
+      pkeynames[i] = keynames[i];
 
 /*-- Try to estimate the most appropriate Half-light Radius range */
 /*-- Get the Half-light radii */
@@ -154,18 +144,15 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
             e--;
             }
 
-          nsample = tab->naxisn[1];
-          if (!nsample)
-            continue;
-
 /*-------- Read the data */
+
           read_keys(tab, pkeynames, NULL, nkeys, NULL);
 
           if ((key = name_to_key(tab, "ELONGATION")))
             elong = (float *)key->ptr;
           else
             {
-            warning("ELONGATION parameter not found in catalogue ",
+            warning("ELONGATION parameter not found in catalog ",
 			filename[icat]);
             elong = NULL;
             }
@@ -173,7 +160,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
             flags = (unsigned short *)key->ptr;
           else
             {
-            warning("FLAGS parameter not found in catalogue ", filename[icat]);
+            warning("FLAGS parameter not found in catalog ", filename[icat]);
             flags = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS_WEIGHT")))
@@ -185,86 +172,43 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           else
             imaflags = NULL;
           if (!(key = name_to_key(tab, "FLUX_RADIUS")))
-            {
-            sprintf(str, "FLUS_RADIUS not found in catalogue %s",
+              {
+              sprintf(str, "FLUS_RADIUS not found in catalog %s",
 			filename[icat]);
-            error(EXIT_FAILURE, "*Error*: ", str);
-            }
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
           hl = (float *)key->ptr;
           if (!(key = name_to_key(tab, "SNR_WIN")))
-            {
-            sprintf(str, "SNR_WIN not found in catalogue %s",
+              {
+              sprintf(str, "SNR_WIN not found in catalog %s",
 			filename[icat]);
-            error(EXIT_FAILURE, "*Error*: ", str);
-            }
+              error(EXIT_FAILURE, "*Error*: ", str);
+              }
           snr = (float *)key->ptr;
 
-          if (!(key = name_to_key(tab, fluxname)))
+          for (n=tab->naxisn[1]; n--; hl++, snr++, flags++, elong++)
             {
-            sprintf(str, "*Error*: %s parameter not found in catalogue %s",
-		fluxname, filename[icat]);
-            error(EXIT_FAILURE, "*Error*: ", str);
-            }
-          flux = (float *)key->ptr;
-          if (fluxoffset)
-            {
-            if (key->naxis==1 && n<key->naxisn[0])
-              {
-              flux += fluxoffset;
-              fluxstep = key->naxisn[0];
-              }
-            else
-              {
-              sprintf(str, "Not enough apertures for %s in catalogue %s: ",
-	      prefs.photflux_key, filename[icat]);
-              warning(str, "using first aperture instead");
-              }
-            }
-
-          for (n=0; n<nsample; n++)
-            {
-            if (snr[n]>minsn
-		&& !(flags && (flags[n]&prefs.flag_mask))
-		&& !(wflags && (wflags[n]&prefs.wflag_mask))
-		&& !(imaflags && (imaflags[n]&prefs.imaflag_mask))
-		&& (!(elong && elong[n]>=maxelong))
-		&& (fval=2.0*hl[n])>=min
+            if (*snr>minsn
+		&& !(flags && (*flags&prefs.flag_mask))
+		&& !(wflags && (*wflags&prefs.wflag_mask))
+		&& !(imaflags && (*imaflags&prefs.imaflag_mask))
+		&& (!(elong && *elong>=maxelong))
+		&& (fval=2.0**hl)>=min
 		&& fval<max)
               {
-              if (nobj>nobjmax)
+              if (++nobj>nobjmax)
                 {
                 nobjmax += LSAMPLE_DEFSIZE;
                 QREALLOC(fwhm, float, nobjmax);
-                QREALLOC(phot, float, nobjmax);
+                fwhmt=fwhm+nobj-1;
                 }
-              fwhm[nobj] = fval;
-              phot[nobj] = flux[n*fluxstep];
-              nobj++;
+              *(fwhmt++) = fval;
               }
             }
           }
-      fwhmindex[i+1] = nobj;
       free_cat(&cat, 1);
+      fwhmindex[i+1] = nobj;
       }
-
-    // Select a small subset of bright stars
-    fraclim = 1.0 - 1.0*LSAMPLE_NBRIGHTSTARS / nsample;
-    if (fraclim > 1.0)
-      fluxlim = 0.0;
-    else {
-      fluxlim = fast_quantile(phot, nobj, fraclim);
-    }
-    p = i = 0;
-    for (n=0; n<nobj; n++) {
-      if (n == fwhmindex[i]) {
-        fwhmindex[i++] = p;
-      }
-      if (phot[n] > fluxlim) {
-        fwhm[p++] = fwhm[n];
-      }
-    }
-    nobj = fwhmindex[ncat] = p;
-
 
     if (prefs.var_type == VAR_NONE)
       {
@@ -292,8 +236,7 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           fwhmmode[i] = compute_fwhmrange(&fwhm[fwhmindex[i]],
 		fwhmindex[i+1]-fwhmindex[i], prefs.maxvar,
 		prefs.fwhmrange[0],prefs.fwhmrange[1], &fwhmmin[i],&fwhmmax[i]);
- printf("\n%d %g  %g %g %g %g\n\n", nobj, fluxlim, prefs.fwhmrange[0],prefs.fwhmrange[1], fwhmmin[i],fwhmmax[i]);
-         }
+          }
         else
           {
           warning("No source with appropriate FWHM found!!","");
@@ -302,7 +245,6 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
         }
     free(fwhm);
     free(fwhmindex);
-    free(phot);
     free(pkeynames);
     }
   else
@@ -389,7 +331,6 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		df, dfmin,fmin;
    int		i, nw;
 
-printf("%d \n", nfwhm);
 /* Sort FWHMs */
    fqmedian(fwhm, nfwhm);
 

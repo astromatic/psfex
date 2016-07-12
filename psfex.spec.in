@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2016 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,11 +22,11 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/07/2012
+#	Last modified:		12/07/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%define name @PACKAGE_NAME@
+%define name @PACKAGE_TARNAME@
 %define version @PACKAGE_VERSION@
 %define release 1
 %undefine _missing_build_ids_terminate_build
@@ -71,11 +71,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS doc/psfex.pdf
-%{_bindir}/@PACKAGE_NAME@
-%{_mandir}/man1/@PACKAGE_NAME@.1*
-%{_mandir}/manx/@PACKAGE_NAME@.x*
-%{_datadir}/@PACKAGE_NAME@
+%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS
+%{_bindir}/@PACKAGE_TARNAME@
+%{_mandir}/man1/@PACKAGE_TARNAME@.1*
+%{_mandir}/manx/@PACKAGE_TARNAME@.x*
+%{_datadir}/@PACKAGE_TARNAME@
 
 %changelog
 * @DATE2@ @PACKAGER@ <@PACKAGE_BUGREPORT@>

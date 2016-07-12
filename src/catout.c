@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2014,2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2014-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2015
+*	Last modified:		12/07/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,6 +43,7 @@
 #include "prefs.h"
 #include "context.h"
 #include "sample.h"
+#include "xml.h"
 
 /****** init_outcat *************************************************
 PROTO	outcatstruct *init_outcat(char *filename, int ncontext)
