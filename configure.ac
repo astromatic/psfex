@@ -33,9 +33,9 @@ define([AC_CACHE_SAVE],)
 # This is your standard AstrOmatic source code...
 AC_INIT(PSFEx, 3.18.0, [https://github.com/astromatic/psfex],
 	psfex, [http://astromatic.net/software/psfex])
-AC_CONFIG_MACRO_DIRS([m4])
-AC_CONFIG_SRCDIR(src/makeit.c)
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_SRCDIR(src/makeit.c)
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE
 date=`date +%Y-%m-%d`

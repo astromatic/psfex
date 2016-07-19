@@ -30,7 +30,7 @@ ACLOCAL_AMFLAGS		= -I m4
 AUTOMAKE_OPTIONS	= foreign no-dependencies
 SUBDIRS			= src man
 dist_pkgdata_DATA	= config/* xsl/psfex.xsl
-EXTRA_DIST		= doc m4 AUTHORS BUGS ChangeLog \
+EXTRA_DIST		= doc AUTHORS BUGS ChangeLog \
 			  COPYRIGHT HISTORY INSTALL LICENSE README THANKS \
 			  bootstrap.sh
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
