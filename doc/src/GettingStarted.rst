@@ -1,6 +1,6 @@
 .. File GetingStarted.rst
 
-
+.. _gettingStarted:
 
 Getting started
 ===============

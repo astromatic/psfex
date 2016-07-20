@@ -10,6 +10,18 @@
 .. |FITS| replace:: :abbr:`FITS (Flexible Image Transport System)`
 .. _FITS: http://fits.gsfc.nasa.gov
 
+.. |GitHub| replace:: GitHub
+.. _GitHub: https://github.com
+
+.. |Intel| replace:: Intel\ :sup:`®`\ 
+.. _Intel: http://intel.com
+
+.. |MKL| replace:: :abbr:`MKL (Math Kernel Library)`
+.. _MKL: http://software.intel.com/intel-mkl
+
+.. |OSX| replace:: Apple OS X\ :sup:`®`\ 
+.. _OSX: http://www.apple.com/osx
+
 .. |PLPlot| replace:: :program:`PLPlot`
 .. _PLPlot: http://www.plplot.org
 
@@ -30,6 +42,9 @@
 
 .. |VOTable| replace:: VOTable
 .. _VOTable: http://www.ivoa.net/documents/VOTable
+
+.. |Windows| replace:: Microsoft Windows\ :sup:`®`\ 
+.. _Windows: http://www.microsoft.com/windows
 
 .. |XML| replace:: :abbr:`XML (eXtensible Markup Language)`
 .. _XML: http://en.wikipedia.org/wiki/XML
