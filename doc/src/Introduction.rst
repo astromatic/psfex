@@ -139,7 +139,7 @@ Compared to ``gcc`` and the librairies above, the combination of the |Intel|
 compiler (``icc``) and the |MKL|_ libraries can give the |PSFEx| executable a
 strong boost in performance, thanks to better vectorized code.
 If ``icc`` and the |MKL| are installed on your system [#geticc]_ , you can take
-advantage of those using instead
+advantage of them using
 
 .. code-block:: console
 
@@ -173,7 +173,7 @@ typing in your shell:
 
   $ psfex
 
-(note that some shells require the ``rehash`` command to be run before making a
+which will return the version number and other basic information (note that some shells require the ``rehash`` command to be run before making a
 freshly installed executable accessible in the execution path).
 
 .. [#mac_install] Mac OS X |.dmg|_ packages should be available soon.
