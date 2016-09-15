@@ -16,6 +16,9 @@
 .. |Intel| replace:: Intel\ :sup:`®`\ 
 .. _Intel: http://intel.com
 
+.. |MEF| replace:: :abbr:`MEF (Multi-Extension FITS)`
+.. _MEF: http://www.stsci.edu/hst/HST_overview/documents/datahandbook/intro_ch23.html
+
 .. |MKL| replace:: :abbr:`MKL (Math Kernel Library)`
 .. _MKL: http://software.intel.com/intel-mkl
 

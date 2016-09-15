@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2015
+*	Last modified:		15/09/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -383,7 +383,7 @@ INPUT   Pointer to the field structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/02/2014
+VERSION 15/09/2016
  ***/
 void	field_psfsave(fieldstruct *field, char *filename)
   {
@@ -414,7 +414,7 @@ void	field_psfsave(fieldstruct *field, char *filename)
     fitswrite(head, "LOADED", &psf->samples_loaded, H_INT, T_LONG);
     addkeywordto_head(tab, "ACCEPTED", "Number of accepted sources");
     fitswrite(head, "ACCEPTED", &psf->samples_accepted, H_INT, T_LONG);
-    addkeywordto_head(tab, "CHI2", "Final Chi2");
+    addkeywordto_head(tab, "CHI2", "Final reduced chi2");
     fitswrite(head, "CHI2", &psf->chi2, H_FLOAT, T_DOUBLE);
     addkeywordto_head(tab, "POLNAXIS", "Number of context parameters");
     fitswrite(head, "POLNAXIS", &psf->poly->ndim, H_INT, T_LONG);
@@ -445,10 +445,11 @@ void	field_psfsave(fieldstruct *field, char *filename)
       }
 
 /*-- Add and write important scalars as FITS keywords */
-    addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM");
+    addkeywordto_head(tab, "PSF_FWHM", "PSF FWHM in image pixels");
     fitswrite(head, "PSF_FWHM", psf->samples_accepted? &psf->fwhm : &zero,
 	H_FLOAT, T_FLOAT);
-    addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data");
+    addkeywordto_head(tab, "PSF_SAMP", "Sampling step of the PSF data in"
+	" image pixels");
     fitswrite(head, "PSF_SAMP", psf->samples_accepted? &psf->pixstep : &zero,
 	H_FLOAT, T_FLOAT);
     addkeywordto_head(tab, "PSFNAXIS", "Dimensionality of the PSF data");

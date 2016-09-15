@@ -19,6 +19,7 @@ Contents
    Examples
    Ending
    references
+   Appendices
 
 Indices and tables
 ----------------------

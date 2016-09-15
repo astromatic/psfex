@@ -146,15 +146,10 @@ PSF model files (:file:`.psf`)
 The main purpose of |PSFEx| is to create a PSF model for each of the images from
 which the input catalogues were extracted. The PSF models are stored under file
 names that are given the :file:`.psf` extension by default (this may be changed
-with the ``PSF_SUFFIX`` configuration parameter). The :file:`.psf` files can be
-read back in |SExtractor| to perform accurate model-fitting of the sources
-detected.
-
-PSF models are FITS binary tables with a single row, containing PSF image
-components. The ``TDIM1`` keyword in the extension header contains the number of
-components (conditioned by the ``PSFVAR_DEGREES`` configuration parameter)
-and the dimensions of the tabulated PSF (see the ``PSF_SIZE`` configuration
-parameter).
+with the ``PSF_SUFFIX`` configuration parameter). The :file:`.psf` files are
+FITS binary tables that can be read back into |SExtractor| to perform accurate
+model-fitting of the sources being detected. A detailed description of the
+:file:`.psf` file format is given :ref:`in the Appendix <chap_psfformat>`.
 
 PSF homogenisation files (:file:`.homo`)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -492,7 +487,7 @@ in future versions.
 
    - ``NONE`` No basis; no homogenisation kernel is computed.}
    - ``GAUSS_LAGUERRE`` Gauss-Laguerre basis (also known as `polar shapelets`
-   in the weak-lensing community). 
+     in the weak-lensing community). 
 
 -------------------------
 
@@ -537,11 +532,11 @@ in future versions.
 :Type: *keyword*
 
   Type of image vector bases derived from input vignettes by |
-   - ``NONE``{No basis is computed.
+   - ``NONE`` No basis is computed.
    - ``PCA_MULTI`` Karhunen-Lo\`eve basis from Principal Component
-   Analysis on all FITS extensions.
+     Analysis on all FITS extensions.
    - ``PCA_SINGLE`` Karhunen-Lo\`eve bases from Principal Component
-   Analysis on individual FITS extensions.
+     Analysis on individual FITS extensions.
 
 -------------------------
 
@@ -748,9 +743,9 @@ in future versions.
 
    - ``QUIET`` No Output besides warnings and error messages
    - ``NORMAL`` ``Normal`` display with messages updated in real time using
-   ASCII escapes-sequences
+     ASCII escapes-sequences
    - ``LOG`` Like ``NORMAL``, but without real-time messages and
-   ASCII escape-sequences
+     ASCII escape-sequences
    - ``FULL`` Everything
 
 -------------------------
