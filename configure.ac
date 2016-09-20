@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/07/2016
+#	Last modified:		20/09/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard AstrOmatic source code...
-AC_INIT(PSFEx, 3.18.0, [https://github.com/astromatic/psfex],
+AC_INIT(PSFEx, 3.18.1, [https://github.com/astromatic/psfex],
 	psfex, [http://astromatic.net/software/psfex])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)

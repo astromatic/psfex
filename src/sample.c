@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/09/2015
+*	Last modified:		20/09/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -385,7 +385,7 @@ INPUT	Pointer to the data set,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 23/09/2015
+VERSION 20/09/2016
 */
 setstruct *read_samples(setstruct *set, char *filename,
 			float fwhmmin, float fwhmmax,
@@ -424,15 +424,14 @@ setstruct *read_samples(setstruct *set, char *filename,
   minsn = prefs.minsn;
 
 /* If a NULL pointer is provided, we allocate a new set */
-  if (!set)
-    {
+  if (!set) {
     set = init_set(context);
-    nsample = nsamplemax = 0;
+    nsample = nsamplemax = ngood = 0;
     ncat = 1;
-    }
-  else
+  } else {
     nsample = nsamplemax = set->nsample;
-
+    ngood = set->ngood;
+  }
   cmin = cmax = (double *)NULL;	/* To avoid gcc -Wall warnings */
   if (set->ncontext)
     {
@@ -659,7 +658,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /* Now examine each vector of the shipment */
   nt = keytab->naxisn[1];
-  ndet = ngood = 0;
+  ndet = 0;
   for (n=0; nt; n++)
     {
     ndet++;
@@ -1157,7 +1156,7 @@ INPUT   destination set structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 28/09/2015
+VERSION 20/09/2016
 */
 void	add_set(setstruct *destset, setstruct *set) {
    samplestruct	*destsample, *sample;
@@ -1178,6 +1177,7 @@ void	add_set(setstruct *destset, setstruct *set) {
       destset->contextscale[c] = set->contextscale[c];
       strcpy(destset->contextname[c], set->contextname[c]);
     }
+  destset->ngood += set->ngood;
   destsample = destset->sample + destset->nsample - set->nsample;
   sample = set->sample;
   for (n=set->nsample; n--; sample++, destsample++) {
@@ -1202,7 +1202,7 @@ INPUT   -.
 OUTPUT  -.
 NOTES   See prefs.h.
 AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/03/2008
+VERSION 20/09/2016
 */
 setstruct	*init_set(contextstruct *context)
 
@@ -1211,7 +1211,6 @@ setstruct	*init_set(contextstruct *context)
    int		i;
 
   QCALLOC(set, setstruct, 1);
-  set->nsample = set->nsamplemax = 0;
   set->vigdim = 2;
   QMALLOC(set->vigsize, int, set->vigdim);
   set->ncontext = context->ncontext;
