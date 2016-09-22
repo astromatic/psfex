@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/07/2016
+#	Last modified:		22/09/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -71,7 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README THANKS
+%doc config AUTHORS BUGS ChangeLog COPYRIGHT HISTORY INSTALL LICENSE README.md THANKS
 %{_bindir}/@PACKAGE_TARNAME@
 %{_mandir}/man1/@PACKAGE_TARNAME@.1*
 %{_mandir}/manx/@PACKAGE_TARNAME@.x*

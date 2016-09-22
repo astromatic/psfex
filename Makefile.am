@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/07/2016
+#	Last modified:		22/09/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ AUTOMAKE_OPTIONS	= foreign no-dependencies
 SUBDIRS			= src man
 dist_pkgdata_DATA	= config/* xsl/psfex.xsl
 EXTRA_DIST		= doc autogen.sh AUTHORS BUGS ChangeLog \
-			  COPYRIGHT HISTORY INSTALL LICENSE README THANKS
+			  COPYRIGHT HISTORY INSTALL LICENSE README.md THANKS
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
 dist-hook:
