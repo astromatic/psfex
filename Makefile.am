@@ -22,15 +22,15 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		22/09/2016
+#	Last modified:		27/09/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ACLOCAL_AMFLAGS		= -I m4
 AUTOMAKE_OPTIONS	= foreign no-dependencies
-SUBDIRS			= src man
+SUBDIRS			= src man doc
 dist_pkgdata_DATA	= config/* xsl/psfex.xsl
-EXTRA_DIST		= doc autogen.sh AUTHORS BUGS ChangeLog \
+EXTRA_DIST		= autogen.sh AUTHORS BUGS ChangeLog \
 			  COPYRIGHT HISTORY INSTALL LICENSE README.md THANKS
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
@@ -49,14 +49,4 @@ rpm-best:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
 	USE_BEST="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
 
-doc-html:
-	cd doc
-	make clean
-	make html
 
-doc-pdf:
-	cd doc
-	make clean
-	make latexpdf
-
-	

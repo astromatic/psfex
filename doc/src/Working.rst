@@ -538,7 +538,7 @@ exposures (:numref:`fig_psfmega`).
 
 .. _fig_psfschmidt:
 
-.. figure:: figures/psfschmidt.svg
+.. figure:: figures/psfschmidt.*
   :figwidth: 100 %
   :align: center
 
