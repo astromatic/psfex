@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		20/09/2016
+#	Last modified:		12/10/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard AstrOmatic source code...
-AC_INIT(PSFEx, 3.18.1, [https://github.com/astromatic/psfex],
+AC_INIT(PSFEx, 3.18.2, [https://github.com/astromatic/psfex],
 	psfex, [http://astromatic.net/software/psfex])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
@@ -50,6 +50,7 @@ AC_SUBST(DATE3, "$date3")
 sinclude(acx_atlas.m4)
 sinclude(acx_fftw.m4)
 sinclude(acx_mkl.m4)
+sinclude(acx_openblas.m4)
 sinclude(acx_plplot.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
@@ -59,30 +60,28 @@ sinclude(acx_urbi_resolve_dir.m4)
 AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
 
 # Provide special option for choosing automatically the compilation flags.
-AC_MSG_CHECKING([if compilation flags should be set automatically])
+AC_MSG_CHECKING([if compilation flags are set automatically])
 AC_ARG_ENABLE(auto-flags,
 	[AS_HELP_STRING([--enable-auto-flags],
-	[Let the configure script choose the compilation flags \
-(off by default)])],
+	[Let the configure script choose the compilation flags (default = no)])],
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Provide special option for the Linux Intel C compiler
-AC_MSG_CHECKING([whether we should use the INTEL compiler])
+AC_MSG_CHECKING([whether the INTEL compiler is enabled])
 AC_ARG_ENABLE(icc,
 	[AS_HELP_STRING([--enable-icc],
-	[Enable special mode for compilation with the Intel compiler \
-(off by default)])],
+	[Use the Intel compiler (default = no)])],
         CC="icc"
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Provide special options for INTEL MKL
 # We force the use of icc
-AC_MSG_CHECKING([whether we should use INTEL's MKL])
+AC_MSG_CHECKING([whether INTEL's MKL is enabled])
 AC_ARG_ENABLE(mkl,
 	[AS_HELP_STRING([--enable-mkl],
-	[Use INTEL's MKL for solvers and FFTs (off by default)])],
+	[Use INTEL's MKL for solvers and FFTs (default = no)])],
         enable_icc="yes"
         CC="icc"
 	AC_MSG_RESULT([yes]),
@@ -94,7 +93,7 @@ AC_LANG(C)
 AC_SEARCH_LIBS([strerror],[cposix])
 if test "$enable_auto_flags" = "yes"; then
   CFLAGS=""
-  LDFLAGS =""
+  LDFLAGS=""
   ACX_PROG_CC_OPTIM
 fi
 LT_INIT
@@ -137,40 +136,54 @@ AC_CHECK_FUNC([isinf], AC_DEFINE_UNQUOTED([HAVE_ISINF2], 1,
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-# Provide special options for PLPlot
-AC_MSG_CHECKING([whether we should use PLPlot])
-AC_ARG_ENABLE(plplot,
-	[AS_HELP_STRING([--enable-plplot],
-	[Activate PLPlot library (default = yes)])],
+# Provide special options for ATLAS
+AC_MSG_CHECKING([whether ATLAS is enabled])
+AC_ARG_ENABLE(atlas,
+	[AS_HELP_STRING([--enable-atlas],
+	[Use the ATLAS library instead of OpenBLAS (default = no)])],
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
-AC_ARG_WITH(plplot-libdir,
-	[AS_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
-	[Provide an alternative path to the PLPlot library])])
-AC_ARG_WITH(plplot-incdir,
-	[AS_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
-	[Provide an alternative path to the PLPlot include directory])])
-
-# Provide special options for ATLAS
 AC_ARG_WITH(atlas-libdir,
 	[AS_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
 	[Provide an alternative path to the ATLAS library])])
 AC_ARG_WITH(atlas-incdir,
-	[AS_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
-	[Provide an alternative path to the ATLAS include directory])])
+	[AS_HELP_STRING([--with-atlas-incdir=<ATLAS header dir>],
+	[Provide an alternative path to the ATLAS header directory])])
 
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,
 	[AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
 	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
-	[AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
-	[Provide an alternative path to the FFTW include directory])])
+	[AS_HELP_STRING([--with-fftw-incdir=<FFTW header dir>],
+	[Provide an alternative path to the FFTW header directory])])
 
 # Provide special options for the MKL library
 AC_ARG_WITH(mkl-dir,
 	[AS_HELP_STRING([--with-mkl-dir=<MKL path>],
 	[Provide an alternative path to the MKL library])])
+
+# Provide special options for OpenBLAS
+AC_ARG_WITH(openblas-libdir,
+	[AS_HELP_STRING([--with-openblas-libdir=<OpenBLAS library path>],
+	[Provide an alternative path to the OpenBLAS library])])
+AC_ARG_WITH(openblas-incdir,
+	[AS_HELP_STRING([--with-openblas-incdir=<OpenBLAS header dir>],
+	[Provide an alternative path to the OpenBLAS header directory])])
+
+# Provide special options for PLPlot
+AC_MSG_CHECKING([whether PLPlot is enabled])
+AC_ARG_ENABLE(plplot,
+	[AS_HELP_STRING([--enable-plplot],
+	[Use the PLPlot library (default = yes)])],
+	AC_MSG_RESULT([yes]),
+	AC_MSG_RESULT([no]))
+AC_ARG_WITH(plplot-libdir,
+	[AS_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
+	[Provide an alternative path to the PLPlot library])])
+AC_ARG_WITH(plplot-incdir,
+	[AS_HELP_STRING([--with-plplot-incdir=<PLPlot header dir>],
+	[Provide an alternative path to the PLPlot header directory])])
 
 
 # Provide a special option for the default XSLT URL
@@ -228,7 +241,7 @@ if test "$use_pthreads" = "yes"; then
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
-############ handle the INTEL MKL library (LAPACK) ###########
+############ handle the INTEL MKL library (FFTW + LAPACKe) ###########
 if test "$enable_mkl" = "yes"; then
   convlibs="${srcdir}/wcs/libwcs_c.a,${srcdir}/levmar/liblevmar.a"
   ACX_MKL($with_mkl_dir,,$enable_best_link,$convlibs)
@@ -238,21 +251,45 @@ if test "$enable_mkl" = "yes"; then
   AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
   AM_LDFLAGS="$AM_LDFLAGS $MKL_LDFLAGS "
   LIBS="$LIBS $MKL_LIBS"
+
 else
 ################ handle the FFTW library (Fourier transforms) ################
-  ACX_FFTW($with_fftw_libdir,$with_fftw_incdir,$use_pthreads,yes,
-	[LIBS="$FFTW_LIBS $LIBS"]
-	if test "$FFTW_WARN" != ""; then
-	  AC_MSG_WARN([$FFTW_WARN])
-	fi,
-	AC_MSG_ERROR([$FFTW_ERROR Exiting.]))
-################# handle the ATLAS library (linear algebra) ##################
-  ACX_ATLAS($with_atlas_libdir,$with_atlas_incdir,$use_pthreads,
-	[LIBS="$ATLAS_LIBS $LIBS"]
-	if test "$ATLAS_WARN" != ""; then
+  ACX_FFTW($with_fftw_libdir, $with_fftw_incdir, $use_pthreads,yes,
+    [
+      [LIBS="$FFTW_LIBS $LIBS"]
+      if test "$FFTW_WARN" != ""; then
+        AC_MSG_WARN([$FFTW_WARN])
+      fi
+    ],
+    AC_MSG_ERROR([$FFTW_ERROR Exiting.])
+  )
+
+  if test "$enable_atlas" = "yes"; then
+######### handle the ATLAS library (linear algebra: BLAS + cLAPACK) ##########
+    ACX_ATLAS($with_atlas_libdir, $with_atlas_incdir, $use_pthreads,
+      [
+        [LIBS="$ATLAS_LIBS $LIBS"]
+        if test "$ATLAS_WARN" != ""; then
 	  AC_MSG_WARN([$ATLAS_WARN])
-	fi,
-	AC_MSG_ERROR([$ATLAS_ERROR Exiting.]))
+	fi
+      ],
+      AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
+    )
+
+  else
+######## Handle the OpenBLAS library (linear algebra: BLAS + cLAPACK) ########
+    ACX_OPENBLAS($with_openblas_libdir, $with_openblas_incdir, $use_pthreads, no,
+      [
+        AM_CFLAGS="$AM_CFLAGS $OPENBLAS_CFLAGS "
+        AM_LDFLAGS="$AM_LDFLAGS $OPENBLAS_LDFLAGS "
+        LIBS="$OPENBLAS_LIBS $LIBS"
+        if test "$OPENBLAS_WARN" != ""; then
+          AC_MSG_WARN([$OPENBLAS_WARN])
+        fi
+      ],
+      AC_MSG_ERROR([$OPENBLAS_ERROR Exiting.])
+    )
+  fi
 fi
 
 ################# handle the PLPlot library (graphic plots) ##################
@@ -301,7 +338,8 @@ AC_MSG_RESULT([***************************************************************])
 
 AC_CONFIG_FILES([
 Makefile
-psfex.spec]
+psfex.spec
+doc/Makefile
 doc/src/conf.py
 man/Makefile
 man/psfex.1
@@ -309,5 +347,5 @@ src/Makefile
 src/fits/Makefile
 src/levmar/Makefile
 src/wcs/Makefile
-)
+])
 AC_OUTPUT
