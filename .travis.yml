@@ -8,7 +8,7 @@ before_install:
   # Install and upgrade autoconf
   - sudo apt-get install autoconf
   # Upgrade gcc
-   - gcc --version
+  - gcc --version
   # Install dependencies
   - sudo apt-get install libatlas-dev fftw-dev libplplot-dev
   
