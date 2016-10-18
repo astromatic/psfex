@@ -10,7 +10,7 @@ before_install:
   # Upgrade gcc
   - gcc --version
   # Install dependencies
-  - sudo apt-get install libatlas-dev fftw3-dev libplplot-dev
+  - sudo apt-get install libopenblas-dev fftw3-dev libplplot-dev
   
 install :
   - sh autogen.sh
