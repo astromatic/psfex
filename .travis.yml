@@ -1,7 +1,7 @@
 language: c
 
 compiler:
-- gcc
+  - gcc
 
 before_install:
   - sudo apt-get update
@@ -20,4 +20,4 @@ script :
   - make
   
 os : 
-- linux
+  - linux
