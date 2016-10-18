@@ -1,0 +1,23 @@
+language: c
+
+compiler:
+- gcc
+
+before_install:
+  - sudo apt-get update
+  # Install and upgrade autoconf
+  - sudo apt-get install autoconf
+  # Upgrade gcc
+   - gcc --version
+  # Install dependencies
+  - sudo apt-get install libatlas-dev fftw-dev libplplot-dev
+  
+install :
+  - sh autogen.sh
+  
+script :
+  - ./configure
+  - make
+  
+os : 
+- linux
