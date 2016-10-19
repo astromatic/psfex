@@ -3,7 +3,14 @@ language: c
 compiler:
   - gcc
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "UT9hruskEPRAHI3O/nChsglXd/sTHoKdprlKNXvp+W4EFpqzCbW+uWyTHSKXXh+0Hx8cmKL9Y0DX0rHTNmckJwUXplLr89uEBh02UKpkxS6MEkhkWF3GuDkehvvnD1lBZcKY0EqeJ0LbnRcZ1hIpEZPdslMF5F3lLRFAnwt203rjy82vpJzCoGtpNMFyfjeshBzUeSFDlwOrtTCpoub1up1yzVJPqR+Ft2UGckTKjfiZb8ZtH/ZnckiBwwra3/wzP7+37r5AQixbFJyuB7axz1X+TaF2eSQeyXXy4fcJxsiH2B1LQ1NvyLMPZJccgsKMWxWBwyeyrkgkQRiFuAc8cg71aF20f04cEHIXiC+C0MX+4BUu0pUrcsZz2WOPUoIKQlDEbloRa7zf0rEODNdOFNNfFFDxrwOR5QzbRwgbHmaVeeYp7Vdb3B5yftRZR6Lv18w6IzCk56HCchugkCjDaSCszxQ7jw2y+JnfrUIrMme94Su8CNByI6ZsyVkYDVk6EUdkMxvbI/5MB3woy8XW8nEESSBeEnj4jBljYfqq/CdKlbc6yldzRBtrKskEvHABj9FGM7p6zqNhuNnrKJj+dMXRlBAIEE54suizfEZUs+kfoF904ueq3UyOCudfCcgwYs5OYKF5KdZ4Uab1R/mjC87dPNIxIHR6CFHxTLtzeW0="
+
 before_install:
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - sudo apt-get update
   # Install dependencies required for configuration
   - sudo apt-get install autoconf libtool pkg-config 
@@ -18,6 +25,16 @@ install :
 script :
   - ./configure
   - make
-  
+
+addons:
+  coverity_scan:
+    project:
+      name: "astromatic/psfex"
+      description: "Build submitted via Travis CI"
+    notification_email: bertin@iap.fr
+    build_command_prepend: "./configure; make clean"
+    build_command:   "make -j 4"
+    branch_pattern: coverity_scan
+
 os : 
   - linux
