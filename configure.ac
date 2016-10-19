@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/10/2016
+#	Last modified:		19/10/2016
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -137,12 +137,6 @@ AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
 # Provide special options for ATLAS
-AC_MSG_CHECKING([whether ATLAS is enabled])
-AC_ARG_ENABLE(atlas,
-	[AS_HELP_STRING([--enable-atlas],
-	[Use the ATLAS library instead of OpenBLAS (default = no)])],
-	AC_MSG_RESULT([yes]),
-	AC_MSG_RESULT([no]))
 AC_ARG_WITH(atlas-libdir,
 	[AS_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
 	[Provide an alternative path to the ATLAS library])])
@@ -164,6 +158,12 @@ AC_ARG_WITH(mkl-dir,
 	[Provide an alternative path to the MKL library])])
 
 # Provide special options for OpenBLAS
+AC_MSG_CHECKING([whether OpenBLAS is enabled])
+AC_ARG_ENABLE(openblas,
+	[AS_HELP_STRING([--enable-openblas],
+	[Use the OpenBLAS library instead of ATLAS (default = no)])],
+	AC_MSG_RESULT([yes]),
+	AC_MSG_RESULT([no]))
 AC_ARG_WITH(openblas-libdir,
 	[AS_HELP_STRING([--with-openblas-libdir=<OpenBLAS library path>],
 	[Provide an alternative path to the OpenBLAS library])])
@@ -264,19 +264,7 @@ else
     AC_MSG_ERROR([$FFTW_ERROR Exiting.])
   )
 
-  if test "$enable_atlas" = "yes"; then
-######### handle the ATLAS library (linear algebra: BLAS + cLAPACK) ##########
-    ACX_ATLAS($with_atlas_libdir, $with_atlas_incdir, $use_pthreads,
-      [
-        [LIBS="$ATLAS_LIBS $LIBS"]
-        if test "$ATLAS_WARN" != ""; then
-	  AC_MSG_WARN([$ATLAS_WARN])
-	fi
-      ],
-      AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
-    )
-
-  else
+  if test "x$enable_openblas" = "xyes"; then
 ######## Handle the OpenBLAS library (linear algebra: BLAS + cLAPACK) ########
     ACX_OPENBLAS($with_openblas_libdir, $with_openblas_incdir, $use_pthreads, no,
       [
@@ -288,6 +276,18 @@ else
         fi
       ],
       AC_MSG_ERROR([$OPENBLAS_ERROR Exiting.])
+    )
+
+  else
+######### handle the ATLAS library (linear algebra: BLAS + cLAPACK) ##########
+    ACX_ATLAS($with_atlas_libdir, $with_atlas_incdir, $use_pthreads,
+      [
+        [LIBS="$ATLAS_LIBS $LIBS"]
+        if test "$ATLAS_WARN" != ""; then
+	  AC_MSG_WARN([$ATLAS_WARN])
+	fi
+      ],
+      AC_MSG_ERROR([$ATLAS_ERROR Exiting.])
     )
   fi
 fi

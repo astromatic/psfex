@@ -98,6 +98,7 @@ dnl ----------------------------
       [LAPACKE_dpotrf], ["openblasp"$acx_openblas_suffix],
       AC_DEFINE(HAVE_OPENBLASP,1,
 		[Define if you have the OpenBLAS parallel library and header files.]),
+      unset ac_cv_search_LAPACKE_dpotrf
       [AC_SEARCH_LIBS(
         [LAPACKE_dpotrf], ["openblas"$acx_openblas_suffix],
 	[OPENBLAS_WARN="parallel OpenBLAS"$acx_openblas_suffix" not found, reverting to scalar OpenBLAS"$acx_openblas_suffix"!"],
