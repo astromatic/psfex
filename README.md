@@ -1,5 +1,7 @@
 #PSFEx
 
+[![Build Status](https://travis-ci.org/astromatic/psfex.svg?branch=master)](https://travis-ci.org/astromatic/psfex)
+
 a utility that makes PSF models for use with the [SExtractor] program.
 
 Check out the on-line [documentation], the [official web page], and the [user forum].
