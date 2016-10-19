@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		29/09/2015
+*	Last modified:		19/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -108,7 +108,7 @@ INPUT	Input name,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_init(char *name, cplotenum cplottype)
   {
@@ -117,7 +117,7 @@ int	cplot_init(char *name, cplotenum cplottype)
    char		**devmenu, **devname;
    char		str[MAXCHAR],
 		*pstr;
-   int		j, num, cval, dev, argc, ndev, gdflag;
+   int		j, num, cval, dev, argc, ndev, gdflag, ret;
 
 /* Check that plot was requested */
   cval = cplot_check(cplottype);
@@ -134,7 +134,7 @@ int	cplot_init(char *name, cplotenum cplottype)
 	prefs.cplot_res[0]? prefs.cplot_res[0] : CPLOT_DEFRESX,
 	prefs.cplot_res[1]? prefs.cplot_res[1] : CPLOT_DEFRESY,
 	plotfilename, plotfilename);
-    system(str);
+    ret = system(str);
     }
 
   if (dev>=prefs.ncplot_device)
@@ -665,7 +665,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -825,7 +825,7 @@ int	cplot_fwhm(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(fwhm, nsnap2, nsnap2, NULL,
+      plshades((const PLFLT * const*)fwhm, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -845,14 +845,14 @@ int	cplot_fwhm(fieldstruct *field)
   if (wcs->lng == wcs->lat)
     {
     plwind(0.0,1.0,fwhmmin,fwhmmax);
-    plshades(fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+    plshades((const PLFLT * const*)fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   fwhmmin,fwhmmax, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
     }
   else
     {
     plwind(0.0,1.0,fwhmmin*DEG/ARCSEC,fwhmmax*DEG/ARCSEC);
-    plshades(fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+    plshades((const PLFLT * const*)fwhm, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   fwhmmin*DEG/ARCSEC,fwhmmax*DEG/ARCSEC, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
     }
@@ -897,7 +897,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -1057,7 +1057,7 @@ int	cplot_ellipticity(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(ellip, nsnap2, nsnap2, NULL,
+      plshades((const PLFLT * const*)ellip, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1075,7 +1075,7 @@ int	cplot_ellipticity(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,ellipmin,ellipmax);
-  plshades(ellip, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+  plshades((const PLFLT * const*)ellip, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   ellipmin,ellipmax, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
@@ -1115,7 +1115,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1273,7 +1273,7 @@ int	cplot_moffatresi(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(resi, nsnap2, nsnap2, NULL,
+      plshades((const PLFLT * const*)resi, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1291,7 +1291,7 @@ int	cplot_moffatresi(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,resimin,resimax);
-  plshades(resi, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+  plshades((const PLFLT * const*)resi, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   resimin,resimax, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
@@ -1334,7 +1334,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1492,7 +1492,7 @@ int	cplot_asymresi(fieldstruct *field)
 
       wcsptr[0] = wcs;
       wcsptr[1] = wcsout;
-      plshades(resi, nsnap2, nsnap2, NULL,
+      plshades((const PLFLT * const*)resi, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1510,7 +1510,7 @@ int	cplot_asymresi(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,resimin,resimax);
-  plshades(resi, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+  plshades((const PLFLT * const*)resi, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
 	   resimin,resimax, clevel,
 	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
@@ -1548,7 +1548,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1662,7 +1662,7 @@ int	cplot_counts(fieldstruct *field)
           count[i][j] = (PLFLT)icount[e][0];
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap2, nsnap2, NULL,
+    plshades((const PLFLT * const*)count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1679,8 +1679,8 @@ int	cplot_counts(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,cmin,cmax);
-  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
-	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plshades((const PLFLT * const*)count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   cmin,cmax, clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
   plschr(0.0, 0.5);
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
@@ -1707,7 +1707,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1822,7 +1822,7 @@ int	cplot_countfrac(fieldstruct *field)
 
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap2, nsnap2, NULL,
+    plshades((const PLFLT * const*)count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1839,8 +1839,8 @@ int	cplot_countfrac(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,cmin,cmax);
-  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
-	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plshades((const PLFLT * const*)count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   cmin,cmax, clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
   plschr(0.0, 0.5);
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
@@ -1866,7 +1866,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
@@ -1981,7 +1981,7 @@ int	cplot_modchi2(fieldstruct *field)
 
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap2, nsnap2, NULL,
+    plshades((const PLFLT * const*)count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -1998,8 +1998,8 @@ int	cplot_modchi2(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,cmin,cmax);
-  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
-	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plshades((const PLFLT * const*)count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   cmin,cmax, clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
   plschr(0.0, 0.5);
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
@@ -2025,7 +2025,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	28/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
@@ -2140,7 +2140,7 @@ int	cplot_modresi(fieldstruct *field)
 
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
-    plshades(count, nsnap2, nsnap2, NULL,
+    plshades((const PLFLT * const*)count, nsnap2, nsnap2, NULL,
 	     xstep/2.0+0.5, wcs->naxisn[0]-xstep/2.0+0.5,
              ystep/2.0+0.5, wcs->naxisn[1]-ystep/2.0+0.5,
 	     clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 0, distort_map, wcsptr);
@@ -2157,8 +2157,8 @@ int	cplot_modresi(fieldstruct *field)
 
   plvpor(0.91,0.935,0.115,0.885);
   plwind(0.0,1.0,cmin,cmax);
-  plshades(count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0, cmin,cmax, clevel,
-	   CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
+  plshades((const PLFLT * const*)count, 2, CPLOT_NSHADES, NULL, 0.0, 1.0,
+	   cmin,cmax, clevel, CPLOT_NSHADES, 1, 0, 0, plfill, 1, NULL, NULL);
   plcol0(15);
   plschr(0.0, 0.5);
   plbox("bc", 0.0, 0, "bnstv", 0.0, 0);
@@ -2184,7 +2184,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	Global preferences are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	29/09/2015
+VERSION	19/10/2016
  ***/
 int	cplot_snrvsfwhm(fieldstruct *field, setstruct *set)
   {
