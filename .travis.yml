@@ -5,18 +5,18 @@ compiler:
 
 before_install:
   - sudo apt-get update
-  # Install and upgrade autoconf
-  - sudo apt-get install autoconf
+  # Install dependencies required for configuration
+  - sudo apt-get install autoconf libtool pkg-config 
   # Upgrade gcc
   - gcc --version
   # Install dependencies
-  - sudo apt-get install libatlas-dev fftw3-dev libplplot-dev
+  - sudo apt-get install libatlas-base-dev libfftw3-dev libshp-dev libplplot-dev
   
 install :
   - sh autogen.sh
   
 script :
-  - ./configure --enable-atlas
+  - ./configure
   - make
   
 os : 
