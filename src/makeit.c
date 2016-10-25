@@ -258,6 +258,7 @@ void	makeit(void)
 /*-- Derive principal components of PSF variation from the whole mosaic */
     {
     p = 0;
+    cpsf = NULL;	// Make Coverity happy
     QMALLOC(cpsf, psfstruct *, ncat*next);
     for (c=0; c<ncat; c++)
       {
@@ -277,7 +278,7 @@ void	makeit(void)
         }
       }
     QFREE(fullcontext->pc);
-    if (cpsf)	// Make Coverity happy
+    if (cpsf)		// Make Coverity happy
       fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
     for (c=0 ; c<ncat*next; c++)
       psf_end(cpsf[c]);
