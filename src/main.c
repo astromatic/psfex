@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		25/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -109,8 +109,10 @@ int main(int argc, char *argv[])
         switch(opt)
           {
           case 'c':
-            if (a<(argc-1))
-              strcpy(prefs.prefs_name, argv[++a]);
+            if (a<(argc-1)) {
+              strncpy(prefs.prefs_name, argv[++a], MAXCHAR-1);
+              prefs.prefs_name[MAXCHAR-1] = '\0';
+            }
             break;
           case 'd':
             dumpprefs(opt2=='d' ? 1 : 0);

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/09/2015
+*	Last modified:		25/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -276,8 +276,9 @@ void	makeit(void)
         end_set(set);
         }
       }
-    free(fullcontext->pc);
-    fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
+    QFREE(fullcontext->pc);
+    if (cpsf)	// Make Coverity happy
+      fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
     for (c=0 ; c<ncat*next; c++)
       psf_end(cpsf[c]);
     free(cpsf);
@@ -444,8 +445,8 @@ void	makeit(void)
   for (c=0; c<ncat; c++)
     {
     field = fields[c];
-    if (next > 1)
-      bigset = init_set(context);
+    set = NULL;		// Make Coverity scan happy
+    bigset = next > 1 ? init_set(context) : NULL;
     for (ext=0 ; ext<next; ext++)
       {
       psf = field->psf[ext];
@@ -501,7 +502,7 @@ void	makeit(void)
       if (prefs.outcat_type != CAT_NONE)
         write_outcat(outcat, set);
 /*---- Append set sources to bigset */
-      if (next > 1) {
+      if (bigset) {
         add_set(bigset, set);
 /*------ Free memory */
         end_set(set);
@@ -509,9 +510,12 @@ void	makeit(void)
       }
 #ifdef HAVE_PLPLOT
     NFPRINTF(OUTPUT, "Plotting source selection diagrams...");
-    cplot_snrvsfwhm(field, next>1? bigset : set);
+    if (bigset)
+      cplot_snrvsfwhm(field, bigset);
+    else if (set)	// Make Coverity scan happy
+      cplot_snrvsfwhm(field, set);
 #endif
-    end_set(next>1 ? bigset : set);
+    end_set(bigset? bigset : set);
     }
 
   if (prefs.outcat_type != CAT_NONE)

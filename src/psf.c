@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		18/09/2015
+*	Last modified:		25/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -248,7 +248,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/02/2013
+VERSION 25/10/2016
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
 			float psfstep, float *pixsize, int nsample)
@@ -258,7 +258,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
    char		**names2, **names2t;
    double	psfelemdens;
    int		*group2, *dim2,
-		d, ndim,ndim2,ngroup2, npix, nsnap;
+		d, ndim2,ngroup2, npix, nsnap;
 
 /* Allocate memory for the PSF structure itself */
   QCALLOC(psf, psfstruct, 1);
@@ -268,11 +268,11 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 /* The polynom */
   names2 = NULL;
   group2 = dim2 = NULL;
-  ndim2 = ndim = context->ncontext;
-  if (ndim)
+  ndim2 = context->ncontext;
+  if (ndim2)
     {
-    QMEMCPY(context->group, group2, int, ndim);
-    QMEMCPY(context->name, names2, char *, ndim);
+    QMEMCPY(context->group, group2, int, ndim2);
+    QMEMCPY(context->name, names2, char *, ndim2);
     }
   if ((ngroup2=context->ngroup))
     QMEMCPY(context->degree, dim2, int, context->ngroup);
@@ -360,14 +360,11 @@ psfstruct	*psf_init(contextstruct *context, int *size,
 */
 
 /* Free temporary arrays */
-  if (ndim)
-    {
-    free(names2);
-    free(group2);
-    free(dim2);
-    }
+  free(names2);
+  free(group2);
+  free(dim2);
 
- return psf;
+  return psf;
   }
 
 
