@@ -257,8 +257,6 @@ void	makeit(void)
   if (context->npc && prefs.hidden_mef_type == HIDDEN_MEF_COMMON)
 /*-- Derive principal components of PSF variation from the whole mosaic */
     {
-    p = 0;
-    cpsf = NULL;	// Make Coverity happy
     QMALLOC(cpsf, psfstruct *, ncat*next);
     for (c=0; c<ncat; c++)
       {
@@ -273,13 +271,12 @@ void	makeit(void)
         else
           step = psfstep;
         basis = psfbasiss? psfbasiss[ext] : psfbasis;
-        cpsf[p++] = make_psf(set, step, basis, nbasis, context);
+        cpsf[ext+c*next] = make_psf(set, step, basis, nbasis, context);
         end_set(set);
         }
       }
     QFREE(fullcontext->pc);
-    if (cpsf)		// Make Coverity happy
-      fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
+    fullcontext->pc = pca_oncomps(cpsf, next, ncat, context->npc);
     for (c=0 ; c<ncat*next; c++)
       psf_end(cpsf[c]);
     free(cpsf);
