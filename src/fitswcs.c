@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1993-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1993-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		27/11/2013
+*	Last modified:		25/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -1223,12 +1223,12 @@ INPUT	WCS structure,
 OUTPUT	RETURN_OK if successful, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/11/2003
+VERSION	25/10/2016
  ***/
 int	reaxe_wcs(wcsstruct *wcs, int lng, int lat)
 
   {
-   char		strlng[80], strlat[80];
+   char		strlng[9], strlat[9];
    double	dlng,dlat,dlng2,dlat2;
    int		l, ilng,ilat,olng,olat, naxis;
 

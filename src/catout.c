@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/07/2016
+*	Last modified:		25/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -54,7 +54,7 @@ INPUT	File name,
 OUTPUT  Pointer to the output catalog, ready for writing.
 NOTES   Global preferences are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 26/02/2014
+VERSION 25/10/2016
 */
 outcatstruct	*init_outcat(char *filename, int ncontext)
 
@@ -180,12 +180,11 @@ outcatstruct	*init_outcat(char *filename, int ncontext)
     save_tab(cat, imtab);
     free_tab(imtab);
     objtab->cat = cat;
-    init_writeobj(cat, objtab, &buf);
+    init_writeobj(cat, objtab, &outcat->buf);
     }
 
   outcat->ascfile = ascfile;
   outcat->objkeys = objkeys;
-  outcat->buf = buf;
 
   return outcat;
   }
