@@ -1,5 +1,3 @@
-.. _SExtractor: http://astromatic.net/software/sextractor
-
 .. only:: html
 
     Bibliography

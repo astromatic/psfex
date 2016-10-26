@@ -1,4 +1,4 @@
-.. File GetingStarted.rst
+.. File GettingStarted.rst
 
 .. _gettingStarted:
 
@@ -16,7 +16,7 @@ catalogues can be directly provided in the command line, or in lists that are
 ASCII files with each catalogue name preceded by ``@`` (one per line). One
 should use lists instead of the catalogue file names if the number of input
 catalogues is too large to be handled directly by the shell. Any
-:option:`-Parameter Value` statement in the command-line overrides the 
+`-Parameter Value` statement in the command-line overrides the 
 corresponding definition in the configuration file or any default value (see
 below).
 
@@ -372,7 +372,7 @@ in future versions.
      subtracted.
    - ``SNAPSHOTS`` Grid of PSF model snapshots reconstructed at each
      position/context.
-   - ``MOFFAT`` Grid of Moffat models (:ref:`eq_moffat`) fitted to PSF
+   - ``MOFFAT`` Grid of :ref:`Moffat models <eq_moffat>` fitted to PSF
      model snapshots at each position/context.
    - ``-MOFFAT`` Grid of PSF model snapshots reconstructed at each
      position/context with best-fitting :ref:`Moffat models <eq_moffat>` 

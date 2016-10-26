@@ -122,7 +122,7 @@ package relies on:
   $ sh autogen.sh
 
 A ``configure`` script is created. This script has many options, which may be
-listed with the :option:`--help` option:
+listed with the ``--help`` option:
 
 .. code-block:: console
 
@@ -177,12 +177,12 @@ which will return the version number and other basic information (note that some
 freshly installed executable accessible in the execution path).
 
 .. [#mac_install] Mac OS X |.dmg|_ packages should be available soon.
-.. [#atlas_install] Use the :option:`--with-atlas` and/or
-   :option:`--with-atlas-incdir` options of the |PSFEx| :command:`configure`
+.. [#atlas_install] Use the ``--with-atlas`` and/or
+   ``--with-atlas-incdir`` options of the |PSFEx| :command:`configure`
    script to specify the |ATLAS| library and include paths if |ATLAS| files are 
    installed at unusual locations.
 .. [#fftw_install] Make sure that |FFTW| has been compiled with
-   :command:`configure` options :option:`--enable-threads --enable-float`.
+   :command:`configure` options ``--enable-threads --enable-float``.
 .. [#geticc] The Linux versions of the |Intel| compiler and |MKL| are
    `available for free to academic researchers, students, educators and open
    source contributors <http://software.intel.com/qualify-for-free-software>`_.
