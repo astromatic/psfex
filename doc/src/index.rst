@@ -14,6 +14,8 @@ Contents
    :maxdepth: 2
 
    Introduction
+   License
+   Installing
    GettingStarted
    Working
    Examples
