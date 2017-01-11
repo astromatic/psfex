@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2016 IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		22/09/2016
+#	Last modified:		11/01/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,6 +30,7 @@
 %define version @PACKAGE_VERSION@
 %define release 1
 %undefine _missing_build_ids_terminate_build
+%define debug_package %{nil}
 
 Summary: generate a PSF super-tabulated model for SExtractor
 Name: %{name}
