@@ -1,4 +1,4 @@
-#PSFEx
+# PSFEx
 
 [![Build Status](https://travis-ci.org/astromatic/psfex.svg?branch=master)](https://travis-ci.org/astromatic/psfex)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/astromatic-psfex/badge.svg)](https://scan.coverity.com/projects/astromatic-psfex "Coverity Badge")
