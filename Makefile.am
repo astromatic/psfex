@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2016 IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2017 IAP/CNRS/UPMC
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		27/09/2016
+#	Last modified:		22/05/2017
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -34,19 +34,21 @@ EXTRA_DIST		= autogen.sh AUTHORS BUGS ChangeLog \
 			  COPYRIGHT HISTORY INSTALL LICENSE README.md THANKS
 RPM_ROOTDIR		= `rpmbuild --nobuild -E %_topdir`
 RPM_SRCDIR		= $(RPM_ROOTDIR)/SOURCES
+RPM_OPTIONS		= "-ba --clean --nodeps"
+
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`
 
 rpm:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
+	rpmbuild $(RPM_OPTIONS) $(PACKAGE_TARNAME).spec
 
 rpm-icc:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	USE_ICC="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
+	USE_ICC="1" rpmbuild $(RPM_OPTIONS) $(PACKAGE_TARNAME).spec
 
 rpm-best:	dist
 	cp -f $(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz $(RPM_SRCDIR)
-	USE_BEST="1" rpmbuild -ba --clean --nodeps $(PACKAGE_TARNAME).spec
+	USE_BEST="1" rpmbuild $(RPM_OPTIONS) $(PACKAGE_TARNAME).spec
 
 
