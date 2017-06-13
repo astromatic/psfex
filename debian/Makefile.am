@@ -27,5 +27,5 @@
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-EXTRA_DIST		= changelog compat control rules
+EXTRA_DIST		= compat control rules
 
