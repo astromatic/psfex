@@ -39,7 +39,6 @@
 /src/levmar/.deps/
 /src/levmar/Makefile
 /stamp-h1
-/doc/src/conf.py
 /man/psfex.1
 
 # build objects and targets
