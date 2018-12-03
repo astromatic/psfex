@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2018 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/12/2016
+*	Last modified:		09/05/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -321,45 +321,53 @@ INPUT   Pointer to an array of FWHMs,
 	pointer to the upper FWHM range (output).
 OUTPUT  FWHM mode.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/03/2008
+AUTHOR  E. Bertin (IAP)
+VERSION 09/05/2018
 */
 static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		float minin, float maxin, float *minout, float *maxout)
   {
    float	*fwhmt,*fwhmt2,
-		df, dfmin,fmin;
+		df, dfmin,fmin, var;
    int		i, nw;
 
 /* Sort FWHMs */
-   fqmedian(fwhm, nfwhm);
+  fqmedian(fwhm, nfwhm);
 
 /* Find the mode */
-   nw = nfwhm/4;
-   if (nw<4)
-     nw = 1;
-  dfmin = BIG;
-  fmin = 0.0;
-  fwhmt = fwhm;
-  fwhmt2 = fwhm+nw;
-  for (i=nfwhm-nw; i--; fwhmt++,fwhmt2++)
-    {  
-    if ((df = *fwhmt2 - *fwhmt) < dfmin)
-      {
-      dfmin = df;
-      fmin = (*fwhmt2 + *fwhmt)/2.0;
+  nw = nfwhm/4;
+  if (nw < 1)
+    nw = 1;
+  var = BIG;
+
+  for (nw = nfwhm / 4; var > maxvar / 2 && nw > 0; nw /= 2) {
+    dfmin = BIG;
+    fmin = 0.0;
+    fwhmt = fwhm;
+    fwhmt2 = fwhm+nw;
+    for (i=nfwhm-nw; i--; fwhmt++,fwhmt2++)
+      if ((df = *fwhmt2 - *fwhmt) < dfmin) {
+        dfmin = df;
+        fmin = (*fwhmt2 + *fwhmt)/2.0;
       }
+
+    if (nfwhm<2) {
+      fmin = *fwhm;
+      break;
     }
 
-  if (nfwhm<2)
-    fmin = *fwhm;
+    if (fmin <= 0.0)
+      break;
 
-  dfmin = (float)pow((double)maxvar+1.0, 0.3333333);
-  *minout = dfmin>0.0?fmin/dfmin:0.0;
-  if (*minout<minin)
+    var = dfmin / fmin;
+  }
+
+  dfmin = sqrtf((float)maxvar + 1.0f);
+  *minout = dfmin > 0.0 ? fmin / dfmin : 0.0;
+  if (*minout < minin)
     *minout = minin;
-  *maxout = fmin*dfmin*dfmin;
-  if (*maxout>maxin)
+  *maxout = fmin * dfmin;
+  if (*maxout > maxin)
     *maxout = maxin;
 
   return fmin;
