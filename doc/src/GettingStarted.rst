@@ -52,7 +52,7 @@ handle the detection and deblending processes. The catalogue files read by
 
 * extraction flags ``FLAGS``.
 
-The ``VIGNET`` dimensions :math:`w` and :math:`h` set the maximum size, in
+The ``VIGNET`` dimensions :math:`w` and :samp:`h` set the maximum size, in
 pixels, of the image area stored for each detection. It is advised to
 use square sub-images (:math:`w = h`) with an odd number of pixels (for
 symmetry across the central pixel), and so that the sub-image covers
