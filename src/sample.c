@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/09/2016
+*	Last modified:		15/12/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -395,7 +395,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   {
    catstruct		*cat;
    tabstruct		*tab, *keytab;
-   keystruct		*key, *vigkey;
+   keystruct		*key;
    samplestruct		*sample;
    t_type		contexttyp[MAXCONTEXT];
    void			*contextvalp[MAXCONTEXT];
@@ -408,12 +408,12 @@ setstruct *read_samples(setstruct *set, char *filename,
    double		contextval[MAXCONTEXT],
 			*dxm,*dym, *cmin, *cmax, dval;
    float		*xm, *ym, *vignet,*vignett, *flux, *fluxrad, *elong,
-			*snr,
+			*snr, *dgeox, *dgeoy,
 			backnoise, backnoise2, gain, minsn, ellip, maxellip;
    static int		ncat;
    int			*lxm,*lym,
 			i,j, n, nsample,nsamplemax,
-			vigw, vigh, vigsize, nobj, nt, ndet, ngood,
+			vigw, vigh, vigsize, nobj, nt, ndet, ngood, dgeoflag,
 			badflag, maxbad, maxbadflag, ldflag, ext2, pc;
    short 		*sxm,*sym;
 
@@ -586,6 +586,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   else
     imaflags = NULL;
 
+/* Load SExtractor VIGNET vector */
   if (!(key = name_to_key(keytab, "VIGNET")))
     error(EXIT_FAILURE,
 	"*Error*: VIGNET parameter not found in catalog ", filename);
@@ -594,9 +595,8 @@ setstruct *read_samples(setstruct *set, char *filename,
 
   if (key->naxis < 2)
     error(EXIT_FAILURE, "*Error*: VIGNET should be a 2D vector", "");
-  vigkey = key;
-  vigw = *(vigkey->naxisn);
-  vigh = *(vigkey->naxisn+1);
+  vigw = *(key->naxisn);
+  vigh = *(key->naxisn+1);
   vigsize = vigw*vigh;
   if (!set->sample)
     {
@@ -604,6 +604,39 @@ setstruct *read_samples(setstruct *set, char *filename,
     set->vigsize[1] = vigh;
     set->nvig = vigw*vigh;
     }
+
+/* Load optional SExtractor VIGNET_DGEOX vector */
+  if (prefs.dgeo_flag && (key = name_to_key(keytab, "VIGNET_DGEOX"))) {
+    dgeox = (float *)key->ptr;
+    nobj = key->nobj;
+    if (key->naxis < 2)
+      error(EXIT_FAILURE, "*Error*: VIGNET_DGEOX should be a 2D vector", "");
+    if (*(key->naxisn) != vigw || *(key->naxisn+1) != vigh)
+      error(EXIT_FAILURE, "*Error*: VIGNET_DGEOX size does not match that of ",
+	"VIGNET");
+  } else
+    dgeox = NULL;
+
+/* Load optional SExtractor VIGNET_DGEOY vector */
+  if (prefs.dgeo_flag && (key = name_to_key(keytab, "VIGNET_DGEOY"))) {
+    dgeoy = (float *)key->ptr;
+    nobj = key->nobj;
+    if (key->naxis < 2)
+      error(EXIT_FAILURE, "*Error*: VIGNET_DGEOY should be a 2D vector", "");
+    if (*(key->naxisn) != vigw || *(key->naxisn+1) != vigh)
+      error(EXIT_FAILURE, "*Error*: VIGNET_DGEOY size does not match that of ",
+	"VIGNET");
+  } else
+    dgeoy = NULL;
+
+  if (dgeox && dgeoy)
+    dgeoflag = 1;
+  else {
+    dgeoflag = 0;
+    if (prefs.dgeo_flag)
+      warning("Both VIGNET_DGEOX and VIGNET_DGEOY must be present in catalog: ",
+	"deactivating differential geometry maps");
+  }
 
 /* Try to load the set of context keys */
   kstr = context->name;
@@ -784,8 +817,12 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
 /*-- Copy the vignet to the training set */
     if (!badflag) {
-      malloc_samplevig(sample, vigsize);
+      malloc_samplevig(sample, vigsize, dgeoflag);
       memcpy(sample->vig, vignet, vigsize*sizeof(float));
+      if (dgeoflag) {
+        memcpy(sample->vigdgeox, dgeox, vigsize*sizeof(float));
+        memcpy(sample->vigdgeoy, dgeoy, vigsize*sizeof(float));
+      }
       make_weights(set, sample);
       recenter_sample(sample, set, *fluxrad);
       ngood++;
@@ -1071,22 +1108,27 @@ void	free_samples(setstruct *set)
 
 
 /****** malloc_samplevig *******************************************************
-PROTO   void free_samplevig(samplestruct *sample, int npix)
+PROTO   void free_samplevig(samplestruct *sample, int npix, int dgeoflag)
 PURPOSE Free pixel memory for a sample.
 INPUT   sample structure pointer,
-        number of pixels.
+        number of pixels,
+	differential geometry map flag.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 18/09/2015
+AUTHOR  E. Bertin (IAP)
+VERSION 15/12/2015
 */
-void	malloc_samplevig(samplestruct *sample, int npix)
+void	malloc_samplevig(samplestruct *sample, int npix, int dgeoflag)
 
   {
   QMALLOC(sample->vig, float, npix);
   QMALLOC(sample->vigresi, float, npix);
   QMALLOC(sample->vigweight, float, npix);
   QMALLOC(sample->vigchi, float, npix);
+  if (dgeoflag) {
+    QMALLOC(sample->vigdgeox, float, npix);
+    QMALLOC(sample->vigdgeoy, float, npix);
+  }
 
   return;
   }
@@ -1098,8 +1140,8 @@ PURPOSE Free pixel memory for a sample.
 INPUT   sample structure pointer.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 28/09/2015
+AUTHOR  E. Bertin (IAP)
+VERSION 15/12/2015
 */
 void	free_samplevig(samplestruct *sample)
 
@@ -1108,6 +1150,8 @@ void	free_samplevig(samplestruct *sample)
   QFREE(sample->vigresi);
   QFREE(sample->vigweight);
   QFREE(sample->vigchi);
+  QFREE(sample->vigdgeox);
+  QFREE(sample->vigdgeoy);
 
   return;
   }

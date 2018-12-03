@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		23/09/2015
+*	Last modified:		16/12/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -95,6 +95,8 @@ typedef struct
   int		basis_number;			/* nb of supersampled pixels */
   char		basis_name[MAXCHAR];		/* PSF vector basis filename */
   double	basis_scale;			/* Gauss-Laguerre beta param */
+/* Differential Geometry Maps */
+  int		dgeo_flag;			/* Apply diff. geom. maps? */
 /* Re-centering */
   char		*(center_key[2]);		/* Names of centering keys */
   int		ncenter_key;			/* nb of params */

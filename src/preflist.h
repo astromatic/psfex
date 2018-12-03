@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2015
+*	Last modified:		20/04/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -116,6 +116,7 @@ pkeystruct key[] =
     {""}, 0, MAXCONTEXT, &prefs.ncontext_group},
   {"PSFVAR_NSNAP", P_INT, &prefs.context_nsnap, 1,256},
   {"PSF_ACCURACY", P_FLOAT, &prefs.prof_accuracy, 0,0, 0.0,1.0},
+  {"PSF_DGEOCORRECT", P_BOOL, &prefs.dgeo_flag},
   {"PSF_DIR", P_STRING, prefs.psf_dir},
   {"PSF_PIXELSIZE", P_FLOATLIST, prefs.psf_pixsize, 0,0, 0.0,100.0, {""},
      1,2, &prefs.npsf_pixsize},
@@ -168,6 +169,7 @@ char *default_prefs[] =
 "*PSF_PIXELSIZE   1.0             # Effective pixel size in pixel step units",
 "PSF_ACCURACY    0.01            # Accuracy to expect from PSF \"pixel\" values",
 "PSF_SIZE        25,25           # Image size of the PSF model",
+"*PSF_DGEOCORRECT N               # Use diff. geom. maps (if provided) Y/N?",
 "*PSF_RECENTER    N               # Allow recentering of PSF-candidates Y/N ?",
 "*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
 " ",

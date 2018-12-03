@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		28/09/2015
+*	Last modified:		12/10/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -64,6 +64,8 @@ typedef struct sample
   float		*vigresi;		/* Residual-map of the PSF-residuals */
   float		*vigchi;		/* Chi-map of the PSF-residuals */
   float		*vigweight;		/* Vignette-weight array */
+  float		*vigdgeox;		/* Vignette diff geo x-map array */
+  float		*vigdgeoy;		/* Vignette diff geo y-map array */
   float		norm;			/* Normalisation */
   float		fwhm;			/* Source FWHM (derived from ) */
   float		ellip;			/* Source ellipticity */
@@ -120,7 +122,7 @@ void		add_set(setstruct *destset, setstruct *set),
 		free_samples(setstruct *set),
 		free_samplevig(samplestruct *sample),
  		malloc_samples(setstruct *set, int nsample),
-		malloc_samplevig(samplestruct *sample, int npix),
+		malloc_samplevig(samplestruct *sample, int npix, int dgeoflag),
 		make_weights(setstruct *set, samplestruct *sample),
 		realloc_samples(setstruct *set, int nsample),
 		recenter_sample(samplestruct *sample, setstruct *set,

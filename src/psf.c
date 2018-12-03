@@ -558,7 +558,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     weightt = weight+g*npix;
     vignet_resample(sample->vig, set->vigsize[0], set->vigsize[1],
 	imaget, psf->size[0], psf->size[1],
-	sample->dx, sample->dy, psf->pixstep, pixstep);
+	sample->dx, sample->dy, psf->pixstep, pixstep, NULL, NULL);
     for (i=npix; i--;)
       {
       val = (*(imaget++) /= norm);
@@ -658,7 +658,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 16/12/2015
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -758,7 +758,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
         {
 /*------ Map the PSF model at the current position */
         vignet_resample(psf->loc, psf->size[0], psf->size[1],
-		cbasis, cw,ch, -dx*vigstep, -dy*vigstep, vigstep, 1.0);
+		cbasis, cw,ch, -dx*vigstep, -dy*vigstep, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy);
 
 /*------ Build the a and b matrices */
         memset(amat, 0, 9*sizeof(double));
@@ -817,7 +818,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 /*-- Map the PSF model at the current position */
     vignet_resample(psf->loc, psf->size[0], psf->size[1],
 	sample->vigresi, set->vigsize[0], set->vigsize[1],
-	-dx*vigstep, -dy*vigstep, vigstep, 1.0);
+	-dx*vigstep, -dy*vigstep, vigstep, 1.0,
+	sample->vigdgeox, sample->vigdgeoy);
 /*-- Fit the flux */
     xi2 = xyi = 0.0;
     for (cvigwt=sample->vigweight,cbasist=sample->vigresi,cdatat=sample->vig,
@@ -887,7 +889,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 
 /*-- Map the residuals to PSF coordinates */
   vignet_resample(fresi, set->vigsize[0], set->vigsize[1],
-	psf->resi, psf->size[0], psf->size[1], 0.0,0.0, psf->pixstep, 1.0);
+	psf->resi, psf->size[0], psf->size[1], 0.0,0.0, psf->pixstep, 1.0,
+	NULL, NULL);
 
 /* Free memory */
   free(dresi);
@@ -913,7 +916,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 16/12/2015
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -1006,7 +1009,8 @@ int	psf_refine(psfstruct *psf, setstruct *set)
       {
 /*---- Map the PSF model at the current position */
       vignet_resample(psf->loc, psf->size[0], psf->size[1],
-		vig, set->vigsize[0], set->vigsize[1], dx, dy, vigstep, 1.0);
+		vig, set->vigsize[0], set->vigsize[1], dx, dy, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy);
 /*---- Subtract the PSF model */
       for (vigt=vig, vigt2=sample->vig, i=nvpix; i--; vigt++)
           *vigt = (float)(*(vigt2++) - *vigt*norm);
@@ -1019,7 +1023,8 @@ int	psf_refine(psfstruct *psf, setstruct *set)
       {
 /*---- Shift the current basis vector to the current PSF position */
       vignet_resample(&psf->basis[i*npix], psf->size[0], psf->size[1],
-		vecvig, set->vigsize[0],set->vigsize[1], dx,dy, vigstep, 1.0);
+		vecvig, set->vigsize[0],set->vigsize[1], dx,dy, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy);
 /*---- Retrieve coefficient for each relevant data pixel */
       for (vecvigt=vecvig, sigvigt=sigvig,
 		desmatt2=desmatt, desindext2=desindext, j=jo=0; j++<nvpix;)

@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2015
+*	Last modified:		16/12/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 16/12/2015
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -700,7 +700,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
           psf_build(psf, dpos);
           vignet_resample(psf->loc, psf->size[0], psf->size[1],
 		vig0, set->vigsize[0], set->vigsize[1], 0.0, 0.0,
-		1.0/psf->pixstep, 1.0);
+		1.0/psf->pixstep, 1.0, NULL, NULL);
           vig = vig0;
           for (i=npix; i--;)
             *(pix++) = *(vig++);
@@ -728,7 +728,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
           psf_build(psf, dpos);
           vignet_resample(psf->loc, psf->size[0], psf->size[1],
 		vig0, set->vigsize[0], set->vigsize[1], 0.0, 0.0,
-		1.0/psf->pixstep, 1.0);
+		1.0/psf->pixstep, 1.0, NULL, NULL);
           vig = vig0;
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           for (y=h; y--; pix += step)
@@ -963,7 +963,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		pix, 48, 48,
 		(floor(list[2*n]+0.49999) - list[2*n] + 0.5) / psf->pixstep,
 		(floor(list[2*n+1]+0.49999) - list[2*n+1] + 0.5) / psf->pixstep,
-		1.0/psf->pixstep, 1.0);
+		1.0/psf->pixstep, 1.0, NULL, NULL);
           pix += 48*48;
           }
         }
@@ -990,7 +990,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		vig0, 48, 48,
 		(floor(list[2*n]+0.49999) - list[2*n] + 0.5) / psf->pixstep,
 		(floor(list[2*n+1]+0.49999) - list[2*n+1] + 0.5) / psf->pixstep,
-		1.0/psf->pixstep, 1.0);
+		1.0/psf->pixstep, 1.0, NULL, NULL);
           vig = vig0;
           pix = pix0 + ((n%nw) + (n/nw)*nw*h)*w;
           for (y=h; y--; pix += step)

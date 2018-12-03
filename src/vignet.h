@@ -22,13 +22,16 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		10/10/2010
+*	Last modified:		16/12/2015
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 /*----------------------------- Internal constants --------------------------*/
 
 #define APER_OVERSAMP	5	/* oversampling in each dimension (MAG_APER) */
+
+#define	INTERP_MAXKERNELWIDTH	8	/* Interpolation kernel buffer size */
+#define	INTERPTYPE	INTERP_LANCZOS3	/* Interpolation type */
 #define	INTERPW		6	/* Interpolation function range */
 #define	INTERPFAC	3.0	/* Interpolation envelope factor */
 
@@ -50,15 +53,24 @@
 typedef  enum {VIGNET_CPY, VIGNET_ADD, VIGNET_SUB, VIGNET_MUL, VIGNET_DIV}
 		vigopenum;
 
+typedef enum	{INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
+		INTERP_LANCZOS3, INTERP_LANCZOS4}       interpenum;
+
+
 /*---------------------------------- protos --------------------------------*/
+extern void	vignet_make_kernel(float pos, float *kernel,
+			interpenum interptype);
+
 extern int	vignet_copy(float *pix1, int w1, int h1,
 			float *pix2, int w2, int h2, int idx, int idy,
 			vigopenum vigop),
 		vignet_resample(float *pix1, int w1, int h1, float *pix2,
 			int w2, int h2, double dx, double dy, float step2,
-			float stepi);
+			float stepi, float *dgeoxpix, float *dgeoypix);
 
-extern float	vignet_aperflux(float *ima, float *var, int w, int h,
+extern float	vignet_interpolate_pix(float *posin, float *pix, int *naxisn,
+			interpenum interptype),
+		vignet_aperflux(float *ima, float *var, int w, int h,
 			float dxc, float dyc, float aper,
 			float gain, float backnoise, float *fluxvar);
 
