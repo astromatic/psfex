@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/10/2016
+*	Last modified:		08/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -328,7 +328,7 @@ INPUT	tab structure.
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	27/11/2013
+VERSION	15/11/2013
  ***/
 wcsstruct	*read_wcs(tabstruct *tab)
 
@@ -397,7 +397,6 @@ wcsstruct	*read_wcs(tabstruct *tab)
     }
 
   if (fitsfind(buf, "CD?_????")!=RETURN_ERROR)
-    {
 /*-- If CD keywords exist, use them for the linear mapping terms... */
     for (l=0; l<naxis; l++)
       for (j=0; j<naxis; j++)
@@ -405,7 +404,6 @@ wcsstruct	*read_wcs(tabstruct *tab)
         sprintf(str, "CD%d_%d", l+1, j+1);
         FITSREADF(buf, str, wcs->cd[l*naxis+j], l==j?1.0:0.0)
         }
-    }
   else if (fitsfind(buf, "PC?_????")!=RETURN_ERROR)
 /*-- ...If PC keywords exist, use them for the linear mapping terms... */
     for (l=0; l<naxis; l++)
@@ -626,7 +624,7 @@ INPUT	tab structure,
 OUTPUT	-.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	06/12/2012
+VERSION	27/11/2013
  ***/
 void	write_wcs(tabstruct *tab, wcsstruct *wcs)
 
@@ -820,7 +818,7 @@ INPUT	WCS structure.
 OUTPUT	-.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	20/11/2012
+VERSION	08/03/2016
  ***/
 void	invert_wcs(wcsstruct *wcs)
 
@@ -829,10 +827,10 @@ void	invert_wcs(wcsstruct *wcs)
    double		pixin[NAXIS],raw[NAXIS],rawmin[NAXIS];
    double		*outpos,*outpost, *lngpos,*lngpost,
 			*latpos,*latpost,
-			lngstep,latstep, lngposo,latposo,rawsize, epsilon;
+			lngstep,latstep, rawsize, epsilon;
    int			group[] = {1,1};
 				/* Don't ask, this is needed by poly_init()! */
-   int		i,j,lng,lat,deg, tnxflag, maxflag;
+   int		i,j,lng,lat,deg, tnxflag, maxflag, maxflagflag;
 
 /* Check first that inversion is not straightforward */
   lng = wcs->wcsprm->lng;
@@ -897,15 +895,13 @@ void	invert_wcs(wcsstruct *wcs)
   epsilon = WCS_INVACCURACY/rawsize;
 /* Find the lowest degree polynom */
   poly = NULL;  /* to avoid gcc -Wall warnings */
-/*
   maxflag = 1;
   for (deg=1; deg<=WCS_INVMAXDEG && maxflag; deg++)
     {
     if (deg>1)
       poly_end(poly);
     poly = poly_init(group, 2, &deg, 1);
-    poly_fit(poly, outpos, lngpos, NULL, WCS_NGRIDPOINTS2, NULL,
-	1.0e-9/WCS_NGRIDPOINTS2);
+    poly_fit(poly, outpos, lngpos, NULL, WCS_NGRIDPOINTS2, NULL, 0.0);
     maxflag = 0;
     outpost = outpos;
     lngpost = lngpos;
@@ -916,30 +912,13 @@ void	invert_wcs(wcsstruct *wcs)
         break;
         }
     }
-*/
-  maxflag = 0;
-  outpost = outpos;
-  lngpost = lngpos;
-  latpost = latpos;
-  for (i=WCS_NGRIDPOINTS2; i--; outpost+=2, lngpost++,latpost++)
-    {
-    pv_to_raw(wcs->prj, outpost[0],outpost[1], &lngposo,&latposo);
-    if (fabs(lngposo-*lngpost)>epsilon || fabs(latposo-*latpost)>epsilon)
-      {
-      maxflag = 1;
-      break;
-      }
-    }
-
-//  if (maxflag)
-//    warning("Significant inaccuracy likely to occur in projection","");
-
 /* Now link the created structure */
-//  wcs->prj->inv_x = wcs->inv_x = poly;
+  wcs->prj->inv_x = wcs->inv_x = poly;
+
+  maxflagflag = maxflag;
 
 /* Invert "latitude" */
 /* Compute the extent of the pixel in reduced projected coordinates */
-/*
   linrev(rawmin, wcs->lin, pixin);
   pixin[lat] += ARCSEC/DEG;
   linfwd(pixin, wcs->lin, raw);
@@ -949,15 +928,14 @@ void	invert_wcs(wcsstruct *wcs)
     error(EXIT_FAILURE, "*Error*: incorrect linear conversion in ",
 		wcs->wcsprm->pcode);
   epsilon = WCS_INVACCURACY/rawsize;
-* Find the lowest degree polynom *
+/* Find the lowest degree polynom */
   maxflag = 1;
   for (deg=1; deg<=WCS_INVMAXDEG && maxflag; deg++)
     {
     if (deg>1)
       poly_end(poly);
     poly = poly_init(group, 2, &deg, 1);
-    poly_fit(poly, outpos, latpos, NULL, WCS_NGRIDPOINTS2, NULL,
-	1.0e-9/WCS_NGRIDPOINTS2);
+    poly_fit(poly, outpos, latpos, NULL, WCS_NGRIDPOINTS2, NULL, 0.0);
     maxflag = 0;
     outpost = outpos;
     latpost = latpos;
@@ -968,13 +946,14 @@ void	invert_wcs(wcsstruct *wcs)
         break;
         }
     }
+/* Now link the created structure */
+  wcs->prj->inv_y = wcs->inv_y = poly;
 
-  if (maxflag)
+  maxflagflag |= maxflag;
+
+  if (maxflagflag)
     warning("Significant inaccuracy likely to occur in projection","");
 
-* Now link the created structure *
-  wcs->prj->inv_y = wcs->inv_y = poly;
-*/
 /* Free memory */
   free(outpos);
   free(lngpos);
@@ -1223,12 +1202,12 @@ INPUT	WCS structure,
 OUTPUT	RETURN_OK if successful, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	25/10/2016
+VERSION	20/11/2003
  ***/
 int	reaxe_wcs(wcsstruct *wcs, int lng, int lat)
 
   {
-   char		strlng[9], strlat[9];
+   char		strlng[80], strlat[80];
    double	dlng,dlat,dlng2,dlat2;
    int		l, ilng,ilat,olng,olat, naxis;
 
@@ -2182,6 +2161,27 @@ double  fmod_m90_p90(double angle)
   {
   return angle>0.0? fmod(angle+90.0,180.0)-90.0 : fmod(angle-90.0,180.0)+90.0;
   }
+
+
+/********************************* fmod_0_pmod *******************************/
+/*
+Fold input angle in the [0,+mod[ domain.
+*/
+double  fmod_0_pmod(double angle, double mod)
+  {
+  return angle>0.0? fmod(angle,mod) : fmod(angle,mod)+mod;
+  }
+
+
+/******************************* fmod_mmod_pmod ******************************/
+/*
+Fold input angle in the [-mod,+mod[ domain.
+*/
+double  fmod_mmod_pmod(double angle, double mod)
+  {
+  return angle>0.0? fmod(angle+mod,2.0*mod)-mod : fmod(angle-mod,2.0*mod)+mod;
+  }
+
 
 
 /********************************* fcmp_0_p360 *******************************/

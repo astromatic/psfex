@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1993-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1993-2016 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/12/2012
+*	Last modified:		08/03/2016
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -53,7 +53,7 @@
 
 #define		WCS_NGRIDPOINTS	12	/* Number of WCS grid points / axis */
 #define		WCS_NGRIDPOINTS2	(WCS_NGRIDPOINTS*WCS_NGRIDPOINTS)
-#define		WCS_INVMAXDEG	5	/* Maximum inversion polynom degree */
+#define		WCS_INVMAXDEG	9	/* Maximum inversion polynom degree */
 #define		WCS_INVACCURACY	0.001	/* Maximum inversion error (pixels) */
 #define		WCS_NRANGEPOINTS 32	/* Number of WCS range points / axis */
 
@@ -119,7 +119,9 @@ extern wcsstruct	*create_wcs(char **ctype, double *crval, double *crpix,
 			*read_wcs(tabstruct *tab);
 
 extern double		fmod_0_p360(double angle),
+			fmod_0_pmod(double angle, double mod),
 			fmod_m90_p90(double angle),
+			fmod_mmod_pmod(double angle, double mod),
 			sextodegal(char *hms),
 			sextodegde(char *dms),
 			wcs_dist(wcsstruct *wcs,
