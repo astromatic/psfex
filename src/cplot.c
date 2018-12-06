@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2016 IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2018 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		19/10/2016
+*	Last modified:		06/12/2018
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -407,7 +407,7 @@ INPUT	Pointer to the WCS projection structure,
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/02/2015
+VERSION	06/12/2018
  ***/
 int	cplot_drawloccoordgrid(wcsstruct *wcs, double xmin, double xmax,
 				double ymin, double ymax)
@@ -548,7 +548,8 @@ int	cplot_drawloccoordgrid(wcsstruct *wcs, double xmin, double xmax,
 		&& (xm = (xd-xmin)/dx) > 0.0 && xm < 1.0
 		&& fabs(xm-xmd) > 0.1)
           {
-          plmtex("b", 2.0, (PLFLT)xm, 0.5, cplot_degtosexde(str,wcspos[0],
+          plmtex("b", 2.0, (PLFLT)xm, 0.5,
+		cplot_degtosexde(str,fmod_m90_p90(wcspos[0]),
 		alphastep));
           xmd = xm;
           }
@@ -556,7 +557,8 @@ int	cplot_drawloccoordgrid(wcsstruct *wcs, double xmin, double xmax,
 		&& (xm = (xd-xmin)/dx) > 0.0 && xm < 1.0
 		&& fabs(xm-xmu) > 0.1)
           {
-          plmtex("t", 1.5, (PLFLT)xm, 0.5, cplot_degtosexde(str,wcspos[0],
+          plmtex("t", 1.5, (PLFLT)xm, 0.5,
+		cplot_degtosexde(str,fmod_m90_p90(wcspos[0]),
 		alphastep));
           xmu = xm;
           }
