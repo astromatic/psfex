@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1998-2011 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2019 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2012
+*	Last modified:		17/04/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -66,6 +66,9 @@ extern int		cholsolve(double *a, double *b, int n),
 				double *w, int ndata, double *extbasis,
 				double regul),
 			*poly_powers(polystruct *poly),
+			poly_sgdfit(polystruct *poly, double *x, double *y,
+				double *w, int ndata, double *extbasis,
+				double regul),
 			poly_solve(double *a, double *b, int n);
 
 extern void		poly_addcste(polystruct *poly, double *cste),

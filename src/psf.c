@@ -591,7 +591,7 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
       }
 
 /*-- Polynomial fitting */
-    poly_fit(poly, i?NULL:pos, pstack, wstack, ngood, basis, 1000.0);
+    poly_sgdfit(poly, i?NULL:pos, pstack, wstack, ngood, basis, 1000.0);
 
 /*-- Store as a PSF component */
     for (coeff=poly->coeff, comp=psf->comp+i,  c=ncoeff; c--; comp+=npix)

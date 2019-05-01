@@ -7,7 +7,7 @@
 *
 *	This file part of:	AstrOmatic software
 *
-*	Copyright:		(C) 1998-2012 IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2019 IAP/CNRS/UPMC
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2012
+*	Last modified:		17/04/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -487,6 +487,90 @@ int	poly_fit(polystruct *poly, double *x, double *y, double *w, int ndata,
   free(beta);
 
   return info;
+  }
+
+
+/****** poly_sgdfit *************************************************************
+PROTO   int poly_sgdfit(polystruct *poly, double *x, double *y, double *w,
+        int ndata, double *extbasis, double regul)
+PURPOSE Least-Square fit of a multidimensional polynom to weighted data.
+INPUT   polystruct pointer,
+        pointer to the (pseudo)2D array of inputs to basis functions,
+        pointer to the 1D array of data values,
+        pointer to the 1D array of data weights,
+        number of data points,
+        pointer to a (pseudo)2D array of computed basis function values.
+	Tikhonov regularization parameter (0 = no regularization).
+OUTPUT  Chi2 of the fit.
+NOTES   If different from NULL, extbasis can be provided to store the
+        values of the basis functions. If x==NULL and extbasis!=NULL, the
+        precomputed basis functions stored in extbasis are used (which saves
+        CPU). If w is NULL, all points are given identical weight.
+AUTHOR  E. Bertin (IAP)
+VERSION 17/04/2019
+ ***/
+int	poly_sgdfit(polystruct *poly, double *x, double *y, double *w, int ndata,
+		double *extbasis, double regul)
+  {
+   void	qerror(char *msg1, char *msg2);
+   double	*basis, *coeff, *dcoeff, *basisbuf, *basisbuft,
+		eta, val;
+   int		ncoeff, ndim,
+		c, c2, d, i, extflag;
+
+  if (!x && !extbasis)
+    qerror("*Internal Error*: One of x or extbasis should be "
+	"different from NULL\nin ", "poly_func()");
+  ncoeff = poly->ncoeff;
+  ndim = poly->ndim;
+  coeff = poly->coeff;
+  basis = poly->basis;
+  QCALLOC(dcoeff, double, ncoeff);
+  if (extbasis)
+    basisbuf = extbasis;
+  else {
+    QMALLOC(basisbuf, double, ncoeff*ndata);
+  }
+
+  val = 0.0;
+  for (d=0; d<ndata; d++)
+    val += w[d];
+  eta = 0.1 / val;
+
+  // Initial guess
+  for (0; c<ncoeff; c++)
+    coeff[c] = 0.0;
+
+  // Iterate
+  for (i = 0; i < 300; i++) {
+    for (c=0; c<ncoeff; c++)
+      dcoeff[c] = 0.0;
+    basisbuft = basisbuf;
+    for (d=0; d<ndata; d++) {
+      if (x && !i) {
+/*------ If x!=NULL, compute the basis functions */
+        poly_func(poly, x + d * ndim);
+        for (c=0; c<ncoeff; c++)
+          *(basisbuft++) = basis[c];
+      } else
+/*------ If x==NULL, then rely on pre-computed basis functions */
+        for (c=0; c<ncoeff; c++)
+          basis[c] = *(basisbuft++);
+      val = - y[d];
+      for (c=0; c<ncoeff; c++)
+        val += coeff[c]*basis[c];
+      for (c=0; c<ncoeff; c++)
+        dcoeff[c] += w[d] * basis[c] * val;
+    }
+    for (c=0; c<ncoeff; c++)
+      coeff[c] -= eta * dcoeff[c];
+  }
+
+  free(dcoeff);
+  if (!extbasis)
+    free(basisbuf);
+
+  return EXIT_SUCCESS;
   }
 
 
