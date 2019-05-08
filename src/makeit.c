@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/10/2016
+*	Last modified:		08/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -56,6 +56,7 @@
 #include	"pca.h"
 #include	"prefs.h"
 #include	"psf.h"
+#include	"psfbasis.h"
 #include	"sample.h"
 #include	"xml.h"
 
@@ -73,7 +74,7 @@ void	makeit(void)
 			*field;
    psfstruct		**cpsf,
 			*psf;
-   setstruct		*set, *bigset;
+   setstruct		**sets, *set, *bigset;
    contextstruct	*context, *fullcontext;
    outcatstruct		*outcat;
    struct tm		*tm;
@@ -319,6 +320,28 @@ void	makeit(void)
         context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
         psf_end(psf);
         }
+    }
+  else if (prefs.psf_mef_type == PSF_MEF_FOCALPLANE)
+    {
+    for (c=0; c<ncat; c++)
+      {
+/*---- Load the samples for current exposure */
+      sprintf(str, "Computing final PSF model from %s...",
+		fields[c]->rtcatname);
+      NFPRINTF(OUTPUT, str);
+      set = load_samples(incatnames, c, 1, ALL_EXTENSIONS, next, context);
+      if (psfstep)
+        step = psfstep;
+      else
+      step = (float)((set->fwhm/2.35)*0.5);
+      basis = psfbasis;
+      field_count(fields, set, COUNT_LOADED);
+      psf = make_psf(set, step, basis, nbasis, fullcontext);
+      field_count(fields, set, COUNT_ACCEPTED);
+      end_set(set);
+      context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
+      psf_end(psf);
+      }
     }
   else
     for (ext=0 ; ext<next; ext++)
@@ -668,7 +691,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
     basistype = prefs.basis_type;
     if (basistype==BASIS_PIXEL_AUTO)
       basistype = (psf->fwhm < PSF_AUTO_FWHM)? BASIS_PIXEL : BASIS_NONE;
-    psf_makebasis(psf, set, basistype, prefs.basis_number);
+    psfbasis_make(psf, set, basistype, prefs.basis_number);
     }
   psf_refine(psf, set);
 

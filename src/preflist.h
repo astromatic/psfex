@@ -98,7 +98,7 @@ pkeystruct key[] =
   {"HOMOPSF_PARAMS", P_FLOATLIST, prefs.homopsf_params, 0,0, 0.0,100.0, {""},
      2,2, &prefs.nhomopsf_params},
   {"MEF_TYPE", P_KEY, &prefs.psf_mef_type, 0,0, 0.0,0.0,
-	{"INDEPENDENT", "COMMON", ""}},
+	{"INDEPENDENT", "COMMON", "FOCAL_PLANE", ""}},
   {"NEWBASIS_TYPE", P_KEY, &prefs.newbasis_type, 0,0, 0.0,0.0,
 	{"NONE", "PCA_INDEPENDENT", "PCA_COMMON", ""}},
   {"NEWBASIS_NUMBER", P_INT, &prefs.newbasis_number, 0,1000},

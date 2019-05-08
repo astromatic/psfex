@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2014 IAP/CNRS/UPMC
+#	Copyright:		(C) 2002-2014 IAP/CNRS/SorbonneU
 #
 #	Author:			Emmanuel Bertin (IAP)
 #
@@ -24,7 +24,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx. If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		26/02/2014
+#	Last modified:		08/05/2019
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -35,13 +35,13 @@ endif
 bin_PROGRAMS		= psfex
 psfex_SOURCES		= catout.c check.c context.c $(CPLOTSOURCE) \
 			  diagnostic.c fft.c field.c fitswcs.c homo.c main.c \
-			  makeit.c misc.c pca.c prefs.c psf.c sample.c \
-			  vignet.c xml.c \
+			  makeit.c misc.c pca.c prefs.c psf.c psfbasis.c \
+			  sample.c vignet.c xml.c \
 			  cathead.h catout.h check.h context.h cplot.h \
 			  define.h diagnostic.h fft.h field.h fitswcs.h \
 			  globals.h homo.h key.h misc.h pca.h prefs.h \
-			  preflist.h psf.h sample.h threads.h types.h vignet.h \
-			  wcscelsys.h xml.h
+			  preflist.h psf.h psfbasis.h sample.h threads.h \
+			  types.h vignet.h wcscelsys.h xml.h
 psfex_LDADD		= $(srcdir)/fits/libfits.a \
 			  $(srcdir)/levmar/liblevmar.a \
 			  $(srcdir)/wcs/libwcs_c.a

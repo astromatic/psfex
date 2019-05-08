@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2015
+*	Last modified:		08/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -47,14 +47,9 @@
 #define	PSF_MINSHIFT	1e-4	/* Min shift from previous guess (pixels)*/
 #define PSF_NITER	40	/* Maximum number of iterations in fit */
 #define	PSF_NSNAPMAX	16	/* Maximum number of PSF snapshots/dimension */
-#define	GAUSS_LAG_OSAMP	3	/* Gauss-Laguerre oversampling factor */
 #define	PSF_AUTO_FWHM	3.0	/* FWHM theshold for PIXEL-AUTO mode */
 #define	PSF_NORTHOSTEP	16	/* Number of PSF orthonor. snapshots/dimension*/
 
-/*----------------------------- Type definitions --------------------------*/
-typedef enum {BASIS_NONE, BASIS_PIXEL, BASIS_GAUSS_LAGUERRE, BASIS_FILE,
-		BASIS_PIXEL_AUTO}
-        basistypenum;
 /*--------------------------- structure definitions -------------------------*/
 
 typedef struct moffat
@@ -167,18 +162,13 @@ extern void	psf_build(psfstruct *psf, double *pos),
 		psf_clip(psfstruct *psf),
 		psf_end(psfstruct *psf),
 		psf_make(psfstruct *psf, setstruct *set, double prof_accuracy),
-		psf_makebasis(psfstruct *psf, setstruct *set,
-			basistypenum basis_type,  int nvec),
 		psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 			double prof_accuracy),
 		psf_makemask(psfstruct *psf, setstruct *set, double chithresh),
 		psf_orthopoly(psfstruct *psf, setstruct *set),
 		psf_save(psfstruct *psf,  char *filename, int ext, int next);
 
-extern int	psf_pshapelet(float **shape, int w, int h, int nmax,
-			double beta),
-		psf_readbasis(psfstruct *psf, char *filename, int ext),
-		psf_refine(psfstruct *psf, setstruct *set);
+extern int	psf_refine(psfstruct *psf, setstruct *set);
 
 extern double	psf_chi2(psfstruct *psf, setstruct *set),
 		psf_clean(psfstruct *psf, setstruct *set, double prof_accuracy);

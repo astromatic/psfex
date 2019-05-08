@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/12/2015
+*	Last modified:		08/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -44,6 +44,10 @@
 
 #ifndef _PSF_H_
 #include "psf.h"
+#endif
+
+#ifndef _PSFBASIS_H_
+#include "psfbasis.h"
 #endif
 
 #ifndef _PREFS_H_
@@ -121,7 +125,7 @@ typedef struct
 		hidden_mef_type;		/* Mosaic handling for hiddens*/
   enum	{STABILITY_EXPOSURE, STABILITY_SEQUENCE}
 		stability_type;			/* PSF stability range*/
-  enum	{PSF_MEF_INDEPENDENT, PSF_MEF_COMMON}
+  enum	{PSF_MEF_INDEPENDENT, PSF_MEF_COMMON, PSF_MEF_FOCALPLANE}
 		psf_mef_type;			/* Mosaic handling for PSF */
 /* Homogenisation kernel vector basis */
   enum	{HOMOBASIS_NONE, HOMOBASIS_GAUSSLAGUERRE}

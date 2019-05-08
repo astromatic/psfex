@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2008-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2012
+*	Last modified:		08/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -65,7 +65,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 10/07/2012
+VERSION 08/05/2019
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -93,7 +93,7 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   ncoeff = poly->ncoeff;
 
 /* Create kernel basis */
-  nbasis = psf_pshapelet(&basis, psf->size[0],psf->size[1],
+  nbasis = psfbasis_pshapelet(&basis, psf->size[0],psf->size[1],
 	homobasis_number, sqrt(homobasis_number+1.0)*homobasis_scale);
   nfree = nbasis*ncoeff;
 
