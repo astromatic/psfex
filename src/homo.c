@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -65,7 +65,7 @@ INPUT	Pointer to the PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 08/05/2019
+VERSION 22/05/2019
  ***/
 void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 		int homobasis_number, double homobasis_scale,
@@ -127,17 +127,17 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
   f1 = 0;
   for (i=0; i<nbasis; i++)
     {
-    vignet_copy(&basis[i*npix], psf->size[0],psf->size[1],
-	bigbasis, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+    vignet_copy(&basis[i*npix], psf->size,
+	bigbasis, bigsize, 0,0, VIGNET_CPY);
     fft_shift(bigbasis, bigsize[0], bigsize[1]);
     fbigbasis = fft_rtf(bigbasis, bigsize[0], bigsize[1]);
     for (c=0; c<ncoeff; c++, f1++)
       {
-      vignet_copy(&psf->comp[c*npix], psf->size[0],psf->size[1],
-	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+      vignet_copy(&psf->comp[c*npix], psf->size,
+	bigconv, bigsize, 0,0, VIGNET_CPY);
       fft_conv(bigconv, fbigbasis, bigsize[0], bigsize[1]);
-      vignet_copy(bigconv, bigsize[0],bigsize[1],
-	&basisc[f1*npix], psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
+      vignet_copy(bigconv, bigsize,
+	&basisc[f1*npix], psf->size, 0,0, VIGNET_CPY);
       basis2 = basisc;
       for (f2=0; f2<=f1; f2++)
         {
@@ -248,12 +248,12 @@ void	psf_homo(psfstruct *psf, char *filename, double *homopsf_params,
 
 /* Normalize kernel (with respect to continuum) */
 /*
-  vignet_copy(kernel, psf->size[0],psf->size[1],
-	bigconv, bigsize[0],bigsize[1], 0,0, VIGNET_CPY);
+  vignet_copy(kernel, psf->size,
+	bigconv, bigsize, 0,0, VIGNET_CPY);
   fft_conv(bigconv, fbigpsf, bigsize[0], bigsize[1]);
   QMALLOC(kernorm, float, npix);
-  vignet_copy(bigconv, bigsize[0],bigsize[1],
-	kernorm, psf->size[0],psf->size[1], 0,0, VIGNET_CPY);
+  vignet_copy(bigconv, bigsize,
+	kernorm, psf->size, 0,0, VIGNET_CPY);
 */
   dval = 0.0;
   kernelt = kernel;

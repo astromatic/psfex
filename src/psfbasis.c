@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -43,6 +43,7 @@
 #include	"misc.h"
 #include	"wcs/poly.h"
 #include	"psf.h"
+#include	"psfbasis.h"
 #include	"sample.h"
 #include	"vignet.h"
 
@@ -319,7 +320,7 @@ INPUT   Pointer to the PSF structure,
 OUTPUT  Number of basis vectors read.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 13/11/2007
+VERSION 22/05/2019
  ***/
 int	psfbasis_read(psfstruct *psf, char *filename, int ext)
   {
@@ -362,8 +363,8 @@ int	psfbasis_read(psfstruct *psf, char *filename, int ext)
   for (n=0; n<ncomp; n++)
     {
     read_body(tab, pixin, npixin);
-    vignet_copy(pixin, tab->naxisn[0], tab->naxisn[1],
-		&psf->basis[n*npixout], psf->size[0], psf->size[1], 0, 0,
+    vignet_copy(pixin, tab->naxisn,
+		&psf->basis[n*npixout], psf->size, 0, 0,
 		VIGNET_CPY);
     }
   free(pixin);

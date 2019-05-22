@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -78,6 +78,7 @@ typedef struct psf
   char		**contextname;	/* Array of context key-names */
   double	*contextoffset;	/* Offset to apply to context data */
   double	*contextscale;	/* Scaling to apply to context data */
+  wcsstruct	*wcs;		/* WCS info describing the PSF pixel grid */
   int		cx,cy;		/* Indices of X and Y mapping contexts */
   struct poly	*poly;		/* Polynom describing the PSF variations */
   float		pixstep;	/* Mask oversampling (pixel). */

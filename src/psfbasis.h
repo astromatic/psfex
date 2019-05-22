@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -58,7 +58,7 @@ extern void	psfbasis_make(psfstruct *psf, setstruct *set,
 
 extern int	psfbasis_pshapelet(float **shape, int w, int h, int nmax,
 			double beta),
-		psf_readbasis(psfstruct *psf, char *filename, int ext);
+		psfbasis_read(psfstruct *psf, char *filename, int ext);
 
 #endif
 

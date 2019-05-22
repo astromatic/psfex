@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2016 IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,13 +22,18 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/10/2016
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifndef _CONTEXT_H_
 #include "context.h"
 #endif
+
+#ifndef _FITSWCS_H_
+#include "fitswcs.h"
+#endif
+
 
 #ifndef _SAMPLE_H_
 #define _SAMPLE_H_
@@ -77,6 +82,7 @@ typedef struct sample
   float		chi2;			/* Chi2 of the fit */
   float		modresi;		/* Residual index */
   double	*context;		/* Context vector */
+  wcsstruct	*wcs;			/* Pointer to the initial image's WCS*/
   int		badflag;		/* True if sample is discarded */
   }	samplestruct;
 

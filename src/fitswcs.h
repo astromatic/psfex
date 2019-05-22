@@ -23,9 +23,13 @@
 *	along with AstrOmatic software.
 *	If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/03/2016
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _FITSCAT_H_
+#include "fits/fitscat.h"
+#endif
 
 #ifndef _FITSWCS_H_
 #define _FITSWCS_H_

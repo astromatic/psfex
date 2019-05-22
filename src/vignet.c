@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2015 IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/12/2015
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,38 +39,42 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
+#include	"fitswcs.h"
 #include	"vignet.h"
 
 const int	interp_kernwidth[5]={1,2,4,6,8};
 
+
 /****** vignet_resample ******************************************************
-PROTO	int	vignet_resample(float *pix1, int w1, int h1,
-		float *pix2, int w2, int h2, double dx, double dy, float step2,
-		float stepi, float *dgeoxpix, float *dgeoypix)
+PROTO	int	vignet_resample(float *pix1, int *size1,
+		float *pix2, int *size2, double dx, double dy, float step2,
+		float stepi, float *dgeoxpix, float *dgeoypix,
+		wcsstruct *wcs1, wcsstruct *wcs2)
 PURPOSE	Scale and shift a small image through sinc interpolation, with
 	adjustable spatial wavelength cut-off. Image parts which lie outside
 	boundaries are set to 0.
 
 INPUT	Input raster,
-	input raster width,
-	input raster height,
+	pointer to input raster dimensions,
 	output raster,
-	output raster width,
-	output raster height,
+	pointer to output raster mensions,
 	shift in x,
 	shift in y,
 	output pixel scale.,
 	input differential geometry x map,
-	input differential geometry y map.
+	input differential geometry y map,
+	pointer to input WCS structure (in focal plane mode, NULL otherwise),
+	pointer to output WCS structure (in focal plane mode, NULL otherwise).
 
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	15/12/2015
+VERSION	22/05/2019
  ***/
-int	vignet_resample(float *pix1, int w1, int h1,
-		float *pix2, int w2, int h2, double dx, double dy, float step2,
-		float stepi, float *dgeoxpix, float *dgeoypix)
+int	vignet_resample(float *pix1, int *size1,
+		float *pix2, int *size2, double dx, double dy, float step2,
+		float stepi, float *dgeoxpix, float *dgeoypix,
+		wcsstruct *wcs1, wcsstruct *wcs2)
   {
    static float	*statpix2;
    double	*mask,*maskt, mx1,mx2,my1,my2, xs1,ys1, x1,y1, x,y, dxm,dym,
@@ -80,8 +84,12 @@ int	vignet_resample(float *pix1, int w1, int h1,
    int		modnaxisn[2],
 		i,j,k,n,t, *start,*startt, *nmask,*nmaskt, off2,
 		ixs2,iys2, ix2,iy2, dix2,diy2, nx2,ny2, iys1a, ny1, hmw,hmh,
-		ix,iy, ix1,iy1, interpw, interph;
+		ix,iy, ix1,iy1, interpw, interph, w1,h1, w2,h2;
 
+  w1 = size1[0];
+  h1 = size1[1];
+  w2 = size2[0];
+  h2 = size2[1];
   if (stepi <= 0.0)
     stepi = 1.0;
   dstepi = 1.0/stepi;
@@ -305,32 +313,32 @@ int	vignet_resample(float *pix1, int w1, int h1,
 Copy a small part of the image. Image parts which lie outside boundaries are
 set to 0.
 */
-int     vignet_copy(float *pix1, int w1, int h1,
-		float *pix2, int w2, int h2, int idx, int idy, vigopenum vigop)
+int     vignet_copy(float *pix1, int *size1,
+		float *pix2, int *size2, int idx, int idy, vigopenum vigop)
   {
    int          x,y, xmin,ymin, nx,ny, off1,off2;
 
   if (vigop==VIGNET_CPY)
 /*-- First put the pix2 background to zero */
-    memset(pix2, 0, (size_t)(w2*h2)*sizeof(float));
+    memset(pix2, 0, (size_t)(size2[0]*size2[1])*sizeof(float));
 
 /* Set the image boundaries */
-  ymin = h2/2+idy-h1/2;
-  if ((ny=h2-ymin)>h1)
-    ny = h1;
+  ymin = size2[1]/2+idy-size1[1]/2;
+  if ((ny=size2[1]-ymin)>size1[1])
+    ny = size1[1];
   else if (ny<=0)
     return RETURN_ERROR;
   if (ymin<0)
     {
-    pix1 -= ymin*w1;
+    pix1 -= ymin*size1[0];
     ny += ymin;
     }
   else
-    pix2 += ymin*w2;
+    pix2 += ymin*size2[0];
 
-  xmin = w2/2+idx-w1/2;
-  if ((nx=w2-xmin)>w1)
-    nx = w1;
+  xmin = size2[0]/2+idx-size1[0]/2;
+  if ((nx=size2[0]-xmin)>size1[0])
+    nx = size1[0];
   else if (nx<=0)
     return RETURN_ERROR;
   if (xmin<0)
@@ -342,8 +350,8 @@ int     vignet_copy(float *pix1, int w1, int h1,
     pix2 += xmin;
 
 /* Offsets */
-  off1 = w1-nx;
-  off2 = w2-nx;
+  off1 = size1[0]-nx;
+  off2 = size2[0]-nx;
 /* Copy the right pixels to the destination */
   switch(vigop)
     {

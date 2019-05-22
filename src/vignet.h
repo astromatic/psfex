@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1998-2010 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1998-2010 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,9 +22,16 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		16/12/2015
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _FITSWCS_H_
+#include "fitswcs.h"
+#endif
+
+#ifndef _VIGNET_H_
+#define _VIGNET_H_
 
 /*----------------------------- Internal constants --------------------------*/
 
@@ -61,16 +68,19 @@ typedef enum	{INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
 extern void	vignet_make_kernel(float pos, float *kernel,
 			interpenum interptype);
 
-extern int	vignet_copy(float *pix1, int w1, int h1,
-			float *pix2, int w2, int h2, int idx, int idy,
+extern int	vignet_copy(float *pix1, int *size1,
+			float *pix2, int *size2, int idx, int idy,
 			vigopenum vigop),
-		vignet_resample(float *pix1, int w1, int h1, float *pix2,
-			int w2, int h2, double dx, double dy, float step2,
-			float stepi, float *dgeoxpix, float *dgeoypix);
+		vignet_resample(float *pix1, int *size1, float *pix2,
+			int *size2, double dx, double dy, float step2,
+			float stepi, float *dgeoxpix, float *dgeoypix,
+			wcsstruct *wcs1, wcsstruct *wcs2);
 
 extern float	vignet_interpolate_pix(float *posin, float *pix, int *naxisn,
 			interpenum interptype),
 		vignet_aperflux(float *ima, float *var, int w, int h,
 			float dxc, float dyc, float aper,
 			float gain, float backnoise, float *fluxvar);
+
+#endif
 

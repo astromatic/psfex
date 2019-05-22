@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		22/05/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -39,6 +39,7 @@
 #include	"types.h"
 #include	"globals.h"
 #include	"fits/fitscat.h"
+#include	"fitswcs.h"
 #include	"prefs.h"
 #include	"context.h"
 #include	"misc.h"
@@ -511,7 +512,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 22/05/2019
  ***/
 void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -559,9 +560,11 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     backnoise2 = sample->backnoise2;
     imaget = image+g*npix;
     weightt = weight+g*npix;
-    vignet_resample(sample->vig, set->vigsize[0], set->vigsize[1],
-	imaget, psf->size[0], psf->size[1],
-	sample->dx, sample->dy, psf->pixstep, pixstep, NULL, NULL);
+    vignet_resample(sample->vig, set->vigsize,
+	imaget, psf->size,
+	sample->dx, sample->dy, psf->pixstep, pixstep, NULL, NULL,
+	prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? sample->wcs : NULL,
+	prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? psf->wcs : NULL);
     for (i=npix; i--;)
       {
       val = (*(imaget++) /= norm);
@@ -661,12 +664,13 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 16/12/2015
+VERSION 22/05/2019
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
   {
    samplestruct		*sample;
+   wcsstruct		*psfwcs;
    static double	pos[MAXCONTEXT], amat[9], bmat[3];
    double		*dresi, *dresit, *amatt,
 			*cvigx,*cvigxt, *cvigy,*cvigyt,
@@ -676,8 +680,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
    float		*vigresi, *vig, *vigw, *fresi,*fresit, *vigchi,
 			*cbasis,*cbasist, *cdata,*cdatat, *cvigw,*cvigwt,
 			norm, fval, vigstep, psf_extraccu2, wval, sval;
-   int			i,j,n,ix,iy, ndim,npix, cw,ch,ncpix, okflag,
+   int			csize[2],
+			i,j,n,ix,iy, ndim,npix, cw,ch,ncpix, okflag,
 			accuflag, nchi2, ngood;
+
+  psfwcs = prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? psf->wcs : NULL;
 
   accuflag = (prof_accuracy > 1.0/BIG);
   vigstep = 1/psf->pixstep;
@@ -721,6 +728,8 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     cbasis = cdata = cvigw = (float *)NULL;	/* ditto */
     cw = ch = ncpix = 0;			/* ibid */
     }
+  csize[0] = cw;
+  csize[1] = ch;
 
 /* Set convergence boundaries */
   radmin2 = PSF_MINSHIFT*PSF_MINSHIFT;
@@ -748,11 +757,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
     if (centflag)
       {
 /*---- Copy the data into the sub-vignet */
-      vignet_copy(sample->vig, set->vigsize[0], set->vigsize[1],
-		cdata, cw,ch, 0,0, VIGNET_CPY);
+      vignet_copy(sample->vig, set->vigsize,
+		cdata, csize, 0,0, VIGNET_CPY);
 /*---- Weight the data */
-      vignet_copy(sample->vigweight, set->vigsize[0], set->vigsize[1],
-		cvigw, cw,ch, 0,0, VIGNET_CPY);
+      vignet_copy(sample->vigweight, set->vigsize,
+		cvigw, csize, 0,0, VIGNET_CPY);
 
       for (cdatat=cdata, cvigwt=cvigw, i=ncpix; i--;)
         *(cdatat++) *= *(cvigwt++);
@@ -760,9 +769,10 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
       for (j=0; j<PSF_NITER; j++)
         {
 /*------ Map the PSF model at the current position */
-        vignet_resample(psf->loc, psf->size[0], psf->size[1],
-		cbasis, cw,ch, -dx*vigstep, -dy*vigstep, vigstep, 1.0,
-		sample->vigdgeox, sample->vigdgeoy);
+        vignet_resample(psf->loc, psf->size,
+		cbasis, csize, -dx*vigstep, -dy*vigstep, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy,
+		psfwcs, sample->wcs);
 
 /*------ Build the a and b matrices */
         memset(amat, 0, 9*sizeof(double));
@@ -819,10 +829,11 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 
 
 /*-- Map the PSF model at the current position */
-    vignet_resample(psf->loc, psf->size[0], psf->size[1],
-	sample->vigresi, set->vigsize[0], set->vigsize[1],
+    vignet_resample(psf->loc, psf->size,
+	sample->vigresi, set->vigsize,
 	-dx*vigstep, -dy*vigstep, vigstep, 1.0,
-	sample->vigdgeox, sample->vigdgeoy);
+	sample->vigdgeox, sample->vigdgeoy,
+	psfwcs, sample->wcs);
 /*-- Fit the flux */
     xi2 = xyi = 0.0;
     for (cvigwt=sample->vigweight,cbasist=sample->vigresi,cdatat=sample->vig,
@@ -891,9 +902,9 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
       *(fresit++) = sqrt(*(dresit++)/nm1);
 
 /*-- Map the residuals to PSF coordinates */
-  vignet_resample(fresi, set->vigsize[0], set->vigsize[1],
-	psf->resi, psf->size[0], psf->size[1], 0.0,0.0, psf->pixstep, 1.0,
-	NULL, NULL);
+  vignet_resample(fresi, set->vigsize,
+	psf->resi, psf->size, 0.0,0.0, psf->pixstep, 1.0,
+	NULL, NULL, NULL, NULL);	/* TODO: fix WCS pointers */
 
 /* Free memory */
   free(dresi);
@@ -919,12 +930,13 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 16/12/2015
+VERSION 22/05/2019
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
    polystruct		*poly;
    samplestruct		*sample;
+   wcsstruct		*psfwcs;
    double		pos[MAXCONTEXT];
    char			str[MAXCHAR];
    double		*desmat,*desmatt,*desmatt2, *desmat0,*desmat02,
@@ -943,6 +955,8 @@ int	psf_refine(psfstruct *psf, setstruct *set)
 /* Exit if no pixel is to be "refined" or if no sample is available */
   if (!set->ngood || !psf->basis)
     return RETURN_ERROR;
+
+  psfwcs = prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? psf->wcs : NULL;
 
   npix = psf->size[0]*psf->size[1];
   nvpix = set->vigsize[0]*set->vigsize[1];
@@ -1011,9 +1025,10 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     if (psf->pixmask)
       {
 /*---- Map the PSF model at the current position */
-      vignet_resample(psf->loc, psf->size[0], psf->size[1],
-		vig, set->vigsize[0], set->vigsize[1], dx, dy, vigstep, 1.0,
-		sample->vigdgeox, sample->vigdgeoy);
+      vignet_resample(psf->loc, psf->size,
+		vig, set->vigsize, dx, dy, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy,
+		psfwcs, sample->wcs);
 /*---- Subtract the PSF model */
       for (vigt=vig, vigt2=sample->vig, i=nvpix; i--; vigt++)
           *vigt = (float)(*(vigt2++) - *vigt*norm);
@@ -1025,9 +1040,10 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     for (i=0; i<npsf; i++)
       {
 /*---- Shift the current basis vector to the current PSF position */
-      vignet_resample(&psf->basis[i*npix], psf->size[0], psf->size[1],
-		vecvig, set->vigsize[0],set->vigsize[1], dx,dy, vigstep, 1.0,
-		sample->vigdgeox, sample->vigdgeoy);
+      vignet_resample(&psf->basis[i*npix], psf->size,
+		vecvig, set->vigsize, dx,dy, vigstep, 1.0,
+		sample->vigdgeox, sample->vigdgeoy,
+		psfwcs, sample->wcs);
 /*---- Retrieve coefficient for each relevant data pixel */
       for (vecvigt=vecvig, sigvigt=sigvig,
 		desmatt2=desmatt, desindext2=desindext, j=jo=0; j++<nvpix;)
