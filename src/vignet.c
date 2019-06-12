@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		22/05/2019
+*	Last modified:		12/06/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -69,109 +69,133 @@ INPUT	Input raster,
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	22/05/2019
+VERSION	12/06/2019
  ***/
 int	vignet_resample(float *pix1, int *size1,
 		float *pix2, int *size2, double dx, double dy, float step2,
 		float stepi, float *dgeoxpix, float *dgeoypix,
-		wcsstruct *wcs1, wcsstruct *wcs2)
-  {
+		wcsstruct *wcs1, wcsstruct *wcs2) {
+
    static float	*statpix2;
-   double	*mask,*maskt, mx1,mx2,my1,my2, xs1,ys1, x1,y1, x,y, dxm,dym,
+   double	dpos1[2], dpos2[2],
+		*mask,*maskt, mx1,mx2,my1,my2, xs1,ys1, x1,y1, x,y, dxm,dym,
 		val, dstepi, norm;
-   float	pos[2],
-		*pix12, *pixin,*pixin0, *pixout,*pixout0, *dgeoxpix0,*dgeoypix0;
-   int		modnaxisn[2],
-		i,j,k,n,t, *start,*startt, *nmask,*nmaskt, off2,
+   float	pos1[2],
+		*pix12, *pixin,*pixin0, *pixout,*pixout0, *dgeoxpix0,*dgeoypix0,
+		dxg, dyg;
+   int		i,j,k,n,t, *start,*startt, *nmask,*nmaskt, off2,
 		ixs2,iys2, ix2,iy2, dix2,diy2, nx2,ny2, iys1a, ny1, hmw,hmh,
-		ix,iy, ix1,iy1, interpw, interph, w1,h1, w2,h2;
+		ix,iy, ix1,iy1, interpw, interph, w1,h1, w2,h2,
+		dgeoflag, wcsflag;
 
-  w1 = size1[0];
-  h1 = size1[1];
-  w2 = size2[0];
-  h2 = size2[1];
-  if (stepi <= 0.0)
-    stepi = 1.0;
-  dstepi = 1.0/stepi;
-  mx1 = (double)(w1/2);		/* Im1 center x-coord*/
-  mx2 = (double)(w2/2);		/* Im2 center x-coord*/
-  xs1 = mx1 + dx - mx2*step2;	/* Im1 start x-coord */
+  dgeoflag = dgeoxpix && dgeoypix;
+  wcsflag = wcs1 && wcs2;
+  if (!wcsflag) {
+    w1 = size1[0];
+    h1 = size1[1];
+    w2 = size2[0];
+    h2 = size2[1];
+    if (stepi <= 0.0)
+      stepi = 1.0;
+    dstepi = 1.0/stepi;
+    mx1 = (double)(w1/2);		// Im1 center x-coord
+    mx2 = (double)(w2/2);		// Im2 center x-coord
 
-  if ((int)xs1 >= w1)
-    return RETURN_ERROR;
-  ixs2 = 0;			/* Int part of Im2 start x-coord */
-  if (xs1<0.0)
-    {
-    dix2 = (int)(1-xs1/step2);
-/*-- Simply leave here if the images do not overlap in x */
-    if (dix2 >= w2)
+    xs1 = mx1 + dx - mx2*step2;	// Im1 start x-coord
+    if ((int)xs1 >= w1)
       return RETURN_ERROR;
-    ixs2 += dix2;
-    xs1 += dix2*step2;
+    ixs2 = 0;			// Int part of Im2 start x-coord
+    if (xs1<0.0) {
+      dix2 = (int)(1-xs1/step2);
+//---- Simply leave here if the images do not overlap in x
+      if (dix2 >= w2)
+        return RETURN_ERROR;
+      ixs2 += dix2;
+      xs1 += dix2*step2;
     }
-  nx2 = (int)((w1-1-xs1)/step2+1);/* nb of interpolated Im2 pixels along x */
+    nx2 = (int)((w1-1-xs1)/step2+1);	// nb of interpolated Im2 pixels along x
 
-  if (nx2>(ix2=w2-ixs2))
-    nx2 = ix2;
-  if (nx2<=0)
-    return RETURN_ERROR;
-
-  my1 = (double)(h1/2);		/* Im1 center y-coord */
-  my2 = (double)(h2/2);		/* Im2 center y-coord */
-
-  ys1 = my1 + dy - my2*step2;	/* Im1 start y-coord */
-  if ((int)ys1 >= h1)
-    return RETURN_ERROR;
-  iys2 = 0;			/* Int part of Im2 start y-coord */
-  if (ys1<0.0)
-    {
-    diy2 = (int)(1-ys1/step2);
-/*-- Simply leave here if the images do not overlap in y */
-    if (diy2 >= h2)
+    if (nx2>(ix2=w2-ixs2))
+      nx2 = ix2;
+    if (nx2<=0)
       return RETURN_ERROR;
-    iys2 += diy2;
-    ys1 += diy2*step2;
-    }
-  ny2 = (int)((h1-1-ys1)/step2+1);/* nb of interpolated Im2 pixels along y */
 
-  if (ny2>(iy2=h2-iys2))
-    ny2 = iy2;
-  if (ny2<=0)
-    return RETURN_ERROR;
+    my1 = (double)(h1/2);		// Im1 center y-coord
+    my2 = (double)(h2/2);		// Im2 center y-coord
+
+    ys1 = my1 + dy - my2*step2;		// Im1 start y-coord
+    if ((int)ys1 >= h1)
+      return RETURN_ERROR;
+    iys2 = 0;				// Int part of Im2 start y-coord
+    if (ys1<0.0) {
+      diy2 = (int)(1-ys1/step2);
+//---- Simply leave here if the images do not overlap in y
+      if (diy2 >= h2)
+        return RETURN_ERROR;
+      iys2 += diy2;
+      ys1 += diy2*step2;
+    }
+    ny2 = (int)((h1-1-ys1)/step2+1);	// nb of interpolated Im2 pixels along y
+
+    if (ny2>(iy2=h2-iys2))
+      ny2 = iy2;
+    if (ny2<=0)
+      return RETURN_ERROR;
+  }
 
 /* Initialize destination buffer to zero if pix2 != NULL */
   if (!pix2)
     pix2 = statpix2;
-  else
-    {
-    memset(pix2, 0, (size_t)(w2*h2)*sizeof(float));
+  else {
+    memset(pix2, 0, (size_t)w2*h2*sizeof(float));
     statpix2 = pix2;
-    }
+  }
 
-  if (dgeoxpix && dgeoypix) {
-    modnaxisn[0] = w1;
-    modnaxisn[1] = h1;
-/*-- Resample taking into account differential geometry maps */
-    off2 = iys2*w2 + ixs2;
-    pixout0 = pix2 + off2;
-    dgeoxpix0 = dgeoxpix + off2;
-    dgeoypix0 = dgeoypix + off2;
-    y1 = ys1 + 1.0;    
-    for (j = ny2; j--; y1 += step2) {
-      pixout = pixout0;
-      dgeoxpix = dgeoxpix0;
-      dgeoypix = dgeoypix0;
-      dgeoxpix0 += w2;
-      dgeoypix0 += w2;
-      pixout0 += w2;
-      x1 = xs1 + 1.0;
-      for (i=nx2; i--; x1 += step2) {
-        pos[0] = x1 - *(dgeoxpix++)*step2;
-        pos[1] = y1 - *(dgeoypix++)*step2;
-        *(pixout++) = vignet_interpolate_pix(pos, pix1, modnaxisn, INTERPTYPE);
+  if (dgeoflag || wcsflag) {
+/*-- Resample taking into account WCS and/or differential geometry maps */
+    if (wcsflag) {
+      pixout = pix2;
+      nx2 = size2[0];
+      ny2 = size2[1];
+      dpos2[1] = dy;
+    } else {
+      pixout0 = pix2 + iys2*w2 + ixs2;
+      y1 = ys1 + 1.0;
+    }
+    for (j = ny2; j--;) {
+      if (wcsflag) {
+        dpos2[0] = dx;
+        dpos2[1] += 1.0;
+      } else {
+        pixout = pixout0;
+        pixout0 += w2;
+        x1 = xs1 + 1.0;
+        y1 += step2;
+      }
+      for (i=nx2; i--; pixout++) {
+        if (wcsflag) {
+          dpos2[0] += 1.0;
+          if (wcs_rawtoraw(wcs2, wcs1, dpos2, dpos1, NULL) == -1.0)
+            continue;
+          pos1[0] = dpos1[0];
+          pos1[0] = dpos1[1];
+        } else {
+          pos1[0] = x1;
+          pos1[1] = y1;
+          x1 += step2;
+        }
+        if (dgeoflag) {
+          dxg = vignet_interpolate_pix(pos1, dgeoxpix, size1,
+		INTERP_BILINEAR);
+          dyg = vignet_interpolate_pix(pos1, dgeoypix, size1,
+		INTERP_BILINEAR);
+          pos1[0] -= dxg;
+          pos1[1] -= dyg;
+        }
+        *pixout = vignet_interpolate_pix(pos1, pix1, size1, INTERPTYPE);
       }
     }
-  return RETURN_OK;
+    return RETURN_OK;
   }
 
 /* Set the yrange for the x-resampling with some margin for interpolation */
