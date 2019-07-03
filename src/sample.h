@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		22/05/2019
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -116,7 +116,7 @@ typedef struct set
 samplestruct	*remove_sample(setstruct *set, int isample);
 
 setstruct	*init_set(contextstruct *context),
-		*load_samples(char **filename, int catindex, int ncat,
+		*load_samples(char **filenames, int catindex, int ncat,
 			int ext, int next, contextstruct *context),
 		*read_samples(setstruct *set, char *filename,
 			float frmin, float frmax,

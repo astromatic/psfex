@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/05/2018
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -50,7 +50,7 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		float minin, float maxin, float *minout, float *maxout);
 
 /****** load_samples *********************************************************
-PROTO	setstruct *load_samples(char **filename, int catindex, int ncat,
+PROTO	setstruct *load_samples(char **filenames, int catindex, int ncat,
 		int ext, int next, contextstruct *context)
 PURPOSE	Examine and load point source data.
 INPUT	Array of catalog filenames,
@@ -61,9 +61,9 @@ INPUT	Array of catalog filenames,
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 03/07/2019
 */
-setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
+setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
 			int next, contextstruct *context)
   {
    setstruct		*set;
@@ -121,8 +121,8 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
 //      NFPRINTF(OUTPUT, str);
 /*---- Read input catalog */
       icat = catindex + i;
-      if (!(cat = read_cat(filename[icat])))
-        error(EXIT_FAILURE, "*Error*: No such catalog: ", filename[icat]);
+      if (!(cat = read_cat(filenames[icat])))
+        error(EXIT_FAILURE, "*Error*: No such catalog: ", filenames[icat]);
 
 /*---- Load the objects */
       e = 0;
@@ -153,14 +153,14 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           else
             {
             warning("ELONGATION parameter not found in catalog ",
-			filename[icat]);
+			filenames[icat]);
             elong = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS")))
             flags = (unsigned short *)key->ptr;
           else
             {
-            warning("FLAGS parameter not found in catalog ", filename[icat]);
+            warning("FLAGS parameter not found in catalog ", filenames[icat]);
             flags = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS_WEIGHT")))
@@ -174,14 +174,14 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
           if (!(key = name_to_key(tab, "FLUX_RADIUS")))
               {
               sprintf(str, "FLUS_RADIUS not found in catalog %s",
-			filename[icat]);
+			filenames[icat]);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
           hl = (float *)key->ptr;
           if (!(key = name_to_key(tab, "SNR_WIN")))
               {
               sprintf(str, "SNR_WIN not found in catalog %s",
-			filename[icat]);
+			filenames[icat]);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
           snr = (float *)key->ptr;
@@ -264,10 +264,10 @@ setstruct *load_samples(char **filename, int catindex, int ncat, int ext,
     icat = catindex + i;
     if (ext == ALL_EXTENSIONS)
       for (e=0; e<next; e++)
-        set = read_samples(set, filename[icat], fwhmmin[i], fwhmmax[i],
+        set = read_samples(set, filenames[icat], fwhmmin[i], fwhmmax[i],
 			e, next, icat, context, context->pc+i*context->npc);
     else
-      set = read_samples(set, filename[icat], fwhmmin[i], fwhmmax[i],
+      set = read_samples(set, filenames[icat], fwhmmin[i], fwhmmax[i],
 			ext, next, icat, context, context->pc+i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];

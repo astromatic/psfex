@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,5 +42,6 @@ char		gstr[MAXCHAR];
 /*------------------------------- functions ---------------------------------*/
 extern  void	makeit(void);
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, contextstruct *context);
+			float *basis, int nbasis, contextstruct *context,
+			struct wcs *wcs);
 

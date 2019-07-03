@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		08/05/2019
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -78,13 +78,16 @@ void	makeit(void)
    contextstruct	*context, *fullcontext;
    outcatstruct		*outcat;
    struct tm		*tm;
-   char			str[MAXCHAR];
-   char			**incatnames,
+   char			ctype[2][16],
+			str[MAXCHAR],
+			**incatnames,
 			*pstr;
+   double		crpix[2], cdelt[2];
    float		**psfbasiss,
 			*psfsteps, *psfbasis, *basis,
 			psfstep, step;
-   int			c,i,p, ncat, ext, next, nmed, nbasis;
+   int			naxisn[2],
+			c,i,p, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -218,7 +221,7 @@ void	makeit(void)
         NFPRINTF(OUTPUT, str);
         set = load_samples(incatnames, c, 1, ext, next, context);
         step = psfstep;
-        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context);
+        cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context, NULL);
         end_set(set);
         }
     nbasis = prefs.newbasis_number;
@@ -245,7 +248,7 @@ void	makeit(void)
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
         set = load_samples(incatnames, c, 1, ext, next, context);
-        cpsf[c] = make_psf(set, step, NULL, 0, context);
+        cpsf[c] = make_psf(set, step, NULL, 0, context, NULL);
         end_set(set);
         }
       psfbasiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
@@ -272,7 +275,7 @@ void	makeit(void)
         else
           step = psfstep;
         basis = psfbasiss? psfbasiss[ext] : psfbasis;
-        cpsf[ext+c*next] = make_psf(set, step, basis, nbasis, context);
+        cpsf[ext+c*next] = make_psf(set, step, basis, nbasis, context, NULL);
         end_set(set);
         }
       }
@@ -293,7 +296,7 @@ void	makeit(void)
       step = psfstep;
       basis = psfbasis;
       field_count(fields, set, COUNT_LOADED);
-      psf = make_psf(set, step, basis, nbasis, context);
+      psf = make_psf(set, step, basis, nbasis, context, NULL);
       field_count(fields, set, COUNT_ACCEPTED);
       end_set(set);
       NFPRINTF(OUTPUT, "Computing final PSF model...");
@@ -314,7 +317,7 @@ void	makeit(void)
           step = (float)((set->fwhm/2.35)*0.5);
         basis = psfbasis;
         field_count(fields, set, COUNT_LOADED);
-        psf = make_psf(set, step, basis, nbasis, fullcontext);
+        psf = make_psf(set, step, basis, nbasis, fullcontext, NULL);
         field_count(fields, set, COUNT_ACCEPTED);
         end_set(set);
         context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
@@ -336,7 +339,16 @@ void	makeit(void)
       step = (float)((set->fwhm/2.35)*0.5);
       basis = psfbasis;
       field_count(fields, set, COUNT_LOADED);
-      psf = make_psf(set, step, basis, nbasis, fullcontext);
+      cdelt[0] = - (cdelt[1] = sqrt(field->meanwcsscale[0] *
+				field->meanwcsscale[1]));
+      naxisn[0] = naxisn[1] = (int)(2.0 * fields[c]->maxradius / cdelt[1]
+				+ 0.4999);
+      crpix[0] = crpix[1] = (naxisn[1] + 1.0) / 2.0;
+      strcat(ctype[0], "RA---TAN");
+      strcat(ctype[1], "DEC--TAN");
+      wcs = create_wcs((char **)ctype, fields[c]->meanwcspos, crpix,
+			cdelt, naxisn, 2);
+      psf = make_psf(set, step, basis, nbasis, fullcontext, wcs);
       field_count(fields, set, COUNT_ACCEPTED);
       end_set(set);
       context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
@@ -367,7 +379,7 @@ void	makeit(void)
           NFPRINTF(OUTPUT, str);
           set = load_samples(incatnames, c, 1, ext, next, context);
           field_count(fields, set, COUNT_LOADED);
-          cpsf[c] = make_psf(set, step, basis, nbasis, context);
+          cpsf[c] = make_psf(set, step, basis, nbasis, context, NULL);
           field_count(fields, set, COUNT_ACCEPTED);
           end_set(set);
           }
@@ -397,7 +409,7 @@ void	makeit(void)
         else
           step = (float)((set->fwhm/2.35)*0.5);
         field_count(fields, set, COUNT_LOADED);
-        psf = make_psf(set, step, basis, nbasis, fullcontext);
+        psf = make_psf(set, step, basis, nbasis, fullcontext, NULL);
         field_count(fields, set, COUNT_ACCEPTED);
         end_set(set);
         context_apply(fullcontext, psf, fields, ext, 0, ncat);
@@ -429,7 +441,7 @@ void	makeit(void)
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
           field_count(fields, set, COUNT_LOADED);
-          psf = make_psf(set, step, basis, nbasis, context);
+          psf = make_psf(set, step, basis, nbasis, context, NULL);
           field_count(fields, set, COUNT_ACCEPTED);
           end_set(set);
           context_apply(context, psf, fields, ext, c, 1);
@@ -649,20 +661,23 @@ void	makeit(void)
 
 /****** make_psf *************************************************************
 PROTO	psfstruct *make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, contextstruct *context)
+			float *basis, int nbasis, contextstruct *context,
+			struct wcs *wcs)
 PURPOSE	Make PSFs from a set of FITS binary catalogs.
 INPUT	Pointer to a sample set,
 	PSF sampling step,
-	Pointer to basis image vectors,
-	Number of basis vectors,
-	Pointer to context structure.
+	pointer to basis image vectors,
+	number of basis vectors,
+	pointer to context structure,
+	pointer to the PSF pixel grid world coordinate system structure.
 OUTPUT  Pointer to the PSF structure.
 NOTES   Diagnostics are computed only if diagflag != 0.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 03/07/2019
  ***/
 psfstruct	*make_psf(setstruct *set, float psfstep,
-			float *basis, int nbasis, contextstruct *context)
+			float *basis, int nbasis, contextstruct *context,
+			struct wcs *wcs)
   {
    psfstruct		*psf;
    basistypenum		basistype;
@@ -671,7 +686,7 @@ psfstruct	*make_psf(setstruct *set, float psfstep,
   pixsize[0] = (float)prefs.psf_pixsize[0];
   pixsize[1] = (float)prefs.psf_pixsize[1];
 //  NFPRINTF(OUTPUT,"Initializing PSF modules...");
-  psf = psf_init(context, prefs.psf_size, psfstep, pixsize, set->nsample);
+  psf = psf_init(context, prefs.psf_size, psfstep, pixsize, set->nsample, wcs);
 
   psf->samples_total = set->nsample;
   psf->samples_loaded = set->ngood;

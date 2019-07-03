@@ -177,7 +177,8 @@ extern double	psf_chi2(psfstruct *psf, setstruct *set),
 extern psfstruct	*psf_copy(psfstruct *psf),
 			*psf_inherit(contextstruct *context, psfstruct *psf),
 			*psf_init(contextstruct *context, int *size,
-				float psfstep, float *pixsize, int nsample),
+				float psfstep, float *pixsize, int nsample,
+				struct wcs *wcs),
 			*psf_load(char *filename);
 
 #endif

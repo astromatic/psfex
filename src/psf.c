@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		22/05/2019
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -238,20 +238,23 @@ void	psf_clip(psfstruct *psf)
 
 /****** psf_init **************************************************************
 PROTO	psfstruct *psf_init(contextstruct *context, int *size,
-			float psfstep, float *pixsize, int nsample)
+			float psfstep, float *pixsize, int nsample,
+			struct wcs *wcs)
 PURPOSE	Allocate and initialize a PSF structure.
 INPUT	Pointer to context structure,
 	PSF model image size (pixels),
 	PSF pixel step,
 	array of 2 effective pixel sizes (along x and along y),
-	number of samples.
+	number of samples,
+	PSF WCS structure.
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 08/05/2019
+VERSION 03/07/2019
  ***/
 psfstruct	*psf_init(contextstruct *context, int *size,
-			float psfstep, float *pixsize, int nsample)
+			float psfstep, float *pixsize, int nsample,
+			wcsstruct *wcs)
   {
    psfstruct	*psf;
    static char	str[MAXCHAR];
@@ -265,6 +268,7 @@ psfstruct	*psf_init(contextstruct *context, int *size,
   psf->dim = PSF_NMASKDIM;	/* This is constant */
   QMALLOC(psf->size, int, psf->dim);
 
+  psf->wcs = wcs;
 /* The polynom */
   names2 = NULL;
   group2 = dim2 = NULL;
@@ -380,7 +384,7 @@ INPUT	Pointer to context structure,
 OUTPUT  psfstruct pointer.
 NOTES   The maximum degrees and number of dimensions allowed are set in poly.h.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/09/2009
+VERSION 03/07/2019
  ***/
 psfstruct	*psf_inherit(contextstruct *context, psfstruct *psf)
   {
@@ -388,7 +392,8 @@ psfstruct	*psf_inherit(contextstruct *context, psfstruct *psf)
    int		c,co, ncnew,ncold, npix;
 
 /* 10000 is just a dummy number */
-  newpsf = psf_init(context, psf->size, psf->pixstep, psf->pixsize, 10000);
+  newpsf = psf_init(context, psf->size, psf->pixstep, psf->pixsize, 10000,
+		psf->wcs);
   newpsf->fwhm = psf->fwhm;
   npix = psf->size[0]*psf->size[1];
   if (psf->pixmask)
@@ -512,7 +517,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/05/2019
+VERSION 03/07/2019
  ***/
 void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
   {
@@ -560,11 +565,15 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
     backnoise2 = sample->backnoise2;
     imaget = image+g*npix;
     weightt = weight+g*npix;
-    vignet_resample(sample->vig, set->vigsize,
+    if (psf->wcs)
+      vignet_resample(sample->vig, set->vigsize,
 	imaget, psf->size,
-	sample->dx, sample->dy, psf->pixstep, pixstep, NULL, NULL,
-	prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? sample->wcs : NULL,
-	prefs.psf_mef_type == PSF_MEF_FOCALPLANE ? psf->wcs : NULL);
+	sample->x, sample->y, psf->pixstep, pixstep, NULL, NULL,
+	sample->wcs, psf->wcs);
+    else
+      vignet_resample(sample->vig, set->vigsize,
+	imaget, psf->size,
+	sample->dx, sample->dy, psf->pixstep, pixstep, NULL, NULL, NULL, NULL);
     for (i=npix; i--;)
       {
       val = (*(imaget++) /= norm);

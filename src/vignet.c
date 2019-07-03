@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		12/06/2019
+*	Last modified:		03/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -69,7 +69,7 @@ INPUT	Input raster,
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	12/06/2019
+VERSION	03/07/2019
  ***/
 int	vignet_resample(float *pix1, int *size1,
 		float *pix2, int *size2, double dx, double dy, float step2,
@@ -77,7 +77,7 @@ int	vignet_resample(float *pix1, int *size1,
 		wcsstruct *wcs1, wcsstruct *wcs2) {
 
    static float	*statpix2;
-   double	dpos1[2], dpos2[2],
+   double	dpos1[2], dpos2[2], dpos10[2], dpos20[2],
 		*mask,*maskt, mx1,mx2,my1,my2, xs1,ys1, x1,y1, x,y, dxm,dym,
 		val, dstepi, norm;
    float	pos1[2],
@@ -90,7 +90,15 @@ int	vignet_resample(float *pix1, int *size1,
 
   dgeoflag = dgeoxpix && dgeoypix;
   wcsflag = wcs1 && wcs2;
-  if (!wcsflag) {
+  if (wcsflag) {
+    dpos10[0] = dx;
+    dpos10[1] = dy;
+    wcs_rawtoraw(wcs1, wcs2, dpos10, dpos20, NULL);
+    dpos10[0] = (int)(dx+0.49999) - size1[0] / 2 - 1.0;	// Im1 starting x-coord
+    dpos10[1] = (int)(dy+0.49999) - size1[1] / 2 - 1.0;	// Im1 starting y-coord
+    dpos20[0] -= size2[0] / 2 + 1.0;			// Im2 starting x-coord
+    dpos20[1] -= size2[1] / 2 + 1.0;			// Im2 starting y-coord
+  } else {
     w1 = size1[0];
     h1 = size1[1];
     w2 = size2[0];
@@ -157,14 +165,14 @@ int	vignet_resample(float *pix1, int *size1,
       pixout = pix2;
       nx2 = size2[0];
       ny2 = size2[1];
-      dpos2[1] = dy;
+      dpos2[1] = dpos20[0];
     } else {
       pixout0 = pix2 + iys2*w2 + ixs2;
       y1 = ys1 + 1.0;
     }
     for (j = ny2; j--;) {
       if (wcsflag) {
-        dpos2[0] = dx;
+        dpos2[0] = dpos20[0];
         dpos2[1] += 1.0;
       } else {
         pixout = pixout0;
@@ -177,8 +185,8 @@ int	vignet_resample(float *pix1, int *size1,
           dpos2[0] += 1.0;
           if (wcs_rawtoraw(wcs2, wcs1, dpos2, dpos1, NULL) == -1.0)
             continue;
-          pos1[0] = dpos1[0];
-          pos1[0] = dpos1[1];
+          pos1[0] = dpos1[0] - dpos10[0];
+          pos1[0] = dpos1[1] - dpos10[1];
         } else {
           pos1[0] = x1;
           pos1[1] = y1;
