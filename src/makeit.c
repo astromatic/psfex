@@ -80,6 +80,7 @@ void	makeit(void)
    struct tm		*tm;
    char			ctype[2][16],
 			str[MAXCHAR],
+			*ctypes[2],
 			**incatnames,
 			*pstr;
    double		crpix[2], cdelt[2];
@@ -339,14 +340,14 @@ void	makeit(void)
       step = (float)((set->fwhm/2.35)*0.5);
       basis = psfbasis;
       field_count(fields, set, COUNT_LOADED);
-      cdelt[0] = - (cdelt[1] = sqrt(field->meanwcsscale[0] *
-				field->meanwcsscale[1]));
+      cdelt[0] = - (cdelt[1] = sqrt(fields[c]->meanwcsscale[0] *
+				fields[c]->meanwcsscale[1]));
       naxisn[0] = naxisn[1] = (int)(2.0 * fields[c]->maxradius / cdelt[1]
 				+ 0.4999);
       crpix[0] = crpix[1] = (naxisn[1] + 1.0) / 2.0;
-      strcat(ctype[0], "RA---TAN");
-      strcat(ctype[1], "DEC--TAN");
-      wcs = create_wcs((char **)ctype, fields[c]->meanwcspos, crpix,
+      strcpy(ctypes[0] = ctype[0], "RA---TAN");
+      strcpy(ctypes[1] = ctype[1], "DEC--TAN");
+      wcs = create_wcs(ctypes, fields[c]->meanwcspos, crpix,
 			cdelt, naxisn, 2);
       psf = make_psf(set, step, basis, nbasis, fullcontext, wcs);
       field_count(fields, set, COUNT_ACCEPTED);
