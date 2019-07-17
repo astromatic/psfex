@@ -186,7 +186,7 @@ int	vignet_resample(float *pix1, int *size1,
           if (wcs_rawtoraw(wcs2, wcs1, dpos2, dpos1, NULL) == -1.0)
             continue;
           pos1[0] = dpos1[0] - dpos10[0];
-          pos1[0] = dpos1[1] - dpos10[1];
+          pos1[1] = dpos1[1] - dpos10[1];
         } else {
           pos1[0] = x1;
           pos1[1] = y1;
