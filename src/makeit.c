@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/07/2019
+*	Last modified:		30/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -75,6 +75,7 @@ void	makeit(void)
    psfstruct		**cpsf,
 			*psf;
    setstruct		**sets, *set, *bigset;
+   samplestruct		*sample;
    contextstruct	*context, *fullcontext;
    outcatstruct		*outcat;
    struct tm		*tm;
@@ -83,12 +84,12 @@ void	makeit(void)
 			*ctypes[2],
 			**incatnames,
 			*pstr;
-   double		crpix[2], cdelt[2];
+   double		crpix[2], cdelt[2], cmin[2], cmax[2];
    float		**psfbasiss,
 			*psfsteps, *psfbasis, *basis,
 			psfstep, step;
    int			naxisn[2],
-			c,i,p, ncat, ext, next, nmed, nbasis;
+			c,i,p,s, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -334,6 +335,9 @@ void	makeit(void)
 		fields[c]->rtcatname);
       NFPRINTF(OUTPUT, str);
       set = load_samples(incatnames, c, 1, ALL_EXTENSIONS, next, context);
+      sample = set->sample;
+      for (s=set->nsample; s--; sample++)
+        sample->wcs = fields[sample->catindex]->wcs[sample->extindex];
       if (psfstep)
         step = psfstep;
       else
@@ -349,6 +353,24 @@ void	makeit(void)
       strcpy(ctypes[1] = ctype[1], "DEC--TAN");
       wcs = create_wcs(ctypes, fields[c]->meanwcspos, crpix,
 			cdelt, naxisn, 2);
+      cmin[0] = cmin[1] = BIG;
+      cmax[0] = cmax[1] = -BIG;
+      sample = set->sample;
+      for (s=set->nsample; s--; sample++) {
+        wcs_rawtoraw(sample->wcs, wcs, sample->context, sample->context, NULL);
+        if (cmin[0] > sample->context[0])
+          cmin[0] = sample->context[0];
+        if (cmax[0] < sample->context[0])
+          cmax[0] = sample->context[0];
+        if (cmin[1] > sample->context[1])
+          cmin[1] = sample->context[1];
+        if (cmax[1] < sample->context[1])
+          cmax[1] = sample->context[1];
+      }
+      set->contextscale[0] = cmax[0] - cmin[0];
+      set->contextoffset[0] = (cmin[0] + cmax[0])/2.0;
+      set->contextscale[1] = cmax[1] - cmin[1];
+      set->contextoffset[1] = (cmin[1] + cmax[1])/2.0;
       psf = make_psf(set, step, basis, nbasis, fullcontext, wcs);
       field_count(fields, set, COUNT_ACCEPTED);
       end_set(set);

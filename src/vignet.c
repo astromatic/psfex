@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/07/2019
+*	Last modified:		30/07/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -69,7 +69,7 @@ INPUT	Input raster,
 OUTPUT	RETURN_ERROR if the images do not overlap, RETURN_OK otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	03/07/2019
+VERSION	30/07/2019
  ***/
 int	vignet_resample(float *pix1, int *size1,
 		float *pix2, int *size2, double dx, double dy, float step2,
@@ -165,7 +165,7 @@ int	vignet_resample(float *pix1, int *size1,
       pixout = pix2;
       nx2 = size2[0];
       ny2 = size2[1];
-      dpos2[1] = dpos20[0];
+      dpos2[1] = dpos20[1];
     } else {
       pixout0 = pix2 + iys2*w2 + ixs2;
       y1 = ys1 + 1.0;
