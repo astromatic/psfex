@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,9 +22,12 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _FIELD_H_
+#define _FIELD_H_
 
 #ifndef _CONTEXT_H_
 #include "context.h"
@@ -34,16 +37,13 @@
 #include "fitswcs.h"
 #endif
 
-#ifndef _PSF_H_
-#include "psf.h"
-#endif
-
 #ifndef _SAMPLE_H_
 #include "sample.h"
 #endif
 
-#ifndef _PSFMEF_H_
-#define _PSFMEF_H_
+#ifndef _PSF_H_
+#include "psf.h"
+#endif
 
 /*----------------------------- Internal constants --------------------------*/
 #define	COUNT_LOADED	1		/* Count detections that are loaded */
@@ -52,31 +52,41 @@
 /*------------------------------ Type definitions ---------------------------*/
 /*--------------------------- structure definitions -------------------------*/
 
-typedef struct field
-  {
+typedef struct ext {
+  psfstruct	*psf;			/* PSF */
+  wcsstruct	*wcs;			/* WCS */
+  int		*lcount;		/* Count detections that are loaded */
+  int		*acount;		/* Count detections that are accepted */
+  int		*count;			/* Count detections in stats */
+  double	*modchi2;		/* Sum of chi2's per image area */
+  double	*modresi;		/* Sum of res. indices per image area */
+} extstruct;
+
+
+typedef struct field {
   char		catname[MAXCHAR];	/* Input catalog filename */
   char		*rcatname;		/* "Reduced" catalog name */
   char		rtcatname[MAXCHAR];	/* "Reduced", no trail catalog name */
   char		ident[MAXCHAR];		/* Field identifier (read from FITS) */
+  int		catindex;		/* Catalog index */
   int		next;			/* Number of extensions */
   int		ndet;			/* Number of detections (info only) */
-  psfstruct	**psf;			/* Array of PSFs */
-  wcsstruct	**wcs;			/* Array of WCS structures */
-  catstruct	**ccat;			/* Pointers to check-image files */
   double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
   double	meanwcsscale[NAXIS];	/* Mean pixel scale */
   double	maxradius;		/* Maxium radius */
-  int		**lcount;		/* Count detections that are loaded */
-  int		**acount;		/* Count detections that are accepted */
-  int		**count;		/* Count detections in stats */
-  double	**modchi2;		/* Sum of chi2's per image area */
-  double	**modresi;		/* Sum of res. indices per image area */
-  }	fieldstruct;
+  extstruct	**ext;
+  catstruct	**ccat;			/* Pointers to check-image files */
+}	fieldstruct;
+
+typedef struct set setstruct;
 
 /*---------------------------------- protos --------------------------------*/
-extern fieldstruct	*field_init(char *catname);
+extern extstruct	*ext_init(psfstruct *psf, wcsstruct *wcs, int count);
 
-extern void		field_count(fieldstruct **fields, setstruct *set,
+extern fieldstruct	*field_init(char *catname, int catindex);
+
+extern void		ext_end(extstruct *ext),
+			field_count(fieldstruct **fields, setstruct *set,
 				int counttype),
 			field_end(fieldstruct *field),
 			field_locate(fieldstruct *field),

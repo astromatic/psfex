@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2005-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -186,7 +186,7 @@ INPUT	Pointer to the output file (or stream),
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	26/06/2012
+VERSION	21/08/2019
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -559,7 +559,7 @@ int	write_xml_meta(FILE *file, char *error)
     field = field_xml[n];
     for (e=0; e<field->next; e++)
       {
-      psf = field->psf[e];
+      psf = field->ext[e]->psf;
       nloaded_total += psf->samples_loaded;
       if (psf->samples_loaded < nloaded_min)
         nloaded_min = psf->samples_loaded ;
@@ -996,7 +996,7 @@ int	write_xml_meta(FILE *file, char *error)
     for (n=0; n<nxml; n++)
       {
       field = field_xml[n];
-      psf = field->psf[e];
+      psf = field->ext[e]->psf;
       nloaded_total += psf->samples_loaded;
       if (psf->samples_loaded < nloaded_min)
         nloaded_min = psf->samples_loaded ;

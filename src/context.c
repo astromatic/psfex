@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/07/2012
+*	Last modified:		21/09/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -130,7 +130,7 @@ INPUT	Pointer to the full context,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 19/11/2009
+VERSION 21/08/2019
  ***/
 void context_apply(contextstruct *context, psfstruct *psf,
 		fieldstruct **fields, int ext, int catindex, int ncat)
@@ -151,9 +151,9 @@ void context_apply(contextstruct *context, psfstruct *psf,
   for (p=catindex; p<ncat; p++)
     if (ext==ALL_EXTENSIONS)
       for (e=0; e<fields[p]->next; e++)
-        fields[p]->psf[e] = psf_copy(psf);
+        fields[p]->ext[e]->psf = psf_copy(psf);
     else
-      fields[p]->psf[ext] = psf_copy(psf);
+      fields[p]->ext[e]->psf = psf_copy(psf);
 
 /* No PC dependency: the PSF is simply duplicated */
   if (!context->npc)
@@ -236,7 +236,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
     if (ext==ALL_EXTENSIONS)
       for (e=0;e<fields[p]->next; e++)
         {
-        fields[p]->psf[e] = psf2 = psf_inherit(context2, psf);
+        fields[p]->ext[e]->psf = psf2 = psf_inherit(context2, psf);
         free(psf2->comp);
         if (e)
           {
@@ -253,7 +253,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
         }
     else
       {
-      fields[p]->psf[ext] = psf2 = psf_inherit(context2, psf);
+      fields[p]->ext[e]->psf = psf2 = psf_inherit(context2, psf);
       free(psf2->comp);
       psf2->comp = comp2;
       if (psf->basiscoeff)

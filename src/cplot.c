@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2018 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 2008-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/12/2018
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -667,7 +667,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -691,7 +691,7 @@ int	cplot_fwhm(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -735,8 +735,8 @@ int	cplot_fwhm(fieldstruct *field)
   flag = 0;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (!psf->samples_accepted)
       continue;
     flag = 1;
@@ -782,8 +782,8 @@ int	cplot_fwhm(fieldstruct *field)
 /* Now the real 2D FWHM mapping */
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
@@ -899,7 +899,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -923,7 +923,7 @@ int	cplot_ellipticity(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -967,8 +967,8 @@ int	cplot_ellipticity(fieldstruct *field)
   flag = 0;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (!psf->samples_accepted)
       continue;
     flag = 1;
@@ -1014,8 +1014,8 @@ int	cplot_ellipticity(fieldstruct *field)
 /* Now the real 2D ellipticity mapping */
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
@@ -1117,7 +1117,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1141,7 +1141,7 @@ int	cplot_moffatresi(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -1185,8 +1185,8 @@ int	cplot_moffatresi(fieldstruct *field)
   flag = 0;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (!psf->samples_accepted)
       continue;
     flag = 1;
@@ -1231,8 +1231,8 @@ int	cplot_moffatresi(fieldstruct *field)
 /* Now the real mapping of residuals */
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
@@ -1336,7 +1336,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1360,7 +1360,7 @@ int	cplot_asymresi(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -1404,8 +1404,8 @@ int	cplot_asymresi(fieldstruct *field)
   flag = 0;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (!psf->samples_accepted)
       continue;
     flag = 1;
@@ -1450,8 +1450,8 @@ int	cplot_asymresi(fieldstruct *field)
 /* Now the real mapping of residuals */
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
-    psf = field->psf[e];
+    wcs = field->ext[e]->wcs;
+    psf = field->ext[e]->psf;
     if (psf->samples_accepted)
       {
       ncx = ncy = nt = 1;
@@ -1550,7 +1550,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_counts(fieldstruct *field)
   {
@@ -1565,7 +1565,7 @@ int	cplot_counts(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		**icount,
+		*icount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, CPLOT_COUNTS) == RETURN_ERROR)
@@ -1574,7 +1574,7 @@ int	cplot_counts(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -1616,18 +1616,18 @@ int	cplot_counts(fieldstruct *field)
 
 /* First pass through the data to find min and max number counts */
   flag = 0;
-  icount = field->lcount;
   nsnap = prefs.context_nsnap;
   nt = nsnap*nsnap;
-  for (e=0; e<field->next; e++)
-    for (n=0; n<nt; n++)
-      {
-      dval = (double)icount[e][n];
+  for (e=0; e<field->next; e++) {
+    icount = field->ext[e]->lcount;
+    for (n=0; n<nt; n++) {
+      dval = (double)icount[n];
       if (dval < cmin)
         cmin = dval;
       if (dval > cmax)
         cmax = dval;
-      }
+    }
+  }
 
 /* Lower bound to variability in counts is 1e-4 */
   if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
@@ -1648,7 +1648,8 @@ int	cplot_counts(fieldstruct *field)
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = field->ext[e]->wcs;
+    icount = field->ext[e]->lcount;
     plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
@@ -1657,11 +1658,11 @@ int	cplot_counts(fieldstruct *field)
     if (nsnap > 1)
       for (j=0; j<nsnap2; j++)
         for (i=0; i<nsnap2; i++)
-          count[i][j] = (PLFLT)icount[e][j*nsnap+i];
+          count[i][j] = (PLFLT)icount[j*nsnap+i];
     else
       for (j=0; j<nsnap2; j++)
         for (i=0; i<nsnap2; i++)
-          count[i][j] = (PLFLT)icount[e][0];
+          count[i][j] = (PLFLT)icount[0];
     wcsptr[0] = wcs;
     wcsptr[1] = wcsout;
     plshades((const PLFLT * const*)count, nsnap2, nsnap2, NULL,
@@ -1709,7 +1710,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
@@ -1724,7 +1725,7 @@ int	cplot_countfrac(fieldstruct *field)
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		**iacount,**ilcount,
+		*iacount,*ilcount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, CPLOT_COUNTFRAC) == RETURN_ERROR)
@@ -1733,7 +1734,7 @@ int	cplot_countfrac(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -1775,19 +1776,19 @@ int	cplot_countfrac(fieldstruct *field)
 
 /* First pass through the data to find min and max number counts */
   flag = 0;
-  ilcount = field->lcount;
-  iacount = field->acount;
   nsnap = prefs.context_nsnap;
   nt = nsnap*nsnap;
-  for (e=0; e<field->next; e++)
-    for (n=0; n<nt; n++)
-      {
-      dval = ilcount[e][n] > 0? 100.0*iacount[e][n] / ilcount[e][n] : 0.0;
+  for (e=0; e<field->next; e++) {
+    ilcount = field->ext[e]->lcount;
+    iacount = field->ext[e]->acount;
+    for (n=0; n<nt; n++) {
+      dval = ilcount[n] > 0? 100.0*iacount[n] / ilcount[n] : 0.0;
       if (dval < cmin)
         cmin = dval;
       if (dval > cmax)
         cmax = dval;
-      }
+    }
+  }
 
 /* Lower bound to variability in counts fraction is 1e-4 */
   if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
@@ -1808,7 +1809,9 @@ int	cplot_countfrac(fieldstruct *field)
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = field->ext[e]->wcs;
+    ilcount = field->ext[e]->lcount;
+    iacount = field->ext[e]->acount;
     plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
@@ -1818,8 +1821,8 @@ int	cplot_countfrac(fieldstruct *field)
       for (i=0; i<nsnap2; i++)
         {
         n = (nsnap>1)? j*nsnap + i : 0;
-        count[i][j] = (PLFLT)(ilcount[e][n] > 0?
-			100.0*iacount[e][n] / ilcount[e][n] : 0.0);
+        count[i][j] = (PLFLT)(ilcount[n] > 0?
+			100.0*iacount[n] / ilcount[n] : 0.0);
         }
 
     wcsptr[0] = wcs;
@@ -1868,7 +1871,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
@@ -1881,10 +1884,10 @@ int	cplot_modchi2(fieldstruct *field)
    char		*ctype[NAXIS],
 		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
-		**chi2,
+		*chi2,
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		**scount,
+		*scount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, CPLOT_CHI2) == RETURN_ERROR)
@@ -1893,7 +1896,7 @@ int	cplot_modchi2(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -1935,19 +1938,20 @@ int	cplot_modchi2(fieldstruct *field)
 
 /* First pass through the data to find min and max chi2 */
   flag = 0;
-  scount = field->count;
-  chi2 = field->modchi2;
   nsnap = prefs.context_nsnap;
   nt = nsnap*nsnap;
-  for (e=0; e<field->next; e++)
+  for (e=0; e<field->next; e++) {
+    chi2 = field->ext[e]->modchi2;
+    scount = field->ext[e]->count;
     for (n=0; n<nt; n++)
       {
-      dval = scount[e][n] > 0? chi2[e][n] / scount[e][n] : 0.0;
+      dval = scount[n] > 0? chi2[n] / scount[n] : 0.0;
       if (dval < cmin)
         cmin = dval;
       if (dval > cmax)
         cmax = dval;
-      }
+    }
+  }
 
 /* Lower bound to variability in chi2 fraction is 1e-4 */
   if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
@@ -1968,7 +1972,9 @@ int	cplot_modchi2(fieldstruct *field)
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = field->ext[e]->wcs;
+    chi2 = field->ext[e]->modchi2;
+    scount = field->ext[e]->count;
     plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
@@ -1978,7 +1984,7 @@ int	cplot_modchi2(fieldstruct *field)
       for (i=0; i<nsnap2; i++)
         {
         n = (nsnap>1)? j*nsnap + i : 0;
-        count[i][j] = (PLFLT)(scount[e][n] > 0? chi2[e][n]/scount[e][n] : 0.0);
+        count[i][j] = (PLFLT)(scount[n] > 0? chi2[n]/scount[n] : 0.0);
         }
 
     wcsptr[0] = wcs;
@@ -2027,7 +2033,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
@@ -2040,10 +2046,10 @@ int	cplot_modresi(fieldstruct *field)
    char		*ctype[NAXIS],
 		str[80];
    double	crpix[NAXIS], cdelt[NAXIS], raw[NAXIS],
-		**resi,
+		*resi,
 		xmin,ymin,xmax,ymax, xstep,ystep, dval;
    int		naxisn[NAXIS],
-		**scount,
+		*scount,
 		i,j, e, n,nt, naxis, nsnap,nsnap2, flag;
 
   if (cplot_init(field->rcatname, CPLOT_MODRESI) == RETURN_ERROR)
@@ -2052,7 +2058,7 @@ int	cplot_modresi(fieldstruct *field)
     return RETURN_OK;
     }
 
-  wcs = field->wcs[0];
+  wcs = field->ext[0]->wcs;
   if (!wcs || wcs->naxis<2)
     return RETURN_ERROR;
   naxis = wcs->naxis;
@@ -2094,19 +2100,19 @@ int	cplot_modresi(fieldstruct *field)
 
 /* First pass through the data to find min and max chi2 */
   flag = 0;
-  scount = field->count;
-  resi = field->modresi;
   nsnap = prefs.context_nsnap;
   nt = nsnap*nsnap;
-  for (e=0; e<field->next; e++)
-    for (n=0; n<nt; n++)
-      {
-      dval = scount[e][n] > 0? resi[e][n] / scount[e][n] : 0.0;
+  for (e=0; e<field->next; e++) {
+    scount = field->ext[e]->count;
+    resi = field->ext[e]->modresi;
+    for (n=0; n<nt; n++) {
+      dval = scount[n] > 0? resi[n] / scount[n] : 0.0;
       if (dval < cmin)
         cmin = dval;
       if (dval > cmax)
         cmax = dval;
-      }
+    }
+  }
 
 /* Lower bound to variability in chi2 fraction is 1e-4 */
   if ((mc=(cmin+cmax)/2.0) <  1.0e-10)
@@ -2127,7 +2133,9 @@ int	cplot_modresi(fieldstruct *field)
   nsnap2 = nsnap>1? nsnap : 2;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = field->ext[e]->wcs;
+    scount = field->ext[e]->count;
+    resi = field->ext[e]->modresi;
     plAlloc2dGrid(&count, nsnap2, nsnap2);
     for (i=0; i<naxis; i++)
       raw[i] = wcs->naxisn[i]/2.0 + 0.5;
@@ -2137,7 +2145,7 @@ int	cplot_modresi(fieldstruct *field)
       for (i=0; i<nsnap2; i++)
         {
         n = (nsnap>1)? j*nsnap + i : 0;
-        count[i][j] = (PLFLT)(scount[e][n] > 0? resi[e][n]/scount[e][n] : 0.0);
+        count[i][j] = (PLFLT)(scount[n] > 0? resi[n]/scount[n] : 0.0);
         }
 
     wcsptr[0] = wcs;
@@ -2186,7 +2194,7 @@ INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	Global preferences are used.
 AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+VERSION	21/08/2019
  ***/
 int	cplot_snrvsfwhm(fieldstruct *field, setstruct *set)
   {
@@ -2304,8 +2312,8 @@ int	cplot_snrvsfwhm(fieldstruct *field, setstruct *set)
     x[0] = x[1] = fmax = (PLFLT)(prefs.fwhmrange[1] > 0.0?
 	log10(prefs.fwhmrange[1]) : -10.0);
     plline(2,x,y);
-    x[0] = x[1] = (PLFLT)(field->psf && field->psf[e] &&
-	field->psf[e]->fwhm > 0.0? log10(field->psf[e]->fwhm) : -10.0);
+    x[0] = x[1] = (PLFLT)(field->ext[e]->psf &&
+	field->ext[e]->psf->fwhm > 0.0? log10(field->ext[e]->psf->fwhm) : -10.0);
     pllsty(3);
     plline(2,x,y);
     x[0] = fmin;

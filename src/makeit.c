@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		30/07/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -145,7 +145,7 @@ void	makeit(void)
   QPRINTF(OUTPUT, "----- %d input catalogues:\n", ncat);
   for (c=0; c<ncat; c++)
     {
-    fields[c] = field_init(incatnames[c]);
+    fields[c] = field_init(incatnames[c], c);
     QPRINTF(OUTPUT, "%-20.20s:  \"%-16.16s\"  %3d extension%s %7d detection%s\n",
         fields[c]->rcatname, fields[c]->ident,
         fields[c]->next, fields[c]->next>1 ? "s":"",
@@ -190,9 +190,9 @@ void	makeit(void)
 	|| (prefs.stability_type == STABILITY_SEQUENCE
 		&& prefs.psf_mef_type == PSF_MEF_COMMON))
       {
-      set = load_samples(incatnames, 0, ncat, ALL_EXTENSIONS, next, context);
+      set = set_load_samples(fields, ncat, ALL_EXTENSIONS, context);
       psfstep = (float)((set->fwhm/2.35)*0.5);
-      end_set(set);
+      set_end(set);
       }
 /*-- Need to derive a common pixel step for each ext */
     else if (prefs.newbasis_type == NEWBASIS_PCAINDEPENDENT
@@ -204,9 +204,9 @@ void	makeit(void)
       QMALLOC(psfsteps, float, next);
       for (ext=0 ; ext<next; ext++)
         {
-        set = load_samples(incatnames, 0, ncat, ext, next, context);
+        set = set_load_samples(fields, ncat, ext, context);
         psfsteps[ext] = (float)(psfstep? psfstep : (set->fwhm/2.35)*0.5);
-        end_set(set);
+        set_end(set);
         }
       }
     }
@@ -221,10 +221,10 @@ void	makeit(void)
         sprintf(str, "Computing new PCA image basis from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(incatnames, c, 1, ext, next, context);
+        set = set_load_samples(fields + c, 1, ext, context);
         step = psfstep;
         cpsf[c+ext*ncat] = make_psf(set, psfstep, NULL, 0, context, NULL);
-        end_set(set);
+        set_end(set);
         }
     nbasis = prefs.newbasis_number;
     psfbasis = pca_onsnaps(cpsf, ncat*next, nbasis);
@@ -249,9 +249,9 @@ void	makeit(void)
         sprintf(str, "Computing new PCA image basis from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(incatnames, c, 1, ext, next, context);
+        set = set_load_samples(fields + c, 1, ext, context);
         cpsf[c] = make_psf(set, step, NULL, 0, context, NULL);
-        end_set(set);
+        set_end(set);
         }
       psfbasiss[ext] = pca_onsnaps(cpsf, ncat, nbasis);
       for (c=0 ; c<ncat; c++)
@@ -271,14 +271,14 @@ void	makeit(void)
       NFPRINTF(OUTPUT, str);
       for (ext=0 ; ext<next; ext++)
         {
-        set = load_samples(incatnames, c, 1, ext, next, context);
+        set = set_load_samples(fields + c, 1, ext, context);
         if (psfsteps)
           step = psfsteps[ext];
         else
           step = psfstep;
         basis = psfbasiss? psfbasiss[ext] : psfbasis;
         cpsf[ext+c*next] = make_psf(set, step, basis, nbasis, context, NULL);
-        end_set(set);
+        set_end(set);
         }
       }
     QFREE(fullcontext->pc);
@@ -294,13 +294,13 @@ void	makeit(void)
     if (prefs.stability_type == STABILITY_SEQUENCE)
       {
 /*---- Load all the samples at once */
-      set = load_samples(incatnames, 0, ncat, ALL_EXTENSIONS, next, context);
+      set = set_load_samples(fields, ncat, ALL_EXTENSIONS, context);
       step = psfstep;
       basis = psfbasis;
       field_count(fields, set, COUNT_LOADED);
       psf = make_psf(set, step, basis, nbasis, context, NULL);
       field_count(fields, set, COUNT_ACCEPTED);
-      end_set(set);
+      set_end(set);
       NFPRINTF(OUTPUT, "Computing final PSF model...");
       context_apply(context, psf, fields, ALL_EXTENSIONS, 0, ncat);
       psf_end(psf);
@@ -312,7 +312,7 @@ void	makeit(void)
         sprintf(str, "Computing final PSF model from %s...",
 		fields[c]->rtcatname);
         NFPRINTF(OUTPUT, str);
-        set = load_samples(incatnames, c, 1, ALL_EXTENSIONS, next, context);
+        set = set_load_samples(fields + c, 1, ALL_EXTENSIONS, context);
         if (psfstep)
           step = psfstep;
         else
@@ -321,7 +321,7 @@ void	makeit(void)
         field_count(fields, set, COUNT_LOADED);
         psf = make_psf(set, step, basis, nbasis, fullcontext, NULL);
         field_count(fields, set, COUNT_ACCEPTED);
-        end_set(set);
+        set_end(set);
         context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
         psf_end(psf);
         }
@@ -334,10 +334,7 @@ void	makeit(void)
       sprintf(str, "Computing final PSF model from %s...",
 		fields[c]->rtcatname);
       NFPRINTF(OUTPUT, str);
-      set = load_samples(incatnames, c, 1, ALL_EXTENSIONS, next, context);
-      sample = set->sample;
-      for (s=set->nsample; s--; sample++)
-        sample->wcs = fields[sample->catindex]->wcs[sample->extindex];
+      set = set_load_samples(fields + c, 1, ALL_EXTENSIONS, context);
       if (psfstep)
         step = psfstep;
       else
@@ -373,7 +370,7 @@ void	makeit(void)
       set->contextoffset[1] = (cmin[1] + cmax[1])/2.0;
       psf = make_psf(set, step, basis, nbasis, fullcontext, wcs);
       field_count(fields, set, COUNT_ACCEPTED);
-      end_set(set);
+      set_end(set);
       context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
       psf_end(psf);
       }
@@ -400,11 +397,11 @@ void	makeit(void)
             sprintf(str, "Computing hidden dependency parameter(s) from %s...",
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
-          set = load_samples(incatnames, c, 1, ext, next, context);
+          set = set_load_samples(fields + c, 1, ext, context);
           field_count(fields, set, COUNT_LOADED);
           cpsf[c] = make_psf(set, step, basis, nbasis, context, NULL);
           field_count(fields, set, COUNT_ACCEPTED);
-          end_set(set);
+          set_end(set);
           }
         free(fullcontext->pc);
         fullcontext->pc = pca_oncomps(cpsf, 1, ncat, context->npc);
@@ -424,7 +421,7 @@ void	makeit(void)
           }
         else
           NFPRINTF(OUTPUT, "Computing final PSF model...");
-        set = load_samples(incatnames, 0, ncat, ext, next, fullcontext);
+        set = set_load_samples(fields, ncat, ext, fullcontext);
         if (psfstep)
           step = psfstep;
         else if (psfsteps)
@@ -434,7 +431,7 @@ void	makeit(void)
         field_count(fields, set, COUNT_LOADED);
         psf = make_psf(set, step, basis, nbasis, fullcontext, NULL);
         field_count(fields, set, COUNT_ACCEPTED);
-        end_set(set);
+        set_end(set);
         context_apply(fullcontext, psf, fields, ext, 0, ncat);
         psf_end(psf);
         }
@@ -449,7 +446,7 @@ void	makeit(void)
             sprintf(str, "Reading data from %s...",
 		fields[c]->rtcatname);
           NFPRINTF(OUTPUT, str);
-          set = load_samples(incatnames, c, 1, ext, next, context);
+          set = set_load_samples(fields + c, 1, ext, context);
           if (psfstep)
             step = psfstep;
           else if (psfsteps)
@@ -466,7 +463,7 @@ void	makeit(void)
           field_count(fields, set, COUNT_LOADED);
           psf = make_psf(set, step, basis, nbasis, context, NULL);
           field_count(fields, set, COUNT_ACCEPTED);
-          end_set(set);
+          set_end(set);
           context_apply(context, psf, fields, ext, c, 1);
           psf_end(psf);
           }
@@ -502,11 +499,11 @@ void	makeit(void)
     {
     field = fields[c];
     set = NULL;		// Make Coverity scan happy
-    bigset = next > 1 ? init_set(context) : NULL;
+    bigset = next > 1 ? set_init(context) : NULL;
     for (ext=0 ; ext<next; ext++)
       {
-      psf = field->psf[ext];
-      wcs = field->wcs[ext];
+      psf = field->ext[ext]->psf;
+      wcs = field->ext[ext]->wcs;
       if (next>1)
         sprintf(str, "Computing diagnostics for %s[%d/%d]...",
 		field->rtcatname, ext+1, next);
@@ -515,7 +512,7 @@ void	makeit(void)
 		field->rtcatname);
       NFPRINTF(OUTPUT, str);
 /*---- Check PSF with individual datasets */
-      set = load_samples(incatnames, c, 1, ext, next, context);
+      set = set_load_samples(fields + c, 1, ext, context);
       psf->samples_loaded = set->ngood;
       if (set->nsample>1)
         {
@@ -559,9 +556,9 @@ void	makeit(void)
         write_outcat(outcat, set);
 /*---- Append set sources to bigset */
       if (bigset) {
-        add_set(bigset, set);
+        set_add(bigset, set);
 /*------ Free memory */
-        end_set(set);
+        set_end(set);
       }
       }
 #ifdef HAVE_PLPLOT
@@ -571,7 +568,7 @@ void	makeit(void)
     else if (set)	// Make Coverity scan happy
       cplot_snrvsfwhm(field, set);
 #endif
-    end_set(bigset? bigset : set);
+    set_end(bigset? bigset : set);
     }
 
   if (prefs.outcat_type != CAT_NONE)
@@ -631,7 +628,7 @@ void	makeit(void)
         if (!(pstr = strrchr(str, '.')))
           pstr = str+strlen(str);
         sprintf(pstr, "%s", prefs.homokernel_suffix);
-        psf_homo(fields[c]->psf[ext], str, prefs.homopsf_params,
+        psf_homo(fields[c]->ext[ext]->psf, str, prefs.homopsf_params,
 		prefs.homobasis_number, prefs.homobasis_scale, ext, next);
         }
       }

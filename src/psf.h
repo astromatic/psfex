@@ -22,9 +22,12 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		22/05/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _PSF_H_
+#define _PSF_H_
 
 #ifndef _POLY_H_
 #include "wcs/poly.h"
@@ -33,9 +36,6 @@
 #ifndef _SAMPLE_H_
 #include "sample.h"
 #endif
-
-#ifndef _PSF_H_
-#define _PSF_H_
 
 /*----------------------------- Internal constants --------------------------*/
 
@@ -157,6 +157,7 @@ typedef struct psf
   int		homobasis_number;	/* nb of supersampled pixels */
   }	psfstruct;
 
+typedef struct set setstruct;
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_build(psfstruct *psf, double *pos),

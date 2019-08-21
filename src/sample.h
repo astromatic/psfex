@@ -22,9 +22,12 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/07/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+#ifndef _SAMPLE_H_
+#define _SAMPLE_H_
 
 #ifndef _CONTEXT_H_
 #include "context.h"
@@ -34,9 +37,11 @@
 #include "fitswcs.h"
 #endif
 
+#ifndef _FIELD_H_
+#include "field.h"
+#endif
 
-#ifndef _SAMPLE_H_
-#define _SAMPLE_H_
+
 
 /*--------------------------------- constants -------------------------------*/
 
@@ -113,26 +118,25 @@ typedef struct set
 
 /*-------------------------------- protos -----------------------------------*/
 
-samplestruct	*remove_sample(setstruct *set, int isample);
+samplestruct	*set_remove_sample(setstruct *set, int isample);
 
-setstruct	*init_set(contextstruct *context),
-		*load_samples(char **filenames, int catindex, int ncat,
-			int ext, int next, contextstruct *context),
-		*read_samples(setstruct *set, char *filename,
-			float frmin, float frmax,
-			int ext, int next, int catindex,
+setstruct	*set_init(contextstruct *context),
+		*set_load_samples(fieldstruct **fields, int ncat,
+			int ext, contextstruct *context),
+		*set_read_samples(setstruct *set, fieldstruct *field,
+			float frmin, float frmax, int ext,
 			contextstruct *context, double *pcval);
 
-void		add_set(setstruct *destset, setstruct *set),
-		end_set(setstruct *set),
-		free_samples(setstruct *set),
-		free_samplevig(samplestruct *sample),
- 		malloc_samples(setstruct *set, int nsample),
-		malloc_samplevig(samplestruct *sample, int npix, int dgeoflag),
-		make_weights(setstruct *set, samplestruct *sample),
-		realloc_samples(setstruct *set, int nsample),
-		recenter_sample(samplestruct *sample, setstruct *set,
-			float fluxrad);
+void		sample_free_vig(samplestruct *sample),
+		sample_malloc_vig(samplestruct *sample, int npix, int dgeoflag),
+		sample_recenter(samplestruct *sample, setstruct *set,
+			float fluxrad),
+		sample_weight(samplestruct *sample, setstruct *set),
+		set_add(setstruct *destset, setstruct *set),
+		set_end(setstruct *set),
+		set_free_samples(setstruct *set),
+ 		set_malloc_samples(setstruct *set, int nsample),
+		set_realloc_samples(setstruct *set, int nsample);
 
 #endif
 

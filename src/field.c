@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		15/09/2016
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -47,31 +47,33 @@
 #include	"field.h"
 
 /****** field_init ************************************************************
-PROTO	fieldstruct *field_init(char *catname)
+PROTO	fieldstruct *field_init(char *catname, int catindex)
 PURPOSE	Allocate and initialize a PSF MEF structure (groups of PSFs).
-INPUT	Catalog filename.
+INPUT	Catalog filename,
+	Catalog index.
 OUTPUT  fieldstruct pointer.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 08/04/2010
+VERSION 21/08/2019
  ***/
-fieldstruct	*field_init(char *catname)
-  {
+fieldstruct	*field_init(char *catname, int catindex) {
+
    fieldstruct	*field;
    catstruct	*cat;
    tabstruct	*tab, *imatab;
    keystruct	*key;
    char		*pstr;
-   int		e, next, next0, ntab, countsize;
+   int		e, next, next0, ntab, count;
 
   QCALLOC(field, fieldstruct, 1);
+  field->catindex = catindex;
+
 /* Compute the number of valid input extensions */
   if (!(cat = read_cat(catname)))
     error(EXIT_FAILURE, "*Error*: cannot open ", catname);
   tab = cat->tab;
   next0 = 0;
-  for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab)
-    {
+  for (ntab = 0 ; ntab<cat->ntab; ntab++, tab = tab->nexttab) {
 /*--  Check for the next valid image extension */
     if ((tab->naxis != 2)
 	|| (strncmp(tab->xtension, "BINTABLE", 8)
@@ -80,9 +82,10 @@ fieldstruct	*field_init(char *catname)
 		&& strncmp(tab->extname, "OBJECTS", 8)))
       continue;
     next0++;
-    }
+  }
+
   field->next = next0;
-  QMALLOC(field->psf, psfstruct *, next0);
+
   strcpy(field->catname, catname);
 /* A short, "relative" version of the filename */
   if (!(field->rcatname = strrchr(field->catname, '/')))
@@ -93,14 +96,16 @@ fieldstruct	*field_init(char *catname)
   if ((pstr=strrchr(field->rtcatname, '.')))
     *pstr = '\0';
 
-  if (!next0)
-    {
+  if (!next0) {
     field_end(field);
     error(EXIT_FAILURE,"*Error*: No SExtractor FITS-LDAC catalog found in ",
         catname);
-    }
+  }
 
-  QMALLOC(field->wcs, wcsstruct *, next0);
+  count = prefs.context_nsnap*prefs.context_nsnap;
+
+  QMALLOC(field->ext, extstruct *, next0);
+
 /* Compute the number of valid input extensions */
   tab = cat->tab;
   next = 0;
@@ -117,7 +122,7 @@ fieldstruct	*field_init(char *catname)
       memcpy(imatab->headbuf, key->ptr, key->nbytes);
       imatab->cat = cat;
       readbasic_head(imatab);
-      field->wcs[next++] = read_wcs(imatab);
+      field->ext[next++] = ext_init(NULL, read_wcs(imatab), count);
       if (!imatab->headbuf
 	|| fitsread(imatab->headbuf, "OBJECT  ", field->ident,
 	H_STRING,T_STRING)!= RETURN_OK)
@@ -129,26 +134,13 @@ fieldstruct	*field_init(char *catname)
       field->ndet += tab->naxisn[1];
 
   free_cat(&cat, 1);
+  QREALLOC(field->ext, extstruct *, next);
 
   field_locate(field);
   QCALLOC(field->ccat, catstruct *, MAXCHECK);
-  countsize = prefs.context_nsnap*prefs.context_nsnap;
-  QMALLOC(field->lcount, int *, next0);
-  QMALLOC(field->acount, int *, next0);
-  QMALLOC(field->count, int *, next0);
-  QMALLOC(field->modchi2, double *, next0);
-  QMALLOC(field->modresi, double *, next0);
-  for (e=0; e<next0; e++)
-    {
-    QCALLOC(field->lcount[e], int, countsize);
-    QCALLOC(field->acount[e], int, countsize);
-    QCALLOC(field->count[e], int, countsize);
-    QCALLOC(field->modchi2[e], double, countsize);
-    QCALLOC(field->modresi[e], double, countsize);
-    }
 
   return field;
-  }
+}
 
 
 /****** field_end *************************************************************
@@ -158,31 +150,73 @@ INPUT	Pointer to the fieldstruct.
 OUTPUT  -.
 NOTES   .
 AUTHOR  E. Bertin (IAP)
-VERSION 08/04/2010
+VERSION 21/08/2019
  ***/
-void	field_end(fieldstruct *field)
-  {
-   int	ext;
+void	field_end(fieldstruct *field) {
 
-  for (ext=0; ext<field->next; ext++)
-    {
-    psf_end(field->psf[ext]);
-    end_wcs(field->wcs[ext]);
-    free(field->lcount[ext]);
-    free(field->acount[ext]);
-    free(field->count[ext]);
-    free(field->modresi[ext]);
-    free(field->modchi2[ext]);
-    }
-  free(field->psf);
-  free(field->wcs);
+   int		e;
+
+  for (e = 0; e < field->next; e++)
+    ext_end(field->ext[e]);
+
+  free(field->ext);
   free(field->ccat);
-  free(field->lcount);
-  free(field->acount);
-  free(field->count);
-  free(field->modchi2);
-  free(field->modresi);
+
   free(field);
+
+  return;
+}
+
+
+/****** ext_init *************************************************************
+PROTO	extstruct *ext_init(psfstruct *psf, wcsstruct *wcs, int count)
+PURPOSE	Allocate and initialize a field extension structure.
+INPUT	Pointer to PSF,
+	pointer to WCS structure,
+	number of diagnostic points.
+OUTPUT  extstruct pointer.
+NOTES   .
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+ ***/
+
+extstruct	*ext_init(psfstruct *psf, wcsstruct *wcs, int count) {
+
+   extstruct	*ext;  
+
+  QMALLOC(ext, extstruct, 1);
+  ext->psf = psf;
+  ext->wcs = wcs;
+  QCALLOC(ext->lcount, int, count);
+  QCALLOC(ext->acount, int, count);
+  QCALLOC(ext->count, int, count);
+  QCALLOC(ext->modchi2, double, count);
+  QCALLOC(ext->modresi, double, count);
+
+  return ext;
+}
+
+
+/****** ext_end *************************************************************
+PROTO	void ext_end(extstruct *field)
+PURPOSE	Free a field extension structure
+INPUT	Pointer to the extstruct.
+OUTPUT  -.
+NOTES   .
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+ ***/
+void	ext_end(extstruct *ext) {
+
+  psf_end(ext->psf);
+  end_wcs(ext->wcs);
+  free(ext->lcount);
+  free(ext->acount);
+  free(ext->count);
+  free(ext->modresi);
+  free(ext->modchi2);
+
+  free(ext);
 
   return;
   }
@@ -195,10 +229,11 @@ INPUT   Pointer to field structure.
 OUTPUT  A pointer to the created field structure.
 NOTES   Global preferences are used.
 AUTHOR  E. Bertin (IAP)
-VERSION 05/10/2010
+VERSION 21/08/2019
 */
 void	field_locate(fieldstruct *field)
   {
+   extstruct		**ext;
    wcsstruct		*wcs;
    double		*scale[NAXIS],*scalet[NAXIS],
 			*wcsmean,
@@ -206,8 +241,9 @@ void	field_locate(fieldstruct *field)
    int			i, e, lat,lng, naxis;
 
 /* Some initializations */
+  ext = field->ext;
   cosalpha = sinalpha = sindelta = 0.0;
-  wcs = field->wcs[0];
+  wcs = ext[0]->wcs;
   naxis = wcs->naxis;
   wcsmean = field->meanwcspos;
   for (i=0; i<naxis; i++)
@@ -220,7 +256,7 @@ void	field_locate(fieldstruct *field)
 /* Go through each extension */
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = ext[e]->wcs;
     lng = wcs->lng;
     lat = wcs->lat;
 /*-- Locate set */
@@ -239,8 +275,8 @@ void	field_locate(fieldstruct *field)
     }
 
 /* Now make the stats on each axis */
-  lng = field->wcs[0]->lng;
-  lat = field->wcs[0]->lat;
+  lng = ext[0]->wcs->lng;
+  lat = ext[0]->wcs->lat;
   for (i=0; i<naxis; i++)
     {
     if (lat!=lng && (i==lng))
@@ -259,7 +295,7 @@ void	field_locate(fieldstruct *field)
   maxradius = 0.0;
   for (e=0; e<field->next; e++)
     {
-    wcs = field->wcs[e];
+    wcs = ext[e]->wcs;
 /*-- The distance is the distance to the center + the diagonal of the image */
     dist = wcs_dist(wcs, wcs->wcsscalepos, field->meanwcspos)
 		+ wcs->wcsmaxradius;
@@ -286,13 +322,14 @@ INPUT	Pointer to an array of fieldstruct pointers,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 21/08/2019
  ***/
 void	field_count(fieldstruct **fields, setstruct *set, int counttype)
   {
+   extstruct	*ext;
    fieldstruct	*field;
    samplestruct	*sample;
-   int		c,e,n,s, w,h, x,y, size;
+   int		c,e,n,s, x,y, size;
 
   sample = set->sample;
   size = (double)prefs.context_nsnap;
@@ -303,23 +340,22 @@ void	field_count(fieldstruct **fields, setstruct *set, int counttype)
     c = sample->catindex;
     e = sample->extindex;
     field = fields[c];
-    w = field->wcs[e]->naxisn[0];
-    h = field->wcs[e]->naxisn[1];
-    x = (int)((sample->x-0.5)*size) / w;
+    ext = field->ext[e];
+    x = (int)((sample->x-0.5)*size) / ext->wcs->naxisn[0];
     if (x<0)
       x = 0;
     else if (x>=size)
       x = size-1;
-    y = (int)((sample->y-0.5)*size) / h;
+    y = (int)((sample->y-0.5)*size) / ext->wcs->naxisn[1];
     if (y<0)
       y = 0;
     else if (y>=size)
       y = size-1;
     n = y*size+x;
     if ((counttype & COUNT_LOADED))
-      fields[c]->lcount[e][n]++;
+      ext->lcount[n]++;
     if ((counttype & COUNT_ACCEPTED))
-      fields[c]->acount[e][n]++;
+      ext->acount[n]++;
     }
 
   return;
@@ -334,13 +370,14 @@ INPUT	Pointer to an array of fieldstruct pointers,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 21/08/2019
  ***/
 void	field_stats(fieldstruct **fields, setstruct *set)
   {
+   extstruct	*ext;
    fieldstruct	*field;
    samplestruct	*sample;
-   int		c,e,n,s, w,h, x,y, size;
+   int		c,e,n,s, x,y, size;
 
   sample = set->sample;
   size = (double)prefs.context_nsnap;
@@ -351,22 +388,21 @@ void	field_stats(fieldstruct **fields, setstruct *set)
     c = sample->catindex;
     e = sample->extindex;
     field = fields[c];
-    w = field->wcs[e]->naxisn[0];
-    h = field->wcs[e]->naxisn[1];
-    x = (int)((sample->x-0.5)*size) / w;
+    ext = field->ext[e];
+    x = (int)((sample->x-0.5)*size) / ext->wcs->naxisn[0];
     if (x<0)
       x = 0;
     else if (x>=size)
       x = size-1;
-    y = (int)((sample->y-0.5)*size) / h;
+    y = (int)((sample->y-0.5)*size) / ext->wcs->naxisn[1];
     if (y<0)
       y = 0;
     else if (y>=size)
       y = size-1;
     n = y*size+x;
-    field->count[e][n]++;
-    field->modchi2[e][n] += sample->chi2;
-    field->modresi[e][n] += sample->modresi;
+    ext->count[n]++;
+    ext->modchi2[n] += sample->chi2;
+    ext->modresi[n] += sample->modresi;
     }
 
   return;
@@ -383,7 +419,7 @@ INPUT   Pointer to the field structure,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 15/09/2016
+VERSION 21/08/2019
  ***/
 void	field_psfsave(fieldstruct *field, char *filename)
   {
@@ -406,7 +442,7 @@ void	field_psfsave(fieldstruct *field, char *filename)
 
   for (ext=0; ext<field->next; ext++)
     {
-    psf = field->psf[ext];
+    psf = field->ext[ext]->psf;
     tab = new_tab("PSF_DATA");
 
     head = tab->headbuf;

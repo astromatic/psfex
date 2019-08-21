@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		22/05/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -63,7 +63,7 @@ INPUT	Pointer to the field,
 OUTPUT  -.
 NOTES   Check-image is written as a datacube if cubeflag!=0.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/05/2019
+VERSION 21/08/2019
  ***/
 void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 		checkenum checktype, int ext, int next, int cubeflag)
@@ -111,7 +111,7 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
 
   sprintf(str, "chip%02d", ext+1);
 
-  psf = field->psf[ext];
+  psf = field->ext[ext]->psf;
   tab = new_tab(str);
   head = tab->headbuf;
   tab->bitpix =  BP_FLOAT;
@@ -336,8 +336,8 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       for (nt=1, i=npc; (i--)>0;)
         nt *= psf->nsnap;
       QCALLOC(gridsample, samplestruct *, nt);
-      dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
-      dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
+      dstepx = (float)prefs.context_nsnap / field->ext[ext]->wcs->naxisn[0];
+      dstepy = (float)prefs.context_nsnap / field->ext[ext]->wcs->naxisn[1];
       sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {
@@ -469,8 +469,8 @@ void	check_write(fieldstruct *field, setstruct *set, char *checkname,
       for (nt=1, i=npc; (i--)>0;)
         nt *= psf->nsnap;
       QCALLOC(gridsample, samplestruct *, nt);
-      dstepx = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[0];
-      dstepy = (float)prefs.context_nsnap / field->wcs[ext]->naxisn[1];
+      dstepx = (float)prefs.context_nsnap / field->ext[ext]->wcs->naxisn[0];
+      dstepy = (float)prefs.context_nsnap / field->ext[ext]->wcs->naxisn[1];
       sample = set->sample;
       for (n=set->nsample; n--; sample++)
         {

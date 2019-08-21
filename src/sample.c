@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2018 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		03/07/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -42,6 +42,7 @@
 #include "fits/fitscat.h"
 #include "prefs.h"
 #include "context.h"
+#include "field.h"
 #include "misc.h"
 #include "sample.h"
 #include "vignet.h"
@@ -49,22 +50,21 @@
 static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		float minin, float maxin, float *minout, float *maxout);
 
-/****** load_samples *********************************************************
-PROTO	setstruct *load_samples(char **filenames, int catindex, int ncat,
-		int ext, int next, contextstruct *context)
+/****** set_load_samples ******************************************************
+PROTO	setstruct *set_load_samples(fielstruct **fields, int ncat,
+		int ext,  contextstruct *context)
 PURPOSE	Examine and load point source data.
-INPUT	Array of catalog filenames,
-	catalog index,
+INPUT	Array of pointers to fields,
+	number of catalogs,
 	current extension,
-	number of extensions,
 	pointer to the context.
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 03/07/2019
+VERSION 21/08/2019
 */
-setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
-			int next, contextstruct *context)
+setstruct *set_load_samples(fieldstruct **fields, int ncat, int ext,
+			contextstruct *context)
   {
    setstruct		*set;
    catstruct		*cat;
@@ -74,6 +74,7 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
 				"SNR_WIN", ""};
    char			str[MAXCHAR];
    char			**pkeynames,
+			*catname,
 			*head;
    float		*fwhmmin,*fwhmmax,*fwhmmode,
 			*fwhm,*fwhmt, *elong, *hl, *snr,
@@ -81,7 +82,7 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
    unsigned int		*imaflags;
    unsigned short	*flags, *wflags;
    int			*fwhmindex,
-			e,i,j,n, icat, nobj,nobjmax, ldflag, ext2, nkeys;
+			e,i,j,n, nobj,nobjmax, ldflag, ext2, nkeys;
 
 //  NFPRINTF(OUTPUT,"Loading samples...");
   minsn = (float)prefs.minsn;
@@ -118,11 +119,11 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
     for (i=0; i<ncat; i++)
       {
       sprintf(str,"Examining Catalog #%d", i+1);
+      catname = fields[i]->catname;
 //      NFPRINTF(OUTPUT, str);
 /*---- Read input catalog */
-      icat = catindex + i;
-      if (!(cat = read_cat(filenames[icat])))
-        error(EXIT_FAILURE, "*Error*: No such catalog: ", filenames[icat]);
+      if (!(cat = read_cat(fields[i]->catname)))
+        error(EXIT_FAILURE, "*Error*: No such catalog: ", catname);
 
 /*---- Load the objects */
       e = 0;
@@ -152,15 +153,14 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
             elong = (float *)key->ptr;
           else
             {
-            warning("ELONGATION parameter not found in catalog ",
-			filenames[icat]);
+            warning("ELONGATION parameter not found in catalog ", catname);
             elong = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS")))
             flags = (unsigned short *)key->ptr;
           else
             {
-            warning("FLAGS parameter not found in catalog ", filenames[icat]);
+            warning("FLAGS parameter not found in catalog ", catname);
             flags = NULL;
             }
           if ((key = name_to_key(tab, "FLAGS_WEIGHT")))
@@ -173,15 +173,13 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
             imaflags = NULL;
           if (!(key = name_to_key(tab, "FLUX_RADIUS")))
               {
-              sprintf(str, "FLUS_RADIUS not found in catalog %s",
-			filenames[icat]);
+              sprintf(str, "FLUS_RADIUS not found in catalog %s", catname);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
           hl = (float *)key->ptr;
           if (!(key = name_to_key(tab, "SNR_WIN")))
               {
-              sprintf(str, "SNR_WIN not found in catalog %s",
-			filenames[icat]);
+              sprintf(str, "SNR_WIN not found in catalog %s", catname);
               error(EXIT_FAILURE, "*Error*: ", str);
               }
           snr = (float *)key->ptr;
@@ -261,14 +259,13 @@ setstruct *load_samples(char **filenames, int catindex, int ncat, int ext,
   mode = BIG;
   for (i=0; i<ncat; i++)
     {
-    icat = catindex + i;
     if (ext == ALL_EXTENSIONS)
-      for (e=0; e<next; e++)
-        set = read_samples(set, filenames[icat], fwhmmin[i], fwhmmax[i],
-			e, next, icat, context, context->pc+i*context->npc);
+      for (e = 0; e < fields[i]->next; e++)
+        set = set_read_samples(set, fields[i], fwhmmin[i], fwhmmax[i],
+			e, context, context->pc+i*context->npc);
     else
-      set = read_samples(set, filenames[icat], fwhmmin[i], fwhmmax[i],
-			ext, next, icat, context, context->pc+i*context->npc);
+      set = set_read_samples(set, fields[i], fwhmmin[i], fwhmmax[i],
+			ext, context, context->pc+i*context->npc);
     if (fwhmmode[i]<mode)
       mode = fwhmmode[i];
     }
@@ -374,30 +371,27 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
   }
 
 
-/****** read_samples *********************************************************
-PROTO	setstruct *read_samples(setstruct *set, char *filename,
-			float frmin, float frmax,
-			int ext, int next, int catindex,
+/****** set_read_samples ******************************************************
+PROTO	setstruct *set_read_samples(setstruct *set, fieldstruct *field,
+			float frmin, float frmax, int ext,
 			contextstruct *context, double *pcval)
 
 PURPOSE	Read point source data for a given set.
 INPUT	Pointer to the data set,
-	catalogue filename,
+	Pointer to the parent field,
 	minimum FWHM,
 	maximum FWHM,
 	current extension,
 	number of extensions,
-	catalogue index
 	pointer to the context,
 	pointer to the array of principal components, if available.
 OUTPUT  Pointer to a set containing samples that match acceptance criteria.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 20/09/2016
+VERSION 21/08/2019
 */
-setstruct *read_samples(setstruct *set, char *filename,
-			float fwhmmin, float fwhmmax,
-			int ext, int next, int catindex,
+setstruct *set_read_samples(setstruct *set, fieldstruct *field,
+			float fwhmmin, float fwhmmax, int ext,
 			contextstruct *context, double *pcval)
 
   {
@@ -410,7 +404,7 @@ setstruct *read_samples(setstruct *set, char *filename,
    static char		str[MAXCHAR], str2[MAXCHAR];
    char			rkeyname[MAXCHAR],
 			**kstr,
-			*head, *buf, *pstr;
+			*catname, *head, *buf, *pstr;
    unsigned int		*imaflags;
    unsigned short	*flags, *wflags;
    double		contextval[MAXCONTEXT],
@@ -430,10 +424,11 @@ setstruct *read_samples(setstruct *set, char *filename,
   maxbadflag = prefs.badpix_flag;
   maxellip = (float)prefs.maxellip;
   minsn = prefs.minsn;
+  catname = field->catname;
 
 /* If a NULL pointer is provided, we allocate a new set */
   if (!set) {
-    set = init_set(context);
+    set = set_init(context);
     nsample = nsamplemax = ngood = 0;
     ncat = 1;
   } else {
@@ -459,8 +454,8 @@ setstruct *read_samples(setstruct *set, char *filename,
     }
 
 /*-- Read input catalog */
-  if (!(cat = read_cat(filename)))
-    error(EXIT_FAILURE, "*Error*: No such catalog: ", filename);
+  if (!(cat = read_cat(catname)))
+    error(EXIT_FAILURE, "*Error*: No such catalog: ", catname);
   head = (char *)NULL;	/* To avoid gcc -Wall warnings */
   ldflag = 1;
   ext2 = ext+1;
@@ -472,7 +467,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       if (!--ext2)
         break;
   if (j<0)
-    error(EXIT_FAILURE, "*Error*: SExtractor table missing in ", filename);
+    error(EXIT_FAILURE, "*Error*: SExtractor table missing in ", catname);
   if (!ldflag)
     {
     key=read_key(tab, "Field Header Card");
@@ -498,7 +493,7 @@ setstruct *read_samples(setstruct *set, char *filename,
         break;
   if (j<0)
     error(EXIT_FAILURE, "*Error*: OBJECTS table not found in catalog ",
-		filename);
+		catname);
 
 /* Init the single-row tab */
   dxm = dym = NULL;
@@ -511,7 +506,7 @@ setstruct *read_samples(setstruct *set, char *filename,
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
 	prefs.center_key[0]);
-    error(EXIT_FAILURE, str, filename);
+    error(EXIT_FAILURE, str, catname);
     }
   if (key->ttype == T_DOUBLE)
     dxm = (double *)key->ptr;
@@ -526,7 +521,7 @@ setstruct *read_samples(setstruct *set, char *filename,
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
 	prefs.center_key[1]);
-    error(EXIT_FAILURE, str, filename);
+    error(EXIT_FAILURE, str, catname);
     }
    if (key->ttype == T_DOUBLE)
     dym = (double *)key->ptr;
@@ -539,7 +534,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
   if (!(key = name_to_key(keytab, "FLUX_RADIUS")))
     error(EXIT_FAILURE, "*Error*: FLUX_RADIUS parameter not found in catalog ",
-		filename);
+		catname);
   fluxrad = (float *)key->ptr;
 
   strcpy(rkeyname, prefs.photflux_key);
@@ -549,7 +544,7 @@ setstruct *read_samples(setstruct *set, char *filename,
     {
     sprintf(str, "*Error*: %s parameter not found in catalogue ",
 	rkeyname);
-    error(EXIT_FAILURE, str, filename);
+    error(EXIT_FAILURE, str, catname);
     }
   flux = (float *)key->ptr;
   if (n)
@@ -559,7 +554,7 @@ setstruct *read_samples(setstruct *set, char *filename,
     else
       {
       sprintf(str, "Not enough apertures for %s in catalogue %s: ",
-	prefs.photflux_key, filename);
+	prefs.photflux_key, catname);
       warning(str, "using first aperture instead");
       }
     }
@@ -567,7 +562,7 @@ setstruct *read_samples(setstruct *set, char *filename,
   if (!(key = name_to_key(keytab, "SNR_WIN")))
     {
     sprintf(str, "*Error*: SNR_WIN parameter not found in catalogue ");
-    error(EXIT_FAILURE, str, filename);
+    error(EXIT_FAILURE, str, catname);
     }
   snr = (float *)key->ptr;
 
@@ -597,7 +592,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 /* Load SExtractor VIGNET vector */
   if (!(key = name_to_key(keytab, "VIGNET")))
     error(EXIT_FAILURE,
-	"*Error*: VIGNET parameter not found in catalog ", filename);
+	"*Error*: VIGNET parameter not found in catalog ", catname);
   vignet = (float *)key->ptr;
   nobj = key->nobj;
 
@@ -664,7 +659,7 @@ setstruct *read_samples(setstruct *set, char *filename,
         {
         sprintf(str, "*Error*: %s parameter not found in the header of ",
 		*kstr+1);
-        error(EXIT_FAILURE, str, filename);
+        error(EXIT_FAILURE, str, catname);
         }
       }
     else
@@ -675,7 +670,7 @@ setstruct *read_samples(setstruct *set, char *filename,
       if (!(key = name_to_key(keytab, rkeyname)))
         {
         sprintf(str, "*Error*: %s parameter not found in catalog ", *kstr);
-        error(EXIT_FAILURE, str, filename);
+        error(EXIT_FAILURE, str, catname);
         }
       contextvalp[i] = key->ptr;
       contexttyp[i] = key->ttype;
@@ -686,14 +681,14 @@ setstruct *read_samples(setstruct *set, char *filename,
         else
           {
           sprintf(str, "Not enough %s elements in catalogue %s: ", rkeyname,
-		filename);
+		catname);
           warning(str, "using first element instead");
           }
         }
       strcpy(set->contextname[i], key->name);
       }
-  if (next>1)
-    sprintf(str2, "[%d/%d]", ext+1, next);
+  if (field->next>1)
+    sprintf(str2, "[%d/%d]", ext+1, field->next);
   else
     strcpy(str2, "");
 
@@ -765,13 +760,13 @@ setstruct *read_samples(setstruct *set, char *filename,
       {
       nsample = 0;
       nsamplemax = LSAMPLE_DEFSIZE;
-      malloc_samples(set, nsamplemax);
+      set_malloc_samples(set, nsamplemax);
       }
     else
       {
       if (set->vigsize[0] != vigw || set->vigsize[1] != vigh)
         error(EXIT_FAILURE, "*Error*: Incompatible VIGNET size found in ",
-		filename);
+		catname);
       }
 
 /*-- Increase storage space to receive new candidates if needed */
@@ -779,13 +774,14 @@ setstruct *read_samples(setstruct *set, char *filename,
       {
        int	nadd=(int)(1.62*nsamplemax);
       nsamplemax = nadd>nsamplemax?nadd:nsamplemax+1;
-      realloc_samples(set, nsamplemax);
+      set_realloc_samples(set, nsamplemax);
       }
 
     sample = set->sample + nsample;
     sample->detindex = ndet;
     sample->extindex = ext;
-    sample->catindex = catindex;
+    sample->catindex = field->catindex;
+    sample->wcs = field->ext[ext]->wcs;
     sample->badflag = badflag;
 
     sample->norm = *flux;
@@ -825,14 +821,14 @@ setstruct *read_samples(setstruct *set, char *filename,
       }
 /*-- Copy the vignet to the training set */
     if (!badflag) {
-      malloc_samplevig(sample, vigsize, dgeoflag);
+      sample_malloc_vig(sample, vigsize, dgeoflag);
       memcpy(sample->vig, vignet, vigsize*sizeof(float));
       if (dgeoflag) {
         memcpy(sample->vigdgeox, dgeox, vigsize*sizeof(float));
         memcpy(sample->vigdgeoy, dgeoy, vigsize*sizeof(float));
       }
-      make_weights(set, sample);
-      recenter_sample(sample, set, *fluxrad);
+      sample_weight(sample, set);
+      sample_recenter(sample, set, *fluxrad);
       ngood++;
     }
     nsample++;
@@ -858,7 +854,7 @@ setstruct *read_samples(setstruct *set, char *filename,
 
 /* Don't waste memory! */
   if (nsample)
-    realloc_samples(set, nsample);
+    set_realloc_samples(set, nsample);
 
 /* Increase the current catalog number */
   ncat++;
@@ -867,8 +863,313 @@ setstruct *read_samples(setstruct *set, char *filename,
   }
 
 
-/****** recenter_sample ******************************************************
-PROTO   void recenter_samples(samplestruct sample,
+/****** set_malloc_samples ****************************************************
+PROTO   void set_malloc_samples(setstruct *set, int nsample)
+PURPOSE Allocate memory for a set of samples.
+INPUT   set structure pointer,
+        desired number of samples.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 21/08/2019
+*/
+void	set_malloc_samples(setstruct *set, int nsample)
+
+  {
+   samplestruct	*sample;
+   int		n;
+
+  QCALLOC(set->sample, samplestruct, nsample);
+  sample = set->sample;
+  for (n=nsample; n--; sample++)
+    if (set->ncontext)
+      QMALLOC(sample->context, double, set->ncontext);
+
+  set->nsamplemax = nsample;
+
+  return;
+  }
+
+
+/****** set_realloc_samples ***************************************************
+PROTO   void set_realloc_samples(setstruct *set, int nsample)
+PURPOSE Re-allocate memory for a set of samples.
+INPUT   set structure pointer,
+        desired number of samples.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 21/08/2019
+*/
+void	set_realloc_samples(setstruct *set, int nsample)
+
+  {
+   samplestruct	*sample;
+   int		n;
+
+/* If we want to reallocate 0 samples, better free the whole thing! */
+  if (!nsample)
+    set_free_samples(set);
+
+/* Two cases: either more samples are required, or the opposite! */
+  if (nsample>set->nsamplemax)
+    {
+    QREALLOC(set->sample, samplestruct, nsample);
+    sample = set->sample + set->nsamplemax;
+    for (n = nsample - set->nsamplemax; n--; sample++)
+      {
+      memset(sample, 0, sizeof(samplestruct));
+      if (set->ncontext)
+        QMALLOC(sample->context, double, set->ncontext);
+      }
+    }
+  else if (nsample<set->nsamplemax)
+    {
+    sample = set->sample + nsample;
+    for (n = set->nsamplemax - nsample; n--; sample++)
+      {
+      sample_free_vig(sample);
+      if (set->ncontext)
+        free(sample->context);
+      }
+    QREALLOC(set->sample, samplestruct, nsample);
+    }
+
+  set->nsamplemax = nsample;
+
+  return;
+  }
+
+
+/****** set_free_samples ******************************************************
+PROTO   void set_free_samples(setstruct *set, int nsample)
+PURPOSE free memory for a set of samples.
+INPUT   set structure pointer,
+        desired number of samples.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
+VERSION 21/08/2019
+*/
+void	set_free_samples(setstruct *set)
+
+  {
+   samplestruct	*sample;
+   int		n;
+
+  sample = set->sample;
+  for (n = set->nsamplemax; n--; sample++)
+    {
+    sample_free_vig(sample);
+    if (set->ncontext)
+      free(sample->context);
+    }
+
+  free(set->sample);
+  set->sample = NULL;
+  set->nsample = set->nsamplemax = 0;
+
+  return;
+  }
+
+
+
+/****** set_remove_sample ****************************************************
+PROTO   samplestruct *set_remove_sample(setstruct *set, int isample)
+PURPOSE Remove an element from a set of samples.
+INPUT   set structure pointer,
+        sample number.
+OUTPUT  The new pointer for the element that replaced the removed one.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+samplestruct	*remove_sample(setstruct *set, int isample)
+
+  {
+   static samplestruct	exsample;
+   samplestruct		*sample;
+   int			nsample;
+
+/* If we want to reallocate 0 samples, better free the whole thing! */
+  nsample = set->nsample-1;
+  if (nsample>0)
+    {
+    sample = set->sample + isample;
+    exsample = *(set->sample+nsample);
+    *(set->sample+nsample) = *sample;
+    *sample = exsample;
+    }
+   else
+     nsample=0;
+  set_realloc_samples(set, nsample);
+  set->nsample = nsample;
+
+  return set->sample+isample;
+  }
+
+
+/****** set_add ************************************************************
+PROTO   void set_add(setstruct *destset, setstruct *set)
+PURPOSE Add the content of one set to another set (without the pixel data).
+INPUT   destination set structure pointer,
+        input set structure pointer.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	set_add(setstruct *destset, setstruct *set) {
+   samplestruct	*destsample, *sample;
+   int		c,n, ncontext;
+
+  // (Re-)allocate memory
+  if (!destset->nsamplemax) {
+    destset->nsample = set->nsample;
+    set_malloc_samples(destset, destset->nsample);
+  } else if ((destset->nsample += set->nsample) > destset->nsamplemax)
+    set_realloc_samples(destset, destset->nsample);
+  // Restrict to the smallest amount of contexts to avoid issues
+  ncontext = destset->ncontext > set->ncontext? set->ncontext:destset->ncontext;
+  // Set context if necessary
+  if (ncontext && destset->contextscale[0] == 0.0)
+    for (c=0; c<ncontext; c++) {
+      destset->contextoffset[c] = set->contextoffset[c];
+      destset->contextscale[c] = set->contextscale[c];
+      strcpy(destset->contextname[c], set->contextname[c]);
+    }
+  destset->ngood += set->ngood;
+  destsample = destset->sample + destset->nsample - set->nsample;
+  sample = set->sample;
+  for (n=set->nsample; n--; sample++, destsample++) {
+    // Copy scalars
+    *destsample = *sample;
+    // Copy contexts
+    if (ncontext)
+      QMEMCPY(sample->context, destsample->context, double, ncontext);
+    // Don't copy pixel data
+    destsample->vig = destsample->vigresi = destsample->vigweight = destsample->vigchi = NULL;
+  }
+
+  return;
+}
+
+
+
+/****** set_init ************************************************************
+PROTO   setstruct *init_set()
+PURPOSE Allocate and initialize a set structure.
+INPUT   -.
+OUTPUT  -.
+NOTES   See prefs.h.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+setstruct	*set_init(contextstruct *context)
+
+  {
+   setstruct	*set;
+   int		i;
+
+  QCALLOC(set, setstruct, 1);
+  set->vigdim = 2;
+  QMALLOC(set->vigsize, int, set->vigdim);
+  set->ncontext = context->ncontext;
+  if (set->ncontext)
+    {
+    QCALLOC(set->contextoffset, double, set->ncontext);
+    QCALLOC(set->contextscale, double, set->ncontext);
+    QCALLOC(set->contextname, char *, set->ncontext);
+    for (i=0; i<set->ncontext; i++)
+      QCALLOC(set->contextname[i], char, 80);
+    }
+
+  return set;
+  }
+
+
+/****** set_end *************************************************************
+PROTO   void set_end(setstruct *set)
+PURPOSE free memory allocated by a complete set structure.
+INPUT   set structure pointer,
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	set_end(setstruct *set)
+
+  {
+   int	i;
+
+  set_free_samples(set);
+  free(set->vigsize);
+  if (set->ncontext)
+    {
+    for (i=0; i<set->ncontext; i++)
+      free(set->contextname[i]);
+    free(set->contextname);
+    free(set->contextoffset);
+    free(set->contextscale);
+    }
+  free(set->head);
+  free(set);
+
+  return;
+  }
+
+
+/****** sample_malloc_vig *****************************************************
+PROTO   void sample_malloc_vig(samplestruct *sample, int npix, int dgeoflag)
+PURPOSE Free pixel memory for a sample.
+INPUT   sample structure pointer,
+        number of pixels,
+	differential geometry map flag.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	sample_malloc_vig(samplestruct *sample, int npix, int dgeoflag)
+
+  {
+  QMALLOC(sample->vig, float, npix);
+  QMALLOC(sample->vigresi, float, npix);
+  QMALLOC(sample->vigweight, float, npix);
+  QMALLOC(sample->vigchi, float, npix);
+  if (dgeoflag) {
+    QMALLOC(sample->vigdgeox, float, npix);
+    QMALLOC(sample->vigdgeoy, float, npix);
+  }
+
+  return;
+  }
+
+
+/****** sample_free_vig ******************************************************
+PROTO   void sample_free_vig(samplestruct *sample)
+PURPOSE Free pixel memory for a sample.
+INPUT   sample structure pointer.
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	sample_free_vig(samplestruct *sample)
+
+  {
+  QFREE(sample->vig);
+  QFREE(sample->vigresi);
+  QFREE(sample->vigweight);
+  QFREE(sample->vigchi);
+  QFREE(sample->vigdgeox);
+  QFREE(sample->vigdgeoy);
+
+  return;
+  }
+
+/****** sample_recenter *****************************************************
+PROTO   void sample_recenter(samplestruct sample,
 		setstruct *set, float fluxrad)
 PURPOSE Recenter sample image using windowed barycenter.
 INPUT   sample structure pointer,
@@ -877,9 +1178,9 @@ INPUT   sample structure pointer,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 16/11/2009
+VERSION 21/08/2019
 */
-void	recenter_sample(samplestruct *sample, setstruct *set, float fluxrad)
+void	sample_recenter(samplestruct *sample, setstruct *set, float fluxrad)
 
   {
    double	tv, dxpos, dypos;
@@ -1005,322 +1306,17 @@ void	recenter_sample(samplestruct *sample, setstruct *set, float fluxrad)
   }
 
 
-/****** malloc_samples *******************************************************
-PROTO   void malloc_samples(setstruct *set, int nsample)
-PURPOSE Allocate memory for a set of samples.
-INPUT   set structure pointer,
-        desired number of samples.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 18/09/2015
-*/
-void	malloc_samples(setstruct *set, int nsample)
-
-  {
-   samplestruct	*sample;
-   int		n;
-
-  QCALLOC(set->sample, samplestruct, nsample);
-  sample = set->sample;
-  for (n=nsample; n--; sample++)
-    if (set->ncontext)
-      QMALLOC(sample->context, double, set->ncontext);
-
-  set->nsamplemax = nsample;
-
-  return;
-  }
-
-
-/****** realloc_samples ******************************************************
-PROTO   void realloc_samples(setstruct *set, int nsample)
-PURPOSE Re-allocate memory for a set of samples.
-INPUT   set structure pointer,
-        desired number of samples.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 18/09/2015
-*/
-void	realloc_samples(setstruct *set, int nsample)
-
-  {
-   samplestruct	*sample;
-   int		n;
-
-/* If we want to reallocate 0 samples, better free the whole thing! */
-  if (!nsample)
-    free_samples(set);
-
-/* Two cases: either more samples are required, or the opposite! */
-  if (nsample>set->nsamplemax)
-    {
-    QREALLOC(set->sample, samplestruct, nsample);
-    sample = set->sample + set->nsamplemax;
-    for (n = nsample - set->nsamplemax; n--; sample++)
-      {
-      memset(sample, 0, sizeof(samplestruct));
-      if (set->ncontext)
-        QMALLOC(sample->context, double, set->ncontext);
-      }
-    }
-  else if (nsample<set->nsamplemax)
-    {
-    sample = set->sample + nsample;
-    for (n = set->nsamplemax - nsample; n--; sample++)
-      {
-      free_samplevig(sample);
-      if (set->ncontext)
-        free(sample->context);
-      }
-    QREALLOC(set->sample, samplestruct, nsample);
-    }
-
-  set->nsamplemax = nsample;
-
-  return;
-  }
-
-
-/****** free_samples *********************************************************
-PROTO   void free_samples(setstruct *set, int nsample)
-PURPOSE free memory for a set of samples.
-INPUT   set structure pointer,
-        desired number of samples.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 18/09/2015
-*/
-void	free_samples(setstruct *set)
-
-  {
-   samplestruct	*sample;
-   int		n;
-
-  sample = set->sample;
-  for (n = set->nsamplemax; n--; sample++)
-    {
-    free_samplevig(sample);
-    if (set->ncontext)
-      free(sample->context);
-    }
-
-  free(set->sample);
-  set->sample = NULL;
-  set->nsample = set->nsamplemax = 0;
-
-  return;
-  }
-
-
-/****** malloc_samplevig *******************************************************
-PROTO   void free_samplevig(samplestruct *sample, int npix, int dgeoflag)
-PURPOSE Free pixel memory for a sample.
-INPUT   sample structure pointer,
-        number of pixels,
-	differential geometry map flag.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 15/12/2015
-*/
-void	malloc_samplevig(samplestruct *sample, int npix, int dgeoflag)
-
-  {
-  QMALLOC(sample->vig, float, npix);
-  QMALLOC(sample->vigresi, float, npix);
-  QMALLOC(sample->vigweight, float, npix);
-  QMALLOC(sample->vigchi, float, npix);
-  if (dgeoflag) {
-    QMALLOC(sample->vigdgeox, float, npix);
-    QMALLOC(sample->vigdgeoy, float, npix);
-  }
-
-  return;
-  }
-
-
-/****** free_samplevig *******************************************************
-PROTO   void free_samplevig(samplestruct *sample)
-PURPOSE Free pixel memory for a sample.
-INPUT   sample structure pointer.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 15/12/2015
-*/
-void	free_samplevig(samplestruct *sample)
-
-  {
-  QFREE(sample->vig);
-  QFREE(sample->vigresi);
-  QFREE(sample->vigweight);
-  QFREE(sample->vigchi);
-  QFREE(sample->vigdgeox);
-  QFREE(sample->vigdgeoy);
-
-  return;
-  }
-
-
-/****** remove_sample ********************************************************
-PROTO   samplestruct *remove_sample(setstruct *set, int isample)
-PURPOSE Remove an element from a set of samples.
-INPUT   set structure pointer,
-        sample number.
-OUTPUT  The new pointer for the element that replaced the removed one.
-NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 01/03/99
-*/
-samplestruct	*remove_sample(setstruct *set, int isample)
-
-  {
-   static samplestruct	exsample;
-   samplestruct		*sample;
-   int			nsample;
-
-/* If we want to reallocate 0 samples, better free the whole thing! */
-  nsample = set->nsample-1;
-  if (nsample>0)
-    {
-    sample = set->sample + isample;
-    exsample = *(set->sample+nsample);
-    *(set->sample+nsample) = *sample;
-    *sample = exsample;
-    }
-   else
-     nsample=0;
-  realloc_samples(set, nsample);
-  set->nsample = nsample;
-
-  return set->sample+isample;
-  }
-
-
-/****** add_set ************************************************************
-PROTO   void add_set(setstruct *destset, setstruct *set)
-PURPOSE Add the content of one set to another set (without the pixel data).
-INPUT   destination set structure pointer,
-        input set structure pointer.
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 20/09/2016
-*/
-void	add_set(setstruct *destset, setstruct *set) {
-   samplestruct	*destsample, *sample;
-   int		c,n, ncontext;
-
-  // (Re-)allocate memory
-  if (!destset->nsamplemax) {
-    destset->nsample = set->nsample;
-    malloc_samples(destset, destset->nsample);
-  } else if ((destset->nsample += set->nsample) > destset->nsamplemax)
-    realloc_samples(destset, destset->nsample);
-  // Restrict to the smallest amount of contexts to avoid issues
-  ncontext = destset->ncontext > set->ncontext? set->ncontext:destset->ncontext;
-  // Set context if necessary
-  if (ncontext && destset->contextscale[0] == 0.0)
-    for (c=0; c<ncontext; c++) {
-      destset->contextoffset[c] = set->contextoffset[c];
-      destset->contextscale[c] = set->contextscale[c];
-      strcpy(destset->contextname[c], set->contextname[c]);
-    }
-  destset->ngood += set->ngood;
-  destsample = destset->sample + destset->nsample - set->nsample;
-  sample = set->sample;
-  for (n=set->nsample; n--; sample++, destsample++) {
-    // Copy scalars
-    *destsample = *sample;
-    // Copy contexts
-    if (ncontext)
-      QMEMCPY(sample->context, destsample->context, double, ncontext);
-    // Don't copy pixel data
-    destsample->vig = destsample->vigresi = destsample->vigweight = destsample->vigchi = NULL;
-  }
-
-  return;
-}
-
-
-
-/****** init_set ************************************************************
-PROTO   setstruct *init_set()
-PURPOSE Allocate and initialize a set structure.
-INPUT   -.
-OUTPUT  -.
-NOTES   See prefs.h.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 20/09/2016
-*/
-setstruct	*init_set(contextstruct *context)
-
-  {
-   setstruct	*set;
-   int		i;
-
-  QCALLOC(set, setstruct, 1);
-  set->vigdim = 2;
-  QMALLOC(set->vigsize, int, set->vigdim);
-  set->ncontext = context->ncontext;
-  if (set->ncontext)
-    {
-    QCALLOC(set->contextoffset, double, set->ncontext);
-    QCALLOC(set->contextscale, double, set->ncontext);
-    QCALLOC(set->contextname, char *, set->ncontext);
-    for (i=0; i<set->ncontext; i++)
-      QCALLOC(set->contextname[i], char, 80);
-    }
-
-  return set;
-  }
-
-
-/****** end_set *************************************************************
-PROTO   void end_set(setstruct *set)
-PURPOSE free memory allocated by a complete set structure.
-INPUT   set structure pointer,
-OUTPUT  -.
-NOTES   -.
-AUTHOR  E. Bertin (IAP, Leiden observatory & ESO)
-VERSION 26/03/2008
-*/
-void	end_set(setstruct *set)
-
-  {
-   int	i;
-
-  free_samples(set);
-  free(set->vigsize);
-  if (set->ncontext)
-    {
-    for (i=0; i<set->ncontext; i++)
-      free(set->contextname[i]);
-    free(set->contextname);
-    free(set->contextoffset);
-    free(set->contextscale);
-    }
-  free(set->head);
-  free(set);
-
-  return;
-  }
-
-
-/****** make_weights *********************************************************
-PROTO   void make_weights(setstruct *set, samplestruct *sample)
+/****** sample_weight *******************************************************
+PROTO   void sample_weight(setstruct *set, samplestruct *sample)
 PURPOSE Produce a weight-map for each sample vignet.
 INPUT   set structure pointer,
         sample structure pointer.
 OUTPUT  -.
 NOTES   -.
-AUTHOR  E. Bertin (IAP,Leiden observatory & ESO)
-VERSION 13/08/2007
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
 */
-void make_weights(setstruct *set, samplestruct *sample)
+void sample_weight(samplestruct *sample, setstruct *set)
 
   {
    float	*vig, *vigweight,
