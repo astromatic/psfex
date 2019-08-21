@@ -583,9 +583,8 @@ void	psf_make(psfstruct *psf, setstruct *set, double prof_accuracy)
       *(weightt++) = norm2/noise2;      
       }
 
-    for (i=0; i<poly->ndim; i++)
-      *(post++) = (sample->context[i]-set->contextoffset[i])
-		/set->contextscale[i];
+    context_to_pos(sample->context, sample->wcs, psf, post);
+    post += poly->ndim;
     g++;
     }
 
@@ -673,7 +672,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/05/2019
+VERSION 21/08/2019
  ***/
 void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
 		double prof_accuracy)
@@ -754,9 +753,7 @@ void	psf_makeresi(psfstruct *psf, setstruct *set, int centflag,
       continue;
     ngood++;
 /*-- Build the local PSF */
-    for (i=0; i<ndim; i++)
-      pos[i] = (sample->context[i]-set->contextoffset[i])
-		/set->contextscale[i];
+    context_to_pos(sample->context, sample->wcs, psf, pos);
     psf_build(psf, pos);
 
 /*-- Delta-x and Delta-y in vignet-pixel units */
@@ -939,7 +936,7 @@ INPUT	Pointer to the PSF,
 OUTPUT  RETURN_OK if a PSF is succesfully computed, RETURN_ERROR otherwise.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 22/05/2019
+VERSION 21/08/2019
  ***/
 int	psf_refine(psfstruct *psf, setstruct *set)
   {
@@ -1013,9 +1010,7 @@ int	psf_refine(psfstruct *psf, setstruct *set)
     norm = (double)sample->norm;
 
 /*-- Build the local PSF */
-    for (i=0; i<ncontext; i++)
-      pos[i] = (sample->context[i]-set->contextoffset[i])
-		/set->contextscale[i];
+    context_to_pos(sample->context, sample->wcs, psf, pos);
     psf_build(psf, pos);
 
 /*-- Build the current context coefficient sub-matrix */
@@ -1220,7 +1215,7 @@ INPUT	PSF structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 21/09/2015
+VERSION 21/08/2019
  ***/
 void psf_orthopoly(psfstruct *psf, setstruct *set)
   {
@@ -1245,9 +1240,7 @@ void psf_orthopoly(psfstruct *psf, setstruct *set)
     if (sample->badflag)
       continue;
 /*-- Get the local context coordinates */
-    for (i=0; i<ndim; i++)
-      pos[i] = (sample->context[i]-set->contextoffset[i])
-		/set->contextscale[i];
+    context_to_pos(sample->context, sample->wcs, psf, pos);
     poly_func(poly, pos);
     basis = poly->basis;
     datat = data + n++;

@@ -235,10 +235,14 @@ void	field_locate(fieldstruct *field)
   {
    extstruct		**ext;
    wcsstruct		*wcs;
+   char			ctype[2][16],
+			*ctypes[2];
    double		*scale[NAXIS],*scalet[NAXIS],
+			crpix[2], cdelt[2],
 			*wcsmean,
 			cosalpha,sinalpha, sindelta, dist, maxradius;
-   int			i, e, lat,lng, naxis;
+   int			naxisn[2],
+			i, e, lat,lng, naxis;
 
 /* Some initializations */
   ext = field->ext;
@@ -308,6 +312,22 @@ void	field_locate(fieldstruct *field)
 /* Free memory */
   for (i=0; i<naxis; i++)
     free(scale[i]);
+
+/* Create global field WCS */
+  cdelt[0] = - (cdelt[1] = (lat != lng) ?
+	sqrt(field->meanwcsscale[lng] * field->meanwcsscale[lat]) : 1.0);
+
+  naxisn[0] = naxisn[1] = (int)(2.0 * field->maxradius / cdelt[1] + 0.4999);
+  crpix[0] = crpix[1] = (naxisn[1] + 1.0) / 2.0;
+  if (lat != lng) {
+    strcpy(ctypes[0] = ctype[0], "RA---TAN");
+    strcpy(ctypes[1] = ctype[1], "DEC--TAN");
+  } else {
+    strcpy(ctypes[0] = ctype[0], "PIXEL");
+    strcpy(ctypes[1] = ctype[1], "PIXEL");
+  }
+
+  field->wcs = create_wcs(ctypes, field->meanwcspos, crpix, cdelt, naxisn, 2);
 
   return;
   }
@@ -538,5 +558,4 @@ void	field_psfsave(fieldstruct *field, char *filename)
 
   return;
   }
-
 

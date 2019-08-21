@@ -76,7 +76,7 @@ language = None
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
-today = 'Wed Jul 31 2019'
+today = 'Thu Aug 22 2019'
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
 

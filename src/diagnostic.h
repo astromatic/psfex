@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -33,6 +33,7 @@
 #ifndef _FITSWCS_H_
 #include "fitswcs.h"
 #endif
+
 #ifndef _DIAGNOSTIC_H_
 #define _DIAGNOSTIC_H_
 
@@ -53,9 +54,9 @@ float		moffat_parammin[PSF_DIAGNPARAM],moffat_parammax[PSF_DIAGNPARAM];
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_boundtounbound(float *param, double *dparam),
-		psf_compdiag(psfstruct *psf, moffatstruct *moffat,
-			double *dpos, int oversamp),
-		psf_diagnostic(psfstruct *psf),
+		psf_compdiag(psfstruct *psf, wcsstruct *wcs,
+			moffatstruct *moffat, double *dpos, int oversamp),
+		psf_diagnostic(psfstruct *psf, wcsstruct *wcs),
 		psf_diagprintout(int n_par, float *par, int m_dat,
 			float *fvec, void *data, int iflag,int iter,int nfev),
 		psf_diagresi(double *par, double *fvec, int m, int n,

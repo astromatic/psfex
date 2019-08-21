@@ -8,7 +8,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2016 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -23,7 +23,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/04/2016
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -162,7 +162,7 @@ char *default_prefs[] =
 "BASIS_NUMBER    20              # Basis number or parameter",
 "*BASIS_NAME      basis.fits      # Basis filename (FITS data-cube)",
 "*BASIS_SCALE     1.0             # Gauss-Laguerre beta parameter",
-"*NEWBASIS_TYPE   NONE            # Create new basis: NONE, PCA_INDEPENDENT",
+"*NEWBASIS_TYPE   NONE            # Create new basis: NONE, PCA_INDEPENDENT,",
 "*                                # or PCA_COMMON",
 "*NEWBASIS_NUMBER 8               # Number of new basis vectors",
 "PSF_SAMPLING    0.0             # Sampling step in pixel units (0.0 = auto)",
@@ -171,7 +171,7 @@ char *default_prefs[] =
 "PSF_SIZE        25,25           # Image size of the PSF model",
 "*PSF_DGEOCORRECT N               # Use diff. geom. maps (if provided) Y/N?",
 "*PSF_RECENTER    N               # Allow recentering of PSF-candidates Y/N ?",
-"*MEF_TYPE        INDEPENDENT     # INDEPENDENT or COMMON",
+"*MEF_TYPE        INDEPENDENT     # INDEPENDENT, COMMON, or FOCAL_PLANE",
 " ",
 "#------------------------- Point source measurements -------------------------",
 " ",

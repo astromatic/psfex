@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		21/09/2019
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -44,6 +44,7 @@
 #include "wcs/poly.h"
 #include "psf.h"
 #include "field.h"
+
 
 /****** context_init *********************************************************
 PROTO   contextstruct *context_init(char **names, int *group, int ndim,
@@ -153,7 +154,7 @@ void context_apply(contextstruct *context, psfstruct *psf,
       for (e=0; e<fields[p]->next; e++)
         fields[p]->ext[e]->psf = psf_copy(psf);
     else
-      fields[p]->ext[e]->psf = psf_copy(psf);
+      fields[p]->ext[ext]->psf = psf_copy(psf);
 
 /* No PC dependency: the PSF is simply duplicated */
   if (!context->npc)
@@ -286,6 +287,83 @@ void	context_end(contextstruct *context)
   free(context->pcflag);
   free(context->pc);
   free(context);
+
+  return;
+  }
+
+/****** context_to_pos ********************************************************
+PROTO   void context_to_pos(contextstruct *context, wcsstruct *wcs,
+		psfstruct *psf, double *pos)
+PURPOSE Convert a given context to a PSF "position".
+INPUT   Context structure pointer,
+	pointer to the local WCS,
+	pointer to the PSF,
+	pointer to position (output).
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	context_to_pos(double *context, wcsstruct *wcs,
+		psfstruct *psf, double *pos)
+  {
+   double	dpos[2];
+   int		d, ndim;
+
+  ndim = psf->poly->ndim;
+  if (!(psf->wcs && wcs))
+   for (d = 0; d < ndim; d++)
+     pos[d] = (context[d] - psf->contextoffset[d]) / psf->contextscale[d];
+  else {
+    for (d = 0; d < ndim; d++)
+      if (d != psf->cx && d != psf->cy)
+        pos[d] = (context[d] - psf->contextoffset[d]) / psf->contextscale[d];
+    dpos[0] = context[psf->cx];
+    dpos[1] = context[psf->cy];
+    wcs_rawtoraw(wcs, psf->wcs, dpos, dpos, NULL);
+    pos[psf->cx] = (dpos[0] - 0.5) / (double)psf->wcs->naxisn[0];
+    pos[psf->cy] = (dpos[1] - 0.5) / (double)psf->wcs->naxisn[1];
+  }
+
+  return;
+  }
+
+/****** pos_to_context ********************************************************
+PROTO   void pos_to_context(double *pos, psfstruct *psf, wcsstruct *wcs,
+		double *context)
+PURPOSE Convert a given PSF "position" to a context
+INPUT   Position pointer,
+	pointer to the PSF,
+	pointer to the local WCS,
+	pointer to the context (output).
+OUTPUT  -.
+NOTES   -.
+AUTHOR  E. Bertin (IAP)
+VERSION 21/08/2019
+*/
+void	pos_to_context(double *pos, psfstruct *psf, wcsstruct *wcs,
+		double *context)
+  {
+   double	dpos[2];
+   int		d, ndim;
+
+  ndim = psf->poly->ndim;
+
+  if (!(psf->wcs && wcs))
+    for (d = 0; d < ndim; d++)
+      context[d] = pos[d] * psf->contextscale[d] + psf->contextoffset[d];
+  else {
+    for (d = 0; d < ndim; d++)
+      if (d != psf->cx && d != psf->cy)
+        context[d] = pos[d] * psf->contextscale[d] + psf->contextoffset[d];
+    dpos[0] = pos[psf->cx] * psf->contextscale[psf->cx]
+		+ psf->contextoffset[psf->cx];
+    dpos[1] = pos[psf->cy] * psf->contextscale[psf->cy]
+		+ psf->contextoffset[psf->cy];
+    wcs_rawtoraw(psf->wcs, wcs, dpos, dpos, NULL);
+    context[psf->cx] = dpos[0];
+    context[psf->cy] = dpos[1];
+  }
 
   return;
   }

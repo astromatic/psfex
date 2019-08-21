@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2013
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -59,6 +59,7 @@ static void	*pthread_psf_compdiag(void *arg);
 pthread_t	*thread;
 pthread_mutex_t	compdiagmutex;
 psfstruct	*pthread_psf;
+wcsstruct	*pthread_wcs;
 moffatstruct	*pthread_moffat, *pthread_pfmoffat;
 double		*pthread_dpos,
 		pthread_dstart, pthread_dstep;
@@ -179,15 +180,16 @@ void	psf_wcsdiagnostic(psfstruct *psf, wcsstruct *wcs)
 
 
 /****** psf_diagnostic *******************************************************
-PROTO	void	psf_diagnostic(psfstruct *psf)
+PROTO	void	psf_diagnostic(psfstruct *psf, wcsstruct *wcs)
 PURPOSE	Measure PSF diagnostic parameters e.g., by fitting Moffat models
-INPUT	Pointer to the PSF structure.
+INPUT	Pointer to the PSF structure,
+	pointer to the WCS structure.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 29/09/2011
+VERSION 21/08/2019
  ***/
-void	psf_diagnostic(psfstruct *psf)
+void	psf_diagnostic(psfstruct *psf, wcsstruct *wcs)
   {
 #ifdef USE_THREADS
    pthread_attr_t	pthread_attr;
@@ -260,6 +262,7 @@ void	psf_diagnostic(psfstruct *psf)
   pthread_dstart = dstart;
   pthread_dstep = dstep;
   pthread_psf = psf;
+  pthread_wcs = wcs;
   pthread_moffat = moffat;
   pthread_pfmoffat = pfmoffat;
 /* Start all threads */
@@ -278,8 +281,10 @@ void	psf_diagnostic(psfstruct *psf)
 #else
   for (n=0; n<nt; n++)
     {
-    psf_compdiag(psf, &moffat[n], dpos, 1);
-    psf_compdiag(psf, &pfmoffat[n], dpos, PSF_NSUBPIX) ;
+    pos_to_context(dpos, psf, NULL, context);
+    context_to_pos(context, wcs, psf, dpos)
+    psf_compdiag(psf, wcs, &moffat[n], dpos, 1);
+    psf_compdiag(psf, wcs, &pfmoffat[n], dpos, PSF_NSUBPIX) ;
 
     for (i=0; i<npc; i++)
       if (dpos[i]<dstart-0.01)
@@ -444,11 +449,11 @@ INPUT	Pointer to the thread number.
 OUTPUT  -.
 NOTES   Relies on global variables.
 AUTHOR  E. Bertin (IAP)
-VERSION 29/09/2011
+VERSION 21/08/2019
  ***/
 void	*pthread_psf_compdiag(void *arg)
   {
-   double	dpos[POLY_MAXDIM];
+   double	dpos[POLY_MAXDIM], context[POLY_MAXDIM];
    int		i,n, proc, overflag;
 
   proc = *((int *)arg);
@@ -472,10 +477,13 @@ void	*pthread_psf_compdiag(void *arg)
           pthread_dpos[i] = -pthread_dstart;
         }
     QPTHREAD_MUTEX_UNLOCK(&compdiagmutex);
+    pos_to_context(dpos, pthread_psf, NULL, context);
+    context_to_pos(context, pthread_wcs, pthread_psf, dpos);
     if (overflag)
-      psf_compdiag(pthread_psf, &pthread_pfmoffat[n], dpos, PSF_NSUBPIX);
+      psf_compdiag(pthread_psf, pthread_wcs, &pthread_pfmoffat[n], dpos,
+			PSF_NSUBPIX);
     else
-      psf_compdiag(pthread_psf, &pthread_moffat[n], dpos, 1);
+      psf_compdiag(pthread_psf, pthread_wcs, &pthread_moffat[n], dpos, 1);
     QPTHREAD_MUTEX_LOCK(&compdiagmutex);
     }
 
@@ -488,19 +496,21 @@ void	*pthread_psf_compdiag(void *arg)
 
 
 /****** psf_compdiag *******************************************************
-PROTO	void	psf_compdiag(psfstruct *psf, moffatstruct *moffat,
-			double *dpos, int oversamp)
+PROTO	void	psf_compdiag(psfstruct *psf, wcsstruct *wcs,
+			moffatstruct *moffat, double *dpos, int oversamp)
 PURPOSE	Compute diagnostics for a single PSF realization.
 INPUT	Pointer to the PSF structure,
+	pointher to the WCS structure,
 	pointer to the Moffat structure,
 	context vector,
 	oversampling factor.
 OUTPUT  -.
 NOTES   -.
 AUTHOR  E. Bertin (IAP)
-VERSION 02/04/2013
+VERSION 21/08/2019
  ***/
-void	psf_compdiag(psfstruct *psf0, moffatstruct *moffat, double *dpos,
+void	psf_compdiag(psfstruct *psf0, wcsstruct *wcs,
+		moffatstruct *moffat, double *dpos,
 			int oversamp)
   {
    psfstruct		*psf;
@@ -571,8 +581,7 @@ void	psf_compdiag(psfstruct *psf0, moffatstruct *moffat, double *dpos,
 
   moffat->beta = param[6];
 
-  for (i=0; i<npc; i++)
-    moffat->context[i] = dpos[i]*psf->contextscale[i]+psf->contextoffset[i];
+  pos_to_context(dpos, psf, wcs, moffat->context);
 
   moffat->residuals = psf_normresi(param, psf);
   if (oversamp==1)

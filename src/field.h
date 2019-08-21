@@ -74,6 +74,7 @@ typedef struct field {
   double	meanwcspos[NAXIS];	/* Mean pixel coordinate */
   double	meanwcsscale[NAXIS];	/* Mean pixel scale */
   double	maxradius;		/* Maxium radius */
+  wcsstruct	*wcs;			/* Global field WCS */
   extstruct	**ext;
   catstruct	**ccat;			/* Pointers to check-image files */
 }	fieldstruct;

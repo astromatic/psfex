@@ -79,17 +79,14 @@ void	makeit(void)
    contextstruct	*context, *fullcontext;
    outcatstruct		*outcat;
    struct tm		*tm;
-   char			ctype[2][16],
-			str[MAXCHAR],
-			*ctypes[2],
+   char			str[MAXCHAR],
 			**incatnames,
 			*pstr;
-   double		crpix[2], cdelt[2], cmin[2], cmax[2];
+   double		cmin[2], cmax[2];
    float		**psfbasiss,
 			*psfsteps, *psfbasis, *basis,
 			psfstep, step;
-   int			naxisn[2],
-			c,i,p,s, ncat, ext, next, nmed, nbasis;
+   int			c,i,p,s, ncat, ext, next, nmed, nbasis;
 
 /* Install error logging */
   error_installfunc(write_error);
@@ -341,34 +338,7 @@ void	makeit(void)
       step = (float)((set->fwhm/2.35)*0.5);
       basis = psfbasis;
       field_count(fields, set, COUNT_LOADED);
-      cdelt[0] = - (cdelt[1] = sqrt(fields[c]->meanwcsscale[0] *
-				fields[c]->meanwcsscale[1]));
-      naxisn[0] = naxisn[1] = (int)(2.0 * fields[c]->maxradius / cdelt[1]
-				+ 0.4999);
-      crpix[0] = crpix[1] = (naxisn[1] + 1.0) / 2.0;
-      strcpy(ctypes[0] = ctype[0], "RA---TAN");
-      strcpy(ctypes[1] = ctype[1], "DEC--TAN");
-      wcs = create_wcs(ctypes, fields[c]->meanwcspos, crpix,
-			cdelt, naxisn, 2);
-      cmin[0] = cmin[1] = BIG;
-      cmax[0] = cmax[1] = -BIG;
-      sample = set->sample;
-      for (s=set->nsample; s--; sample++) {
-        wcs_rawtoraw(sample->wcs, wcs, sample->context, sample->context, NULL);
-        if (cmin[0] > sample->context[0])
-          cmin[0] = sample->context[0];
-        if (cmax[0] < sample->context[0])
-          cmax[0] = sample->context[0];
-        if (cmin[1] > sample->context[1])
-          cmin[1] = sample->context[1];
-        if (cmax[1] < sample->context[1])
-          cmax[1] = sample->context[1];
-      }
-      set->contextscale[0] = cmax[0] - cmin[0];
-      set->contextoffset[0] = (cmin[0] + cmax[0])/2.0;
-      set->contextscale[1] = cmax[1] - cmin[1];
-      set->contextoffset[1] = (cmin[1] + cmax[1])/2.0;
-      psf = make_psf(set, step, basis, nbasis, fullcontext, wcs);
+      psf = make_psf(set, step, basis, nbasis, fullcontext, fields[c]->wcs);
       field_count(fields, set, COUNT_ACCEPTED);
       set_end(set);
       context_apply(fullcontext, psf, fields, ALL_EXTENSIONS, c, 1);
@@ -522,7 +492,7 @@ void	makeit(void)
         }
       psf->samples_accepted = set->ngood;
 /*---- Compute diagnostics and field statistics */
-      psf_diagnostic(psf);
+      psf_diagnostic(psf, wcs);
       psf_wcsdiagnostic(psf, wcs);
       nmed = psf->nmed;
       field_stats(fields, set);

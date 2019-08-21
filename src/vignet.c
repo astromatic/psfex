@@ -90,6 +90,8 @@ int	vignet_resample(float *pix1, int *size1,
 
   dgeoflag = dgeoxpix && dgeoypix;
   wcsflag = wcs1 && wcs2;
+  w2 = size2[0];
+  h2 = size2[1];
   if (wcsflag) {
     dpos10[0] = dx;
     dpos10[1] = dy;
@@ -101,8 +103,6 @@ int	vignet_resample(float *pix1, int *size1,
   } else {
     w1 = size1[0];
     h1 = size1[1];
-    w2 = size2[0];
-    h2 = size2[1];
     if (stepi <= 0.0)
       stepi = 1.0;
     dstepi = 1.0/stepi;

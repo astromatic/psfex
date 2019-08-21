@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2007-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2007-2019 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,12 +22,16 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2013
+*	Last modified:		21/08/2019
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #ifndef _CONTEXT_H_
 #define _CONTEXT_H_
+
+#ifndef _FITSWCS_H_
+#include "fitswcs.h"
+#endif
 
 /*--------------------------------- constants -------------------------------*/
 
@@ -49,11 +53,17 @@ typedef struct context
   int		npc;			/* Number of PC components */
   }	contextstruct;
 
+typedef struct psf psfstruct;
+
 /*-------------------------------- protos -----------------------------------*/
 
 contextstruct	*context_init(char **names, int *group, int ndim, int *degree,
 			int ngroup, int pcexflag);
-void context_end(contextstruct *context);
+void 		context_end(contextstruct *context),
+		context_to_pos(double *context, wcsstruct *wcs,
+			psfstruct *psf, double *pos),
+		pos_to_context(double *pos, psfstruct *psf,
+			wcsstruct *wcs, double *context);
 
 #endif
 
