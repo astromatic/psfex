@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		06/12/2018
+#	Last modified:		14/12/2018
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -58,8 +58,19 @@ sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
 sinclude(acx_urbi_resolve_dir.m4)
 
+# Provide a special option for setting the package release number
+AC_ARG_WITH(release,
+	[AS_HELP_STRING([--with-release=<release number>],
+	[set the package release number (default = 1)])],
+	[],
+	[with_release="no"])
+if test "$with_release" = "no"; then
+  with_release=1
+fi
+AC_SUBST(PACKAGE_RELEASE, "$with_release")
+
 # Display pakage and version number
-AC_MSG_RESULT([*********** Configuring:  $PACKAGE $VERSION ($date) **********])
+AC_MSG_RESULT([******** Configuring:  $PACKAGE_NAME $PACKAGE_VERSION - $PACKAGE_RELEASE ($date) ********])
 
 # Provide special option for choosing automatically the compilation flags.
 AC_MSG_CHECKING([if compilation flags are set automatically])
@@ -151,8 +162,8 @@ AC_ARG_WITH(fftw-libdir,
 	[AS_HELP_STRING([--with-fftw-libdir=<FFTW library path>],
 	[Provide an alternative path to the FFTW library])])
 AC_ARG_WITH(fftw-incdir,
-	[AS_HELP_STRING([--with-fftw-incdir=<FFTW header dir>],
-	[Provide an alternative path to the FFTW header directory])])
+	[AS_HELP_STRING([--with-fftw-incdir=<FFTW include dir>],
+	[Provide an alternative path to the FFTW include directory])])
 
 # Provide special options for the MKL library
 AC_ARG_WITH(mkl-dir,
@@ -184,12 +195,12 @@ AC_ARG_WITH(plplot-libdir,
 	[AS_HELP_STRING([--with-plplot-libdir=<PLPlot library path>],
 	[Provide an alternative path to the PLPlot library])])
 AC_ARG_WITH(plplot-incdir,
-	[AS_HELP_STRING([--with-plplot-incdir=<PLPlot header dir>],
-	[Provide an alternative path to the PLPlot header directory])])
+	[AS_HELP_STRING([--with-plplot-incdir=<PLPlot include dir>],
+	[Provide an alternative path to the PLPlot include directory])])
 
 
 # Provide a special option for the default XSLT URL
-with_xsl_url="file://"$(URBI_RESOLVE_DIR([$datadir]))"/$PACKAGE_NAME/$PACKAGE_NAME.xsl"
+with_xsl_url="file://"$(URBI_RESOLVE_DIR([$datadir]))"/$PACKAGE_TARNAME/$PACKAGE_TARNAME.xsl"
 AC_ARG_WITH(xsl_url,
 	[AS_HELP_STRING([--with-xsl_url=<default URL for XSLT filter>],
 	[Provide an alternative default URL of the XSLT filter])])
@@ -216,7 +227,7 @@ AC_ARG_ENABLE(threads,
 AC_MSG_CHECKING([for profiler mode])
 AC_ARG_ENABLE(profiling,
 	[AS_HELP_STRING([--enable-profiling],
-	[Enable special mode for profiling (off by default)])],
+	[Enable special mode for profiling (default = no)])]
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
@@ -225,7 +236,7 @@ AC_MSG_CHECKING([best linking option])
 AC_ARG_ENABLE(best-link,
 	[AS_HELP_STRING([--enable-best-link],
 	[Choose the right combination of static and dynamic linking to make \
-the executable as portable as possible (off by default)])],
+the executable as portable as possible (default = no)])],
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
@@ -245,15 +256,18 @@ AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
 ############ handle the INTEL MKL library (FFTW + LAPACKe) ###########
 if test "$enable_mkl" = "yes"; then
-  convlibs="${srcdir}/wcs/libwcs_c.a,${srcdir}/levmar/liblevmar.a"
-  ACX_MKL($with_mkl_dir,,$enable_best_link,$convlibs)
-  if test "$MKL_WARN" != ""; then
+  convlibs="${srcdir}/../src/wcs/libwcs_c.a,${srcdir}/../src/levmar/liblevmar.a"
+  ACX_MKL($with_mkl_dir,no,$enable_best_link,$convlibs)
+  AC_MSG_CHECKING([for the INTEL MKL])
+  if test "$MKL_WARN" == ""; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
     AC_MSG_WARN([$MKL_WARN])
   fi
   AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
   AM_LDFLAGS="$AM_LDFLAGS $MKL_LDFLAGS "
   LIBS="$LIBS $MKL_LIBS"
-
 else
 ################ handle the FFTW library (Fourier transforms) ################
   ACX_FFTW($with_fftw_libdir, $with_fftw_incdir, $use_pthreads,yes,
@@ -267,7 +281,7 @@ else
   )
 
   if test "x$enable_openblas" = "xyes"; then
-######## Handle the OpenBLAS library (linear algebra: BLAS + cLAPACK) ########
+######## Handle the OpenBLAS library (linear algebra: BLAS + LAPACKe) ########
     ACX_OPENBLAS($with_openblas_libdir, $with_openblas_incdir, $use_pthreads, no,
       [
         AM_CFLAGS="$AM_CFLAGS $OPENBLAS_CFLAGS "
