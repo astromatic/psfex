@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		02/12/2013
+*	Last modified:		16/09/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -37,7 +37,7 @@
 #endif
 
 /*----------------------- miscellaneous variables ---------------------------*/
-char		gstr[MAXCHAR];
+extern char		gstr[MAXCHAR];
 
 /*------------------------------- functions ---------------------------------*/
 extern  void	makeit(void);

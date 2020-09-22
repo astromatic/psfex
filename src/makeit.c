@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1997-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/10/2016
+*	Last modified:		16/09/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -61,6 +61,7 @@
 
 void		write_error(const char *msg1, const char *msg2);
 time_t		thetime, thetime2;
+char		gstr[MAXCHAR];
 
 /********************************** makeit ***********************************/
 /*

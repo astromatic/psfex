@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2013 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		20/11/2013
+*	Last modified:		16/09/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -65,6 +65,7 @@ double		*pthread_dpos,
 int		pthread_overflag, pthread_n, pthread_nt, pthread_npc;
 #endif
 
+float	moffat_parammin[PSF_DIAGNPARAM],moffat_parammax[PSF_DIAGNPARAM];
 double lm_opts[] = {1.0e-2, 1.0e-12, 1.0e-12, 1.0e-12, 1.0e-4};
 
 /****** psf_wcsdiagnostic *****************************************************

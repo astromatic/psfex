@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2006-2012 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2006-2020 IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		25/06/2012
+*	Last modified:		16/09/2020
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -46,10 +46,6 @@
 /*-------------------------------- macros -----------------------------------*/
 
 #define         PSFEX_POW(x,a)	(x>0.01? exp(a*log(x)) : pow(x,a))
-
-/*----------------------------- Global variables ---------------------------*/
-
-float		moffat_parammin[PSF_DIAGNPARAM],moffat_parammax[PSF_DIAGNPARAM];
 
 /*---------------------------------- protos --------------------------------*/
 extern void	psf_boundtounbound(float *param, double *dparam),

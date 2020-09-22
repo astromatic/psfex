@@ -477,14 +477,10 @@ void	useprefs()
   {
    char			str[80],
 			*pstr;
-   unsigned short	ashort=1;
-   int			i, flag;
+    int			i, flag;
 #ifdef USE_THREADS
    int			nproc;
 #endif
-
-/* Test if byteswapping will be needed */
-  bswapflag = *((char *)&ashort);
 
 /* Multithreading */
 #ifdef USE_THREADS
