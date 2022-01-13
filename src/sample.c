@@ -360,7 +360,6 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
       break;
 
     var = dfmin / fmin;
-printf("%d %g %g   %g %g\n", nw, maxvar, var, dfmin, fmin);
   }
 
   dfmin = sqrtf((float)maxvar + 1.0f);
