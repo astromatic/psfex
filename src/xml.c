@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2005-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 2005-2022 IAP/CNRS/SorbonneU/CFHT
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		12/01/2022
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -185,8 +185,8 @@ INPUT	Pointer to the output file (or stream),
 	Pointer to an error msg (or NULL).
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	26/06/2012
+AUTHOR	E. Bertin (IAP/CFHT)
+VERSION	12/01/2022
  ***/
 int	write_xml_meta(FILE *file, char *error)
   {
@@ -353,7 +353,7 @@ int	write_xml_meta(FILE *file, char *error)
 	" ucd=\"meta.number;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted_Min\" datatype=\"int\""
 	" ucd=\"meta.number;stat.min;meta.dataset\"/>\n");
-  fprintf(file, "   <FIELD name=\"NStars_Accepted_Mean\" datatype=\"int\""
+  fprintf(file, "   <FIELD name=\"NStars_Accepted_Mean\" datatype=\"float\""
 	" ucd=\"meta.number;stat.mean;meta.dataset\"/>\n");
   fprintf(file, "   <FIELD name=\"NStars_Accepted_Max\" datatype=\"int\""
 	" ucd=\"meta.number;stat.max;meta.dataset\"/>\n");
