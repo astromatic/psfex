@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2018 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 1997-2022 IAP/CNRS/SorbonneU/CFHT
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		09/05/2018
+*	Last modified:		13/01/2022
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -321,14 +321,14 @@ INPUT   Pointer to an array of FWHMs,
 	pointer to the upper FWHM range (output).
 OUTPUT  FWHM mode.
 NOTES   -.
-AUTHOR  E. Bertin (IAP)
-VERSION 09/05/2018
+AUTHOR  E. Bertin (IAP/CFHT)
+VERSION 13/01/2022
 */
 static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
 		float minin, float maxin, float *minout, float *maxout)
   {
    float	*fwhmt,*fwhmt2,
-		df, dfmin,fmin, var;
+		df, dfmin, f, fmin, var;
    int		i, nw;
 
 /* Sort FWHMs */
@@ -346,9 +346,9 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
     fwhmt = fwhm;
     fwhmt2 = fwhm+nw;
     for (i=nfwhm-nw; i--; fwhmt++,fwhmt2++)
-      if ((df = *fwhmt2 - *fwhmt) < dfmin) {
+      if ((df = *fwhmt2 - *fwhmt)*fmin < dfmin * (f = (*fwhmt2 + *fwhmt)/2.0)) {
         dfmin = df;
-        fmin = (*fwhmt2 + *fwhmt)/2.0;
+        fmin = f;
       }
 
     if (nfwhm<2) {
@@ -360,6 +360,7 @@ static float	compute_fwhmrange(float *fwhm, int nfwhm, float maxvar,
       break;
 
     var = dfmin / fmin;
+printf("%d %g %g   %g %g\n", nw, maxvar, var, dfmin, fmin);
   }
 
   dfmin = sqrtf((float)maxvar + 1.0f);
