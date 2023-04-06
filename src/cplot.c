@@ -7,7 +7,7 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 2008-2018 IAP/CNRS/SorbonneU
+*	Copyright:		(C) 2008-2023 CFHT/IAP/CNRS/SorbonneU
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +22,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		06/12/2018
+*	Last modified:		05/04/2023
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -666,8 +666,8 @@ PURPOSE	Plot a map of the PSF FWHM in the instrument field.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_fwhm(fieldstruct *field)
   {
@@ -675,7 +675,7 @@ int	cplot_fwhm(fieldstruct *field)
 		*wcs, *wcsout;
    psfstruct	*psf;
    PLFLT	**fwhm,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		afwhm,fwhmmin,fwhmmax, mfwhm,dfwhm;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -774,10 +774,12 @@ int	cplot_fwhm(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = fwhmmin + (i-0.5) * dfwhm / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D FWHM mapping */
   for (e=0; e<field->next; e++)
@@ -898,8 +900,8 @@ PURPOSE	Plot a map of the PSF ellipticity in the instrument field.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (IAP/CFHT/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_ellipticity(fieldstruct *field)
   {
@@ -907,7 +909,7 @@ int	cplot_ellipticity(fieldstruct *field)
 		*wcs, *wcsout;
    psfstruct	*psf;
    PLFLT	**ellip,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		aellip,ellipmin,ellipmax, mellip,dellip;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1006,10 +1008,12 @@ int	cplot_ellipticity(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = ellipmin + (i-0.5) * dellip / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D ellipticity mapping */
   for (e=0; e<field->next; e++)
@@ -1116,8 +1120,8 @@ PURPOSE	Plot a map of Moffat fit residuals in the instrument field.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_moffatresi(fieldstruct *field)
   {
@@ -1125,7 +1129,7 @@ int	cplot_moffatresi(fieldstruct *field)
 		*wcs, *wcsout;
    psfstruct	*psf;
    PLFLT	**resi,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1223,10 +1227,12 @@ int	cplot_moffatresi(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real mapping of residuals */
   for (e=0; e<field->next; e++)
@@ -1335,8 +1341,8 @@ PURPOSE	Plot a map of asymmetry residuals in the instrument field.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_asymresi(fieldstruct *field)
   {
@@ -1344,7 +1350,7 @@ int	cplot_asymresi(fieldstruct *field)
 		*wcs, *wcsout;
    psfstruct	*psf;
    PLFLT	**resi,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		aresi,resimin,resimax, mresi,dresi;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1442,10 +1448,12 @@ int	cplot_asymresi(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = resimin + (i-0.5) * dresi / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real mapping of residuals */
   for (e=0; e<field->next; e++)
@@ -1549,15 +1557,15 @@ PURPOSE	Plot an x,y map of the number of sources that has been loaded.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_counts(fieldstruct *field)
   {
    wcsstruct	*wcsptr[2],
 		*wcs, *wcsout;
    PLFLT	**count,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1639,10 +1647,12 @@ int	cplot_counts(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D count mapping */
   nsnap2 = nsnap>1? nsnap : 2;
@@ -1708,15 +1718,15 @@ PURPOSE	Plot an x,y map of the fraction of sources that has been accepted.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_countfrac(fieldstruct *field)
   {
    wcsstruct	*wcsptr[2],
 		*wcs, *wcsout;
    PLFLT	**count,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1799,10 +1809,12 @@ int	cplot_countfrac(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D count mapping */
   nsnap2 = nsnap>1? nsnap : 2;
@@ -1867,15 +1879,15 @@ PURPOSE	Plot an x,y map of the average fit chi2/dof.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_modchi2(fieldstruct *field)
   {
    wcsstruct	*wcsptr[2],
 		*wcs, *wcsout;
    PLFLT	**count,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -1959,10 +1971,12 @@ int	cplot_modchi2(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D chi2 mapping */
   nsnap2 = nsnap>1? nsnap : 2;
@@ -2026,15 +2040,15 @@ PURPOSE	Plot an x,y map of the average fit chi2/dof.
 INPUT	Pointer to the field.
 OUTPUT	RETURN_OK if everything went fine, RETURN_ERROR otherwise.
 NOTES	-.
-AUTHOR	E. Bertin (IAP)
-VERSION	19/10/2016
+AUTHOR	E. Bertin (CFHT/IAP/CNRS/SorbonneU)
+VERSION	05/04/2023
  ***/
 int	cplot_modresi(fieldstruct *field)
   {
    wcsstruct	*wcsptr[2],
 		*wcs, *wcsout;
    PLFLT	**count,
-		clevel[CPLOT_NSHADES], cpoint[3], r[3],g[3],b[3],
+		clevel[CPLOT_NSHADES], cpoint[5], r[5],g[5],b[5],
 		cmin,cmax, mc,dc;
    PLINT	lwid;
    char		*ctype[NAXIS],
@@ -2118,10 +2132,12 @@ int	cplot_modresi(fieldstruct *field)
 
   for (i=0; i<CPLOT_NSHADES; i++)
     clevel[i] = cmin + (i-0.5) * dc / (CPLOT_NSHADES-2);
-  cpoint[0] = 0.0; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
-  cpoint[1] = 0.5; r[1] = 0.5; g[1] = 1.0; b[1] = 0.5;
-  cpoint[2] = 1.0; r[2] = 1.0; g[2] = 0.5; b[2] = 0.5;
-  plscmap1l(1, 3, cpoint, r, g, b, NULL);
+  cpoint[0] = 0.00; r[0] = 0.5; g[0] = 0.5; b[0] = 1.0;
+  cpoint[1] = 0.25; r[1] = 0.5; g[1] = 1.0; b[1] = 1.0;
+  cpoint[2] = 0.50; r[2] = 0.5; g[2] = 1.0; b[2] = 0.5;
+  cpoint[3] = 0.75; r[3] = 1.0; g[3] = 1.0; b[3] = 0.5;
+  cpoint[4] = 1.00; r[4] = 1.0; g[4] = 0.5; b[4] = 0.5;
+  plscmap1l(1, 5, cpoint, r, g, b, NULL);
 
 /* Now the real 2D chi2 mapping */
   nsnap2 = nsnap>1? nsnap : 2;
