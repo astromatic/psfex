@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2022 IAP/CNRS/SorbonneU/CFHT
+#	Copyright:		(C) 2002-2023 IAP/CNRS/SorbonneU/CFHT
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		20/09/2022
+#	Last modified:		05/04/2023
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard AstrOmatic source code...
-AC_INIT(PSFEx, 3.24.0, [astromatic@astromatic.net],
+AC_INIT(PSFEx, 3.24.1, [astromatic@astromatic.net],
 	psfex, [http://astromatic.net/software/psfex])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
@@ -50,9 +50,9 @@ AC_SUBST(DATE3, "$date3")
 
 # Include macros
 sinclude(acx_atlas.m4)
+sinclude(acx_openblas.m4)
 sinclude(acx_fftw.m4)
 sinclude(acx_mkl.m4)
-sinclude(acx_openblas.m4)
 sinclude(acx_plplot.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
@@ -345,9 +345,9 @@ fi
 if test "$enable_best_link" = "yes"; then
   if test "$enable_iccx" = "yes"; then
     AM_LDFLAGS="-static-intel -qopenmp-link=static -shared-libgcc \
-	-static-libtool-libs -avoid-version $AM_LDFLAGS"
+	-avoid-version $AM_LDFLAGS"
   else
-    AM_LDFLAGS="-shared-libgcc -static-libtool-libs -avoid-version $AM_LDFLAGS"
+    AM_LDFLAGS="-shared-libgcc -avoid-version $AM_LDFLAGS"
   fi
 fi
 
