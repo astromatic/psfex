@@ -7,7 +7,7 @@
 #
 #	This file part of:	PSFEx
 #
-#	Copyright:		(C) 2002-2022 IAP/CNRS/SorbonneU/CFHT
+#	Copyright:		(C) 2002-2023 IAP/CNRS/SorbonneU/CFHT
 #
 #	License:		GNU General Public License
 #
@@ -22,7 +22,7 @@
 #	You should have received a copy of the GNU General Public License
 #	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 #
-#	Last modified:		12/01/2022
+#	Last modified:		05/04/2023
 #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,7 +31,7 @@ define([AC_CACHE_LOAD],)
 define([AC_CACHE_SAVE],)
 
 # This is your standard AstrOmatic source code...
-AC_INIT(PSFEx, 3.23.0, [astromatic@astromatic.net],
+AC_INIT(PSFEx, 3.24.1, [astromatic@astromatic.net],
 	psfex, [http://astromatic.net/software/psfex])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(autoconf)
@@ -50,9 +50,9 @@ AC_SUBST(DATE3, "$date3")
 
 # Include macros
 sinclude(acx_atlas.m4)
+sinclude(acx_openblas.m4)
 sinclude(acx_fftw.m4)
 sinclude(acx_mkl.m4)
-sinclude(acx_openblas.m4)
 sinclude(acx_plplot.m4)
 sinclude(acx_prog_cc_optim.m4)
 sinclude(acx_pthread.m4)
@@ -80,24 +80,38 @@ AC_ARG_ENABLE(auto-flags,
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
-# Provide special option for the Linux Intel C compiler
-AC_MSG_CHECKING([whether the INTEL compiler is enabled])
+# Provide special option for the Linux Intel C "classic" compiler
+AC_MSG_CHECKING([whether the classic INTEL compiler is enabled])
 AC_ARG_ENABLE(icc,
 	[AS_HELP_STRING([--enable-icc],
 	[Use the Intel compiler (default = no)])],
         CC="icc"
+        enable_iccx="yes"
+	AC_MSG_RESULT([yes]),
+	AC_MSG_RESULT([no]))
+
+# Provide special option for the Linux Intel OneAPI C compiler
+AC_MSG_CHECKING([whether the INTEL compiler is enabled])
+AC_ARG_ENABLE(icx,
+	[AS_HELP_STRING([--enable-icx],
+	[Use the Intel compiler (default = no)])],
+        CC="icx"
+        enable_iccx="yes"
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
 # Provide special options for INTEL MKL
-# We force the use of icc
+# We use icc if available, if not Intel OneAPI's icx
+# (we don't use AC_PROG_CC as it does not play nice
+# in a conditional block)
 AC_MSG_CHECKING([whether INTEL's MKL is enabled])
 AC_ARG_ENABLE(mkl,
 	[AS_HELP_STRING([--enable-mkl],
 	[Use INTEL's MKL for solvers and FFTs (default = no)])],
-        enable_icc="yes"
-        CC="icc"
-	AC_MSG_RESULT([yes]),
+	    AC_MSG_RESULT([yes])
+        CC=""
+        [AC_CHECK_PROGS(CC, [icc icx cc])]
+        enable_iccx="yes",
 	AC_MSG_RESULT([no]))
 
 # Checks for programs.
@@ -116,10 +130,10 @@ AC_PROG_INSTALL
 AC_CHECK_LIB(m, sin)
 
 # Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([dlfcn.h fcntl.h limits.h malloc.h stdlib.h string.h \
 		sys/mman.h sys/types.h unistd.h])
-if test "$enable_icc" = "yes"; then
+# Checks for INTEL math header files.
+if test "$enable_iccx" = "yes"; then
   AC_CHECK_HEADERS(mathimf.h)
 fi
 
@@ -154,8 +168,8 @@ AC_ARG_WITH(atlas-libdir,
 	[AS_HELP_STRING([--with-atlas-libdir=<ATLAS library path>],
 	[Provide an alternative path to the ATLAS library])])
 AC_ARG_WITH(atlas-incdir,
-	[AS_HELP_STRING([--with-atlas-incdir=<ATLAS header dir>],
-	[Provide an alternative path to the ATLAS header directory])])
+	[AS_HELP_STRING([--with-atlas-incdir=<ATLAS include dir>],
+	[Provide an alternative path to the ATLAS include directory])])
 
 # Provide special options for FFTW
 AC_ARG_WITH(fftw-libdir,
@@ -227,7 +241,7 @@ AC_ARG_ENABLE(threads,
 AC_MSG_CHECKING([for profiler mode])
 AC_ARG_ENABLE(profiling,
 	[AS_HELP_STRING([--enable-profiling],
-	[Enable special mode for profiling (default = no)])]
+	[Enable special mode for profiling (default = no)])],
 	AC_MSG_RESULT([yes]),
 	AC_MSG_RESULT([no]))
 
@@ -250,7 +264,7 @@ if test "$use_pthreads" = "yes"; then
   ACX_PTHREAD
   CC="$PTHREAD_CC"
   [AM_CFLAGS="$AM_CFLAGS $PTHREAD_CFLAGS -D_REENTRANT"]
-  LIBS="$PTHREAD_LIBS $LIBS"
+  LIBS="$LIBS $PTHREAD_LIBS"
 fi
 AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 
@@ -258,11 +272,7 @@ AM_CONDITIONAL(USE_THREADS, test $use_pthreads = "yes")
 if test "$enable_mkl" = "yes"; then
   convlibs="${srcdir}/../src/wcs/libwcs_c.a,${srcdir}/../src/levmar/liblevmar.a"
   ACX_MKL($with_mkl_dir,no,$enable_best_link,$convlibs)
-  AC_MSG_CHECKING([for the INTEL MKL])
-  if test "$MKL_WARN" == ""; then
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no])
+  if test "$MKL_WARN" != ""; then
     AC_MSG_WARN([$MKL_WARN])
   fi
   AM_CFLAGS="$AM_CFLAGS $MKL_CFLAGS "
@@ -323,7 +333,7 @@ AM_CONDITIONAL(USE_PLPLOT, test "$use_plplot" = "yes")
 
 # Compile with profiling option
 if test "$enable_profiling" = "yes"; then
-  if test "$enable_icc" = "yes"; then
+  if test "$enable_iccx" = "yes"; then
     AM_CFLAGS="$AM_CFLAGS -pq"
   else
     AM_CFLAGS="$AM_CFLAGS -pg"
@@ -333,11 +343,11 @@ fi
 
 # "Best" linking option
 if test "$enable_best_link" = "yes"; then
-  if test "$enable_icc" = "yes"; then
-    AM_LDFLAGS="-static-intel -qopenmp-link static -shared-libgcc \
-	-static-libtool-libs -no-intel-extensions -avoid-version $AM_LDFLAGS"
+  if test "$enable_iccx" = "yes"; then
+    AM_LDFLAGS="-static-intel -qopenmp-link=static -shared-libgcc \
+	-avoid-version $AM_LDFLAGS"
   else
-    AM_LDFLAGS="-shared-libgcc -static-libtool-libs -avoid-version $AM_LDFLAGS"
+    AM_LDFLAGS="-shared-libgcc -avoid-version $AM_LDFLAGS"
   fi
 fi
 
