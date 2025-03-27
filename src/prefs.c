@@ -7,7 +7,11 @@
 *
 *	This file part of:	PSFEx
 *
-*	Copyright:		(C) 1997-2014 Emmanuel Bertin -- IAP/CNRS/UPMC
+*	Copyright:		(C) 1994,1997 ESO
+*	          		(C) 1995,1996 Leiden Observatory 
+*	          		(C) 1998-2021 IAP/CNRS/SorbonneU
+*	          		(C) 2021-2023 CFHT/CNRS
+*	          		(C) 2023-2025 CEA/AIM/UParisSaclay
 *
 *	License:		GNU General Public License
 *
@@ -22,7 +26,7 @@
 *	You should have received a copy of the GNU General Public License
 *	along with PSFEx.  If not, see <http://www.gnu.org/licenses/>.
 *
-*	Last modified:		26/02/2014
+*	Last modified:		27/03/2025
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
@@ -523,12 +527,6 @@ void	useprefs()
 #ifdef HAVE_MKL
   mkl_set_num_threads(prefs.nthreads);
 #else
- #ifndef HAVE_ATLAS_MP
-   if (prefs.nthreads>1)
-     warning("This executable has been compiled using a version of the ATLAS "
-	"library without support for multithreading. ",
-	"Performance will be degraded.");
- #endif
  #ifndef HAVE_FFTWF_MP
    if (prefs.nthreads>1)
      warning("This executable has been compiled using a version of the FFTW "
